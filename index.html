@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoPir - Transportasi & Pengiriman Paket</title>
+<style>
+:root{
+--primary:#00880c;--primary-dark:#006609;--secondary:#0077b6;--light:#f4f6f8;
+--dark:#1e293b;--gray:#64748b;--white:#fff;--warning:#f59e0b;--danger:#ef4444;--success:#10b981;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Tahoma,Verdana,sans-serif}
+body{background:#e2e8f0;color:var(--dark);display:flex;justify-content:center;min-height:100vh}
+.app-container{width:100%;max-width:480px;min-height:100vh;background:#fff;box-shadow:0 0 20px rgba(0,0,0,.1);position:relative}
+header{background:var(--primary);color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+header h1{font-size:1.2rem}
+.content{padding:15px;padding-bottom:80px}
+.view{display:none}
+.view.active{display:block}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:15px;margin-bottom:15px;box-shadow:0 2px 4px rgba(0,0,0,.03)}
+.btn{width:100%;padding:12px;border:0;border-radius:6px;font-weight:bold;cursor:pointer;margin-top:10px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-secondary{background:var(--secondary);color:#fff}
+.btn-outline{background:#fff;border:1px solid var(--primary);color:var(--primary)}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:.85rem;font-weight:bold;color:var(--gray);margin-bottom:5px}
+.form-control{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:6px;font-size:.95rem}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+<header>
+  <h1>GoPir Portal</h1>
+</header>
+
+<div class="content">
+
+  <!-- LANDING VIEW -->
+  <div id="view-landing" class="view active">
+    <div style="text-align:center;margin:30px 0">
+      <h2 style="color:var(--primary);font-size:2rem">GoPir</h2>
+      <p style="color:var(--gray)">Transportasi Mobil & Pengiriman Paket Maluku Utara</p>
+    </div>
+
+    <div class="card">
+      <h3 style="text-align:center;margin-bottom:15px">Pilih Portal Masuk</h3>
+      <button class="btn btn-primary" onclick="window.location.href='penumpang.html'">Penumpang & Paket</button>
+      <button class="btn btn-secondary" onclick="window.location.href='driver.html'">Driver</button>
+      <button class="btn btn-outline" onclick="showView('view-login-admin')">Admin System</button>
+    </div>
+
+    <div class="card" style="background:#f0fdf4">
+      <h4 style="color:var(--primary-dark)">Rute Utama</h4>
+      <p style="font-size:.85rem;color:var(--gray)">Malifut • Sofifi • Tobelo<br>Serta Rute Fleksibel Lainnya</p>
+    </div>
+  </div>
+
+  <!-- LOGIN ADMIN VIEW -->
+  <div id="view-login-admin" class="view">
+    <div class="card">
+      <h3>Login Admin</h3>
+      <form onsubmit="handleAdminLogin(event)">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="a-user" class="form-control" value="admin" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="a-pass" class="form-control" value="admin123" required>
+        </div>
+        <button class="btn btn-primary">Masuk Admin</button>
+        <button type="button" class="btn btn-outline" onclick="showView('view-landing')">Kembali</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+function showView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+}
+
+function handleAdminLogin(event) {
+  event.preventDefault();
+  // Navigasi langsung ke portal Admin
+  window.location.href = 'admin.html';
+}
+</script>
+</body>
+</html>
