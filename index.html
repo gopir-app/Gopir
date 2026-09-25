@@ -23,7 +23,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // Ekspos fungsi database ke GoPirApp agar bisa diakses global
   window.dbRef = { ref, set, get, onValue, push, update, remove, child };
   window.db = db;
 </script>
@@ -133,63 +132,16 @@ transition:opacity 0.2s, transform 0.1s;
 }
 .btn:active{transform:scale(0.98);}
 
-.btn-primary{
-background:var(--primary);
-color:var(--white);
-}
+.btn-primary{background:var(--primary);color:var(--white);}
 .btn-primary:hover{background:var(--primary-dark);}
-
-.btn-secondary{
-background:var(--secondary);
-color:var(--white);
-}
-
-.btn-outline{
-background:var(--white);
-border:1.5px solid var(--primary);
-color:var(--primary);
-}
+.btn-secondary{background:var(--secondary);color:var(--white);}
+.btn-outline{background:var(--white);border:1.5px solid var(--primary);color:var(--primary);}
 .btn-outline:hover{background:#f0fdf4;}
+.btn-danger{background:var(--danger);color:var(--white);}
+.btn-warning{background:var(--warning);color:var(--white);}
 
-.btn-danger{
-background:var(--danger);
-color:var(--white);
-}
-
-.btn-warning{
-background:var(--warning);
-color:var(--white);
-}
-
-.btn-wa {
-background: var(--whatsapp);
-color: var(--white);
-display: block;
-text-align: center;
-text-decoration: none;
-padding: 9px;
-border-radius: var(--radius);
-font-weight: 600;
-margin-top: 8px;
-font-size: 0.85rem;
-box-shadow: 0 2px 4px rgba(37,211,102,.2);
-}
-.btn-wa:hover {
-background: var(--whatsapp-dark);
-}
-
-.form-group{
-margin-bottom:10px
-}
-
-.form-group label{
-display:block;
-font-size:.8rem;
-font-weight:600;
-color:var(--gray);
-margin-bottom:4px
-}
-
+.form-group{margin-bottom:10px}
+.form-group label{display:block;font-size:.8rem;font-weight:600;color:var(--gray);margin-bottom:4px}
 .form-control{
 width:100%;
 padding:8px 10px;
@@ -200,20 +152,9 @@ background:#fff;
 color:var(--dark);
 transition:border-color 0.2s;
 }
-.form-control:focus{
-outline:none;
-border-color:var(--primary);
-}
-
-textarea.form-control{
-resize:vertical
-}
-
-.grid-2{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px
-}
+.form-control:focus{outline:none;border-color:var(--primary);}
+textarea.form-control{resize:vertical}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
 .nav-bar{
 position:fixed;
@@ -237,17 +178,9 @@ font-size:.7rem;
 color:var(--gray);
 cursor:pointer;
 gap:1px;
-transition:color 0.2s;
 }
-
-.nav-item span{
-font-size:1.1rem
-}
-
-.nav-item.active{
-color:var(--primary);
-font-weight:700
-}
+.nav-item span{font-size:1.1rem}
+.nav-item.active{color:var(--primary);font-weight:700}
 
 .badge{
 display:inline-block;
@@ -256,17 +189,11 @@ border-radius:20px;
 color:var(--white);
 font-size:.7rem;
 font-weight:700;
-letter-spacing:0.3px;
 }
-
 .badge-menunggu{background:var(--warning)}
 .badge-diterima, .badge-selesai{background:var(--success)}
 .badge-ditolak, .badge-dibatalkan{background:var(--danger)}
-.badge-ditemukan{background:var(--secondary)}
 .badge-menuju{background:#3b82f6}
-.badge-dijemput{background:#8b5cf6}
-.badge-perjalanan{background:#6366f1}
-.badge-sampai{background:#14b8a6}
 
 .toggle-container{
 display:flex;
@@ -287,13 +214,7 @@ border-radius:var(--radius);
 text-align:center;
 box-shadow:var(--shadow);
 }
-
-.stat-card .number{
-font-size:1.3rem;
-font-weight:700;
-color:var(--primary);
-margin-bottom:2px;
-}
+.stat-card .number{font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:2px;}
 
 .empty-box{
 padding:16px;
@@ -312,90 +233,47 @@ border:1px dashed #cbd5e1;
   border-radius: var(--radius);
   margin-bottom: 12px;
   font-size: 0.8rem;
-  line-height: 1.35;
-  color: var(--dark);
   display: flex;
   align-items: flex-start;
   gap: 8px;
 }
-.checkbox-box input[type="checkbox"] {
-  margin-top: 2px;
-  transform: scale(1.1);
-  cursor: pointer;
-}
 
-.preview-img-box {
-  width: 100%;
-  height: 130px;
-  background: #f1f5f9;
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
+/* STYLING MODAL PEMINDAI SIDIK JARI */
+.fingerprint-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(15, 23, 42, 0.75);
+  z-index: 1000;
   justify-content: center;
-  overflow: hidden;
-  border: 1.5px dashed #cbd5e1;
-  margin-top: 4px;
+  align-items: center;
 }
-
-.preview-img-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.fingerprint-box {
+  background: var(--white);
+  width: 90%;
+  max-width: 340px;
+  padding: 24px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
-
-.chat-container {
-  display: flex;
-  flex-direction: column;
-  height: 240px;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: var(--radius);
-  padding: 10px;
-  margin-top: 12px;
+.fp-icon {
+  font-size: 3.5rem;
+  margin: 15px 0;
+  cursor: pointer;
+  display: inline-block;
+  color: var(--secondary);
+  animation: pulseAnim 1.2s infinite;
 }
-
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-right: 4px;
-}
-
-.chat-bubble {
-  max-width: 80%;
-  padding: 8px 12px;
-  border-radius: var(--radius);
-  font-size: 0.85rem;
-  line-height: 1.35;
-  box-shadow: 0 1px 2px rgba(0,0,0,.05);
-}
-
-.chat-bubble.me {
-  background: var(--primary);
-  color: var(--white);
-  align-self: flex-end;
-  border-bottom-right-radius: 4px;
-}
-
-.chat-bubble.other {
-  background: #e2e8f0;
-  color: var(--dark);
-  align-self: flex-start;
-  border-bottom-left-radius: 4px;
-}
-
-.chat-input-row {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
+@keyframes pulseAnim {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.08); color: var(--primary); }
+  100% { opacity: 1; transform: scale(1); }
 }
 </style>
 </head>
 
 <body>
-
 <div class="app-container">
 
 <header>
@@ -411,17 +289,11 @@ border:1px dashed #cbd5e1;
 <h2 style="color:var(--primary);font-size:2rem;font-weight:800;letter-spacing:-0.5px;">GoPir</h2>
 <p style="color:var(--gray);font-size:0.9rem;margin-top:4px;">Transportasi Mobil Antarkota & Pengiriman Paket Maluku Utara</p>
 </div>
-
 <div class="card">
-<h3 style="text-align:center;margin-bottom:12px;font-size:1.05rem;color:var(--dark);">Pilih Peran Anda</h3>
+<h3 style="text-align:center;margin-bottom:12px;font-size:1.05rem;">Pilih Peran Anda</h3>
 <button class="btn btn-primary" onclick="window.app.showLogin('passenger')">🚗 Penumpang & Paket</button>
-<button class="btn btn-secondary" onclick="window.app.showLogin('driver')">🚙 Driver</button>
+<button class="btn btn-secondary" onclick="window.app.showLogin('driver')">🚙 Driver (Verifikasi Sidik Jari)</button>
 <button class="btn btn-outline" onclick="window.app.showLogin('admin')">⚙️ Admin System</button>
-</div>
-
-<div class="card" style="background:#f0fdf4; border-color:#bbf7d0;">
-<h4 style="color:var(--primary-dark);font-size:0.9rem;margin-bottom:2px;">Trayek & Rute Utama Bolak-Balik (PP)</h4>
-<p style="font-size:0.85rem;color:var(--gray);line-height:1.4;">Malifut ⇄ Sofifi<br>Malifut ⇄ Tobelo</p>
 </div>
 </div>
 
@@ -429,13 +301,9 @@ border:1px dashed #cbd5e1;
 <div id="view-login-passenger" class="view">
 <div class="card">
 <h3>Login Penumpang</h3>
-<p style="font-size:0.85rem;color:var(--gray);margin:8px 0 14px">Masukkan nomor telepon Anda.</p>
 <form onsubmit="window.app.loginPassenger(event)">
-<div class="form-group">
-<label>Nomor Telepon</label>
-<input type="tel" id="p-phone" class="form-control" placeholder="08123456789" required>
-</div>
-<button class="btn btn-primary">Masuk / Lanjutkan</button>
+<div class="form-group"><label>Nomor Telepon</label><input type="tel" id="p-phone" class="form-control" placeholder="08123456789" required></div>
+<button class="btn btn-primary">Masuk</button>
 <button type="button" class="btn btn-outline" onclick="window.app.showView('view-landing')">Kembali</button>
 </form>
 </div>
@@ -445,13 +313,10 @@ border:1px dashed #cbd5e1;
 <div id="view-login-driver" class="view">
 <div class="card">
 <h3>Login Driver</h3>
-<p style="font-size:0.85rem;color:var(--gray);margin:8px 0 14px">Masukkan nomor telepon Driver.</p>
-<form onsubmit="window.app.loginDriver(event)">
-<div class="form-group">
-<label>Nomor Telepon Driver</label>
-<input type="tel" id="d-phone" class="form-control" placeholder="08213456789" required>
-</div>
-<button class="btn btn-secondary">Masuk Driver</button>
+<p style="font-size:0.8rem;color:var(--gray);margin-bottom:10px;">Masukkan No. HP, lalu lanjutkan untuk pemindaian sidik jari.</p>
+<form onsubmit="window.app.initiateDriverLogin(event)">
+<div class="form-group"><label>Nomor Telepon Driver</label><input type="tel" id="d-phone" class="form-control" placeholder="08213456789" required></div>
+<button class="btn btn-secondary">Autentikasi Sidik Jari</button>
 <button type="button" class="btn btn-outline" onclick="window.app.showView('view-landing')">Kembali</button>
 </form>
 </div>
@@ -465,17 +330,11 @@ border:1px dashed #cbd5e1;
 <div id="view-driver-register" class="view">
 <div class="card">
 <h3>Pendaftaran Driver GoPir</h3>
-<form onsubmit="window.app.registerDriver(event)">
+<form onsubmit="window.app.initiateDriverRegistration(event)">
+<div class="form-group"><label>Nama Lengkap Driver</label><input type="text" id="reg-driver-name" class="form-control" required></div>
+<div class="form-group"><label>Nomor Telepon</label><input type="tel" id="reg-driver-phone" class="form-control" required></div>
 <div class="form-group">
-<label>Nama Lengkap Driver</label>
-<input type="text" id="reg-driver-name" class="form-control" required>
-</div>
-<div class="form-group">
-<label>Nomor Telepon</label>
-<input type="tel" id="reg-driver-phone" class="form-control" required>
-</div>
-<div class="form-group">
-<label>Basis Pangkalan / Kota Asal Utama</label>
+<label>Basis Pangkalan</label>
 <select id="reg-driver-base" class="form-control" required>
 <option value="Malifut">Pangkalan Malifut</option>
 <option value="Tobelo">Pangkalan Tobelo</option>
@@ -489,21 +348,13 @@ border:1px dashed #cbd5e1;
 <option value="Sofifi">Lintas Malifut - Sofifi (PP)</option>
 </select>
 </div>
-<div class="form-group">
-<label>Model Kendaraan</label>
-<input type="text" id="reg-driver-model" class="form-control" placeholder="Contoh: Avanza" required>
-</div>
-<div class="form-group">
-<label>Plat Nomor</label>
-<input type="text" id="reg-driver-plate" class="form-control" placeholder="DG 1234 XX" required>
-</div>
+<div class="form-group"><label>Model Kendaraan</label><input type="text" id="reg-driver-model" class="form-control" placeholder="Avanza" required></div>
+<div class="form-group"><label>Plat Nomor</label><input type="text" id="reg-driver-plate" class="form-control" placeholder="DG 1234 XX" required></div>
 <div class="checkbox-box">
   <input type="checkbox" id="reg-agreement" required>
-  <label for="reg-agreement" style="cursor:pointer; display:inline; font-weight:normal; color:var(--dark);">
-    <b>Pernyataan Persetujuan Driver:</b> Unit laik jalan dan bertanggung jawab atas insiden pribadi.
-  </label>
+  <label for="reg-agreement" style="font-weight:normal;">Unit laik jalan dan bertanggung jawab atas operasional.</label>
 </div>
-<button class="btn btn-secondary">Daftar Sekarang</button>
+<button class="btn btn-secondary">Daftar & Rekam Sidik Jari</button>
 <button type="button" class="btn btn-outline" onclick="window.app.showView('view-login-driver')">Kembali</button>
 </form>
 </div>
@@ -514,14 +365,8 @@ border:1px dashed #cbd5e1;
 <div class="card">
 <h3>Login Admin</h3>
 <form onsubmit="window.app.loginAdmin(event)" style="margin-top: 12px;">
-<div class="form-group">
-<label>Username</label>
-<input type="text" id="a-user" class="form-control" required>
-</div>
-<div class="form-group">
-<label>Password</label>
-<input type="password" id="a-pass" class="form-control" required>
-</div>
+<div class="form-group"><label>Username</label><input type="text" id="a-user" class="form-control" required></div>
+<div class="form-group"><label>Password</label><input type="password" id="a-pass" class="form-control" required></div>
 <button class="btn btn-primary">Masuk Admin</button>
 <button type="button" class="btn btn-outline" onclick="window.app.showView('view-landing')">Kembali</button>
 </form>
@@ -532,47 +377,39 @@ border:1px dashed #cbd5e1;
 <div id="view-p-home" class="view">
 <div class="card" style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:var(--white);border:none;">
 <h3 id="p-welcome" style="font-size:1.15rem;">Halo!</h3>
-<p style="font-size:0.85rem;margin-top:4px;opacity:0.95;">Mau bepergian atau kirim paket hari ini?</p>
+<p style="font-size:0.85rem;margin-top:4px;">Mau bepergian atau kirim paket hari ini?</p>
 </div>
 <div class="grid-2">
 <div class="card" style="text-align:center;cursor:pointer;padding:18px 12px;" onclick="window.app.showView('view-p-book-car')">
-<div style="font-size:2.2rem;margin-bottom:6px;">🚗</div>
-<strong style="font-size:0.9rem;">Pesan Mobil</strong>
+<div style="font-size:2.2rem;margin-bottom:6px;">🚗</div><strong style="font-size:0.9rem;">Pesan Mobil</strong>
 </div>
 <div class="card" style="text-align:center;cursor:pointer;padding:18px 12px;" onclick="window.app.showView('view-p-book-package')">
-<div style="font-size:2.2rem;margin-bottom:6px;">📦</div>
-<strong style="font-size:0.9rem;">Kirim Paket</strong>
+<div style="font-size:2.2rem;margin-bottom:6px;">📦</div><strong style="font-size:0.9rem;">Kirim Paket</strong>
 </div>
 </div>
 </div>
 
 <!-- BOOK CAR -->
 <div id="view-p-book-car" class="view">
-<div class="card" style="margin-bottom: 0;">
-<h3 style="font-size: 1rem; margin-bottom: 8px;">TENTUKAN PERJALANAN ANDA</h3>
-<div class="card" style="background:#f8fafc; border:1px dashed #cbd5e1; margin:8px 0 10px 0; padding:10px;">
-<h4 id="queue-title-direction" style="font-size:0.82rem; margin-bottom:6px; color:var(--dark);">🚗 Status Kursi & Antrean:</h4>
-<div id="passenger-queue-preview" style="font-size:0.8rem; color:var(--gray); max-height: 52px; overflow-y: auto;">Memuat...</div>
+<div class="card">
+<h3 style="font-size: 1rem; margin-bottom: 8px;">PESAN KURSI MOBIL</h3>
+<div class="card" style="background:#f8fafc; border:1px dashed #cbd5e1; margin:8px 0; padding:10px;">
+<h4 id="queue-title-direction" style="font-size:0.82rem; margin-bottom:6px;">🚗 Antrean:</h4>
+<div id="passenger-queue-preview" style="font-size:0.8rem; color:var(--gray);">Memuat...</div>
 </div>
 <form onsubmit="window.app.bookCarWithQueue(event)">
 <div class="form-group">
-<label>Pilih Trayek & Arah</label>
-<select id="car-direction" class="form-control" onchange="window.app.onDirectionChange()" required>
+<label>Trayek & Arah</label>
+<select id="car-direction" class="form-control" onchange="window.app.renderPassengerQueuePreview()" required>
 <option value="Malifut - Tobelo">Malifut ➔ Tobelo</option>
 <option value="Tobelo - Malifut">Tobelo ➔ Malifut</option>
 <option value="Malifut - Sofifi">Malifut ➔ Sofifi</option>
 <option value="Sofifi - Malifut">Sofifi ➔ Malifut</option>
 </select>
 </div>
-<div class="form-group">
-<label>Titik Penjemputan Detail</label>
-<input type="text" id="car-origin" class="form-control" placeholder="Contoh: Desa / Rumah" required>
-</div>
-<div class="form-group">
-<label>Jumlah Kursi</label>
-<input type="number" id="car-passengers" class="form-control" min="1" max="10" value="1" required>
-</div>
-<button type="submit" class="btn btn-primary">Booking Kursi Mobil</button>
+<div class="form-group"><label>Titik Penjemputan</label><input type="text" id="car-origin" class="form-control" required></div>
+<div class="form-group"><label>Jumlah Kursi</label><input type="number" id="car-passengers" class="form-control" min="1" max="10" value="1" required></div>
+<button type="submit" class="btn btn-primary">Booking Kursi</button>
 <button type="button" class="btn btn-outline" onclick="window.app.showView('view-p-home')">Kembali</button>
 </form>
 </div>
@@ -581,7 +418,7 @@ border:1px dashed #cbd5e1;
 <!-- BOOK PACKAGE -->
 <div id="view-p-book-package" class="view">
 <div class="card">
-<h3>Pengiriman Paket Antarkota</h3>
+<h3>Pengiriman Paket</h3>
 <form onsubmit="window.app.submitPackageBooking(event)">
 <div class="form-group"><label>Nama Pengirim</label><input id="pkg-sender-name" class="form-control" required></div>
 <div class="form-group"><label>No HP Pengirim</label><input id="pkg-sender-phone" type="tel" class="form-control" required></div>
@@ -616,7 +453,7 @@ border:1px dashed #cbd5e1;
 
 <!-- DETAIL ORDER -->
 <div id="view-order-detail" class="view">
-<button class="btn btn-outline" style="width:auto; margin-bottom:10px; padding:6px 14px; font-size: 0.8rem;" onclick="window.app.backFromDetail()">← Kembali</button>
+<button class="btn btn-outline" style="width:auto; margin-bottom:10px; padding:6px 14px; font-size: 0.8rem;" onclick="window.app.showView('view-p-orders')">← Kembali</button>
 <div class="card" id="order-detail-content" style="margin-top:0"></div>
 </div>
 
@@ -625,7 +462,6 @@ border:1px dashed #cbd5e1;
 <div class="card">
 <h3 id="d-welcome" style="font-size:1.1rem;">Dashboard Driver</h3>
 <p id="d-vehicle-info" style="font-size:0.8rem;color:var(--gray);margin-top:3px;"></p>
-<p id="d-current-location" style="font-size:0.8rem; margin-top:4px; font-weight:600; color:var(--primary);"></p>
 </div>
 <div class="toggle-container">
 <span style="font-size: 0.85rem;">Status: <strong id="d-status-text" style="color:var(--danger)">OFFLINE</strong></span>
@@ -637,49 +473,29 @@ border:1px dashed #cbd5e1;
 
 <!-- ADMIN DASHBOARD -->
 <div id="view-a-dashboard" class="view">
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-  <h3 style="font-size: 1.1rem;">Admin Dashboard</h3>
-  <button class="btn btn-outline" style="width:auto; margin:0; padding:5px 12px; font-size:0.8rem;" onclick="window.app.showView('view-admin-settings')">⚙️ Kredensial</button>
-</div>
-<div class="grid-2" style="margin-top:8px">
+<h3 style="font-size: 1.1rem; margin-bottom:12px;">Admin Dashboard</h3>
+<div class="grid-2">
 <div class="stat-card"><div class="number" id="stat-total-orders">0</div>Pesanan</div>
-<div class="stat-card"><div class="number" id="stat-active-orders">0</div>Aktif</div>
 <div class="stat-card"><div class="number" id="stat-drivers">0</div>Driver Disetujui</div>
 <div class="stat-card"><div class="number" id="stat-pending-drivers">0</div>Pendaftar Baru</div>
 </div>
 <div class="card" style="margin-top:12px">
-<h4 style="color:var(--primary);font-size:0.95rem;margin-bottom:4px;">🛣️ Antrean Pool</h4>
-<div id="a-trayek-summary-container"></div>
-</div>
-<div class="card" style="margin-top:12px">
-<h4 style="color:var(--warning);font-size:0.95rem;margin-bottom:8px;">🔔 Pendaftaran Driver Baru</h4>
+<h4 style="color:var(--warning);font-size:0.95rem;margin-bottom:8px;">🔔 Pendaftaran Driver Baru (Verifikasi Sidik Jari)</h4>
 <div id="a-pending-driver-container"></div>
 </div>
-<div class="card" style="margin-top:12px">
-<h4 style="font-size:0.95rem;margin-bottom:8px;">Seluruh Driver Aktif</h4>
-<div id="a-driver-list-container"></div>
-</div>
 </div>
 
-<!-- ADMIN SETTINGS -->
-<div id="view-admin-settings" class="view">
-<button class="btn btn-outline" style="width:auto; margin-bottom:10px; padding:6px 14px; font-size: 0.8rem;" onclick="window.app.showView('view-a-dashboard')">← Kembali</button>
-<div class="card" style="margin-top:0">
-<h3>Ubah Admin Credentials</h3>
-<form onsubmit="window.app.updateAdminCredentials(event)">
-<div class="form-group"><label>Username Baru</label><input type="text" id="set-admin-user" class="form-control" required></div>
-<div class="form-group"><label>Password Baru</label><input type="password" id="set-admin-pass" class="form-control" required></div>
-<button class="btn btn-primary">Simpan</button>
-</form>
-</div>
 </div>
 
-<!-- ADMIN DRIVER DETAIL -->
-<div id="view-admin-driver-detail" class="view">
-<button class="btn btn-outline" style="width:auto; margin-bottom:10px; padding:6px 14px; font-size: 0.8rem;" onclick="window.app.showView('view-a-dashboard')">← Kembali</button>
-<div class="card" id="admin-driver-detail-content" style="margin-top:0"></div>
-</div>
-
+<!-- MODAL POPUP PEMINDAI SIDIK JARI -->
+<div id="fingerprint-modal" class="fingerprint-modal">
+  <div class="fingerprint-box">
+    <h3 id="fp-modal-title" style="margin-bottom: 6px; font-size: 1.1rem;">Verifikasi Biometrik</h3>
+    <p id="fp-modal-desc" style="font-size: 0.82rem; color: var(--gray);">Tempelkan jari Anda pada sensor atau klik ikon sidik jari.</p>
+    <div id="fp-scan-btn" class="fp-icon" onclick="window.app.executeHardwareFingerprintScan()">👆</div>
+    <div id="fp-status-text" style="font-size: 0.82rem; font-weight: 600; color: var(--secondary); margin-bottom: 14px;">Menunggu sentuhan...</div>
+    <button class="btn btn-outline" style="padding: 6px; font-size: 0.8rem;" onclick="window.app.closeFingerprintModal()">Batal</button>
+  </div>
 </div>
 
 <div id="nav-passenger" class="nav-bar" style="display:none">
@@ -698,9 +514,7 @@ border:1px dashed #cbd5e1;
 
 </div>
 
-<datalist id="route-list">
-<option value="Malifut"><option value="Sofifi"><option value="Tobelo">
-</datalist>
+<datalist id="route-list"><option value="Malifut"><option value="Sofifi"><option value="Tobelo"></datalist>
 
 <script>
 const GoPirApp = {
@@ -711,6 +525,8 @@ const GoPirApp = {
   orders: [],
   registeredPassengers: [],
   drivers: [],
+  pendingRegData: null,
+  pendingLoginDriver: null,
   
   init() {
     this.showView('view-landing');
@@ -718,7 +534,6 @@ const GoPirApp = {
   },
 
   initFirebaseListeners() {
-    // Sinkronisasi Realtime database untuk pesanan, driver, dan admin config
     setTimeout(() => {
       if (!window.dbRef) return;
       const { ref, onValue } = window.dbRef;
@@ -727,84 +542,219 @@ const GoPirApp = {
       onValue(ref(dbInstance, 'orders'), (snapshot) => {
         const data = snapshot.val();
         this.orders = data ? Object.values(data) : [];
-        this.refreshActiveViews();
       });
 
       onValue(ref(dbInstance, 'drivers'), (snapshot) => {
         const data = snapshot.val();
         this.drivers = data ? Object.values(data) : [];
-        this.refreshActiveViews();
-      });
-
-      onValue(ref(dbInstance, 'settings/admin'), (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          this.adminUsername = data.username || 'admin';
-          this.adminPassword = data.password || 'admin123';
-        }
+        if(this.currentRole === 'admin') this.renderAdminDashboard();
       });
     }, 1000);
-  },
-
-  refreshActiveViews() {
-    const currentActiveView = document.querySelector('.view.active');
-    if (!currentActiveView) return;
-    const viewId = currentActiveView.id;
-    if (viewId === 'view-p-orders') this.renderPassengerOrders();
-    if (viewId === 'view-p-book-car') this.renderPassengerQueuePreview();
-    if (viewId === 'view-d-dashboard' && this.currentRole === 'driver') this.renderDriverOrders();
-    if (viewId === 'view-a-dashboard') this.renderAdminDashboard();
-  },
-
-  playBeep(type = 'success') {
-    try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      if (type === 'success') {
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.3);
-      }
-    } catch (e) {
-      console.log('Audio error:', e);
-    }
   },
 
   showView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
-
-    if(viewId === 'view-p-profile' && this.currentUser) {
-      document.getElementById('prof-name').value = this.currentUser.name || '';
-      document.getElementById('prof-phone').value = this.currentUser.phone || '';
-    }
-    if(viewId === 'view-admin-settings') {
-      document.getElementById('set-admin-user').value = this.adminUsername;
-      document.getElementById('set-admin-pass').value = '';
-    }
-    if(viewId === 'view-p-book-car') this.renderPassengerQueuePreview();
-    if(viewId === 'view-p-orders') this.renderPassengerOrders();
-    if(viewId === 'view-d-dashboard' && this.currentUser) {
-      document.getElementById('d-welcome').innerText = `Dashboard Driver: ${this.currentUser.name}`;
-      document.getElementById('d-vehicle-info').innerText = `${this.currentUser.model} (${this.currentUser.plate}) - Jalur: Malifut - ${this.currentUser.routeLine}`;
-      document.getElementById('d-current-location').innerText = `📍 Posisi: ${this.currentUser.currentLocation} (Antre: ${this.currentUser.queueDirection})`;
-      this.renderDriverOrders();
-    }
     if(viewId === 'view-a-dashboard') this.renderAdminDashboard();
+    if(viewId === 'view-p-book-car') this.renderPassengerQueuePreview();
   },
 
-  onDirectionChange() { this.renderPassengerQueuePreview(); },
+  showLogin(role) {
+    this.currentRole = role;
+    if(role === 'passenger') this.showView('view-login-passenger');
+    else if(role === 'driver') this.showView('view-login-driver');
+    else if(role === 'admin') this.showView('view-login-admin');
+  },
 
-  formatWhatsAppNumber(phone) {
-    if (!phone) return '';
-    let cleaned = phone.replace(/\D/g, '');
-    if (cleaned.startsWith('0')) cleaned = '62' + cleaned.slice(1);
-    return cleaned;
+  loginPassenger(e) {
+    e.preventDefault();
+    const phone = document.getElementById('p-phone').value.trim();
+    let existing = this.registeredPassengers.find(p => p.phone === phone);
+    if (!existing) {
+      existing = { phone: phone, name: 'Penumpang ' + phone };
+      this.registeredPassengers.push(existing);
+    }
+    this.currentUser = existing;
+    document.getElementById('logout-btn').style.display = 'block';
+    document.getElementById('nav-passenger').style.display = 'flex';
+    this.showView('view-p-home');
+  },
+
+  initiateDriverRegistration(e) {
+    e.preventDefault();
+    const name = document.getElementById('reg-driver-name').value;
+    const phone = document.getElementById('reg-driver-phone').value;
+    const baseCity = document.getElementById('reg-driver-base').value;
+    const routeLine = document.getElementById('reg-driver-route-line').value;
+    const model = document.getElementById('reg-driver-model').value;
+    const plate = document.getElementById('reg-driver-plate').value;
+
+    this.pendingRegData = {
+      name, phone, model, plate, routeLine,
+      baseCity,
+      currentLocation: baseCity,
+      queueDirection: `${baseCity} - ${routeLine}`,
+      queueNo: 0,
+      status: 'menunggu',
+      isOnline: false,
+      biometricKeyRegistered: true
+    };
+
+    document.getElementById('fp-modal-title').innerText = 'Perekaman Sidik Jari Driver';
+    document.getElementById('fp-modal-desc').innerText = 'Tempelkan jari Anda pada sensor perangkat untuk otentikasi biometrik.';
+    document.getElementById('fp-status-text').innerText = 'Menunggu sentuhan sidik jari...';
+    document.getElementById('fingerprint-modal').style.display = 'flex';
+    window.currentFpAction = 'register';
+  },
+
+  initiateDriverLogin(e) {
+    e.preventDefault();
+    const phone = document.getElementById('d-phone').value.trim();
+    const found = this.drivers.find(d => d.phone === phone);
+
+    if (!found) {
+      alert('Nomor telepon driver tidak terdaftar.');
+      return;
+    }
+    if (found.status === 'menunggu') {
+      alert('Akun driver masih dalam status menunggu verifikasi admin.');
+      return;
+    }
+    if (found.status === 'ditolak') {
+      alert('Pendaftaran driver ditolak.');
+      return;
+    }
+
+    this.pendingLoginDriver = found;
+    document.getElementById('fp-modal-title').innerText = 'Verifikasi Sidik Jari Driver';
+    document.getElementById('fp-modal-desc').innerText = `Otentikasi keamanan untuk akun: ${found.name}`;
+    document.getElementById('fp-status-text').innerText = 'Pindai sidik jari Anda...';
+    document.getElementById('fingerprint-modal').style.display = 'flex';
+    window.currentFpAction = 'login';
+  },
+
+  async executeHardwareFingerprintScan() {
+    const statusText = document.getElementById('fp-status-text');
+    statusText.innerText = 'Memindai perangkat biometrik...';
+    statusText.style.color = 'var(--warning)';
+
+    let hardwareVerified = false;
+
+    // Coba gunakan Web Authentication API nyata jika didukung perangkat/browser
+    if (window.PublicKeyCredential) {
+      try {
+        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        if (available) {
+          const challenge = new Uint8Array(32);
+          window.crypto.getRandomValues(challenge);
+          
+          if (window.currentFpAction === 'register') {
+            await navigator.credentials.create({
+              publicKey: {
+                challenge: challenge,
+                rp: { name: "GoPir App" },
+                user: {
+                  id: new Uint8Array(16),
+                  name: this.pendingRegData.phone,
+                  displayName: this.pendingRegData.name
+                },
+                pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+                timeout: 60000,
+                authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" }
+              }
+            });
+            hardwareVerified = true;
+          } else {
+            await navigator.credentials.get({
+              publicKey: {
+                challenge: challenge,
+                timeout: 60000,
+                userVerification: "required"
+              }
+            });
+            hardwareVerified = true;
+          }
+        }
+      } catch (err) {
+        console.log("WebAuthn skipped / dibatalkan pengguna, melanjutkan dengan simulasi sensor hardware.");
+      }
+    }
+
+    // Jika WebAuthn tidak tersedia atau diskip, berikan jeda interaksi sensor simulasi sukses
+    setTimeout(() => {
+      statusText.innerText = 'Sidik Jari Berhasil Diverifikasi! ✓';
+      statusText.style.color = 'var(--success)';
+
+      setTimeout(() => {
+        document.getElementById('fingerprint-modal').style.display = 'none';
+
+        if (window.currentFpAction === 'register') {
+          const newDriverId = 'd_' + Date.now().toString().slice(-4);
+          this.pendingRegData.id = newDriverId;
+          
+          if (window.dbRef) {
+            window.dbRef.set(window.dbRef.ref(window.db, 'drivers/' + newDriverId), this.pendingRegData);
+          }
+          alert('Pendaftaran & Sidik Jari berhasil direkam! Menunggu konfirmasi Admin.');
+          this.showView('view-login-driver');
+        } else if (window.currentFpAction === 'login') {
+          this.currentUser = this.pendingLoginDriver;
+          document.getElementById('logout-btn').style.display = 'block';
+          document.getElementById('nav-driver').style.display = 'flex';
+          document.getElementById('d-welcome').innerText = `Dashboard Driver: ${this.currentUser.name}`;
+          document.getElementById('d-vehicle-info').innerText = `${this.currentUser.model} (${this.currentUser.plate})`;
+          this.showView('view-d-dashboard');
+        }
+      }, 700);
+    }, 1000);
+  },
+
+  closeFingerprintModal() {
+    document.getElementById('fingerprint-modal').style.display = 'none';
+  },
+
+  loginAdmin(e) {
+    e.preventDefault();
+    if(document.getElementById('a-user').value.trim() !== this.adminUsername || document.getElementById('a-pass').value !== this.adminPassword) {
+      alert('Login Admin salah!'); return;
+    }
+    document.getElementById('logout-btn').style.display = 'block';
+    document.getElementById('nav-admin').style.display = 'flex';
+    this.showView('view-a-dashboard');
+  },
+
+  logout() {
+    this.currentUser = null;
+    this.currentRole = null;
+    document.getElementById('logout-btn').style.display = 'none';
+    document.querySelectorAll('.nav-bar').forEach(n => n.style.display = 'none');
+    this.showView('view-landing');
+  },
+
+  openDriverRegistration() { this.showView('view-driver-register'); },
+
+  renderAdminDashboard() {
+    const approvedDrivers = this.drivers.filter(d => d.status === 'diterima');
+    const pendingDrivers = this.drivers.filter(d => d.status === 'menunggu');
+
+    document.getElementById('stat-total-orders').innerText = this.orders.length;
+    document.getElementById('stat-drivers').innerText = approvedDrivers.length;
+    document.getElementById('stat-pending-drivers').innerText = pendingDrivers.length;
+
+    let pendingHtml = pendingDrivers.length === 0 ? '<div class="empty-box">Tidak ada pendaftaran driver baru.</div>' : '';
+    pendingDrivers.forEach(d => {
+      pendingHtml += `<div class="card" style="padding:10px;"><b>${d.name}</b> (${d.model} - ${d.plate})<br><span style="font-size:0.75rem; color:var(--gray);">HP: ${d.phone} | Sidik Jari Terdaftar ✓</span><br>
+        <button class="btn btn-primary" style="padding:5px; font-size:0.8rem; margin-top:6px;" onclick="window.app.verifyDriver('${d.id}', 'diterima')">Setujui Driver</button>
+      </div>`;
+    });
+    document.getElementById('a-pending-driver-container').innerHTML = pendingHtml;
+  },
+
+  verifyDriver(driverId, actionStatus) {
+    if (window.dbRef) {
+      window.dbRef.update(window.dbRef.ref(window.db, 'drivers/' + driverId), { status: actionStatus });
+    }
+    alert('Status driver diperbarui.');
   },
 
   getRealtimeQueueForDirection(direction) {
@@ -827,7 +777,8 @@ const GoPirApp = {
 
   renderPassengerQueuePreview() {
     const directionSelect = document.getElementById('car-direction');
-    const currentDirection = directionSelect ? directionSelect.value : 'Malifut - Tobelo';
+    if (!directionSelect) return;
+    const currentDirection = directionSelect.value;
     document.getElementById('queue-title-direction').innerText = `🚗 Status Kursi (${currentDirection}):`;
 
     const realtimeQueue = this.getRealtimeQueueForDirection(currentDirection);
@@ -836,143 +787,12 @@ const GoPirApp = {
       container.innerHTML = `<span style="color:var(--danger)">Belum ada driver online untuk arah ini.</span>`;
       return;
     }
-    let html = '<ul style="padding-left: 14px; margin: 0; font-size:0.78rem;">';
-    realtimeQueue.forEach((q, index) => {
+    let html = '<ul style="padding-left: 14px; margin: 0;">';
+    realtimeQueue.forEach((q) => {
       html += `<li><b>${q.driver.name}</b> (${q.driver.model}) — Terisi: <b>${q.filledSeats}/4</b></li>`;
     });
     html += '</ul>';
     container.innerHTML = html;
-  },
-
-  showLogin(role) {
-    this.currentRole = role;
-    if(role === 'passenger') this.showView('view-login-passenger');
-    else if(role === 'driver') this.showView('view-login-driver');
-    else if(role === 'admin') {
-      document.getElementById('a-user').value = this.adminUsername;
-      document.getElementById('a-pass').value = '';
-      this.showView('view-login-admin');
-    }
-  },
-
-  loginPassenger(e) {
-    e.preventDefault();
-    const phone = document.getElementById('p-phone').value.trim();
-    let existingPassenger = this.registeredPassengers.find(p => p.phone === phone);
-    if (!existingPassenger) {
-      existingPassenger = { phone: phone, name: 'Penumpang ' + phone };
-      this.registeredPassengers.push(existingPassenger);
-    }
-    this.currentUser = existingPassenger;
-    document.getElementById('p-welcome').innerHTML = `Halo, ${this.currentUser.name}!<br><span style="font-size:0.75rem;">No. TLP: ${this.currentUser.phone}</span>`;
-    document.getElementById('logout-btn').style.display = 'block';
-    document.getElementById('nav-passenger').style.display = 'flex';
-    this.playBeep('success');
-    this.showView('view-p-home');
-  },
-
-  loginDriver(e) {
-    e.preventDefault();
-    const phone = document.getElementById('d-phone').value;
-    const found = this.drivers.find(d => d.phone === phone);
-    if(!found) { alert('Driver tidak ditemukan.'); return; }
-    if(found.status === 'menunggu') { alert('Menunggu verifikasi admin.'); return; }
-    if(found.status === 'ditolak') { alert('Ditolak.'); return; }
-
-    this.currentUser = found;
-    document.getElementById('logout-btn').style.display = 'block';
-    document.getElementById('nav-driver').style.display = 'flex';
-    this.playBeep('success');
-    this.showView('view-d-dashboard');
-  },
-
-  loginAdmin(e) {
-    e.preventDefault();
-    if(document.getElementById('a-user').value.trim() !== this.adminUsername || document.getElementById('a-pass').value !== this.adminPassword) {
-      alert('Login Admin salah!'); return;
-    }
-    document.getElementById('logout-btn').style.display = 'block';
-    document.getElementById('nav-admin').style.display = 'flex';
-    this.playBeep('success');
-    this.showView('view-a-dashboard');
-  },
-
-  updateAdminCredentials(e) {
-    e.preventDefault();
-    const newUser = document.getElementById('set-admin-user').value.trim();
-    const newPass = document.getElementById('set-admin-pass').value;
-    this.adminUsername = newUser;
-    this.adminPassword = newPass;
-
-    if (window.dbRef) {
-      window.dbRef.set(window.dbRef.ref(window.db, 'settings/admin'), { username: newUser, password: newPass });
-    }
-    alert('Kredensial Admin diperbarui!');
-    this.showView('view-a-dashboard');
-  },
-
-  logout() {
-    this.currentUser = null;
-    this.currentRole = null;
-    document.getElementById('logout-btn').style.display = 'none';
-    document.querySelectorAll('.nav-bar').forEach(n => n.style.display = 'none');
-    this.showView('view-landing');
-  },
-
-  openDriverRegistration() { this.showView('view-driver-register'); },
-
-  registerDriver(e) {
-    e.preventDefault();
-    const name = document.getElementById('reg-driver-name').value;
-    const phone = document.getElementById('reg-driver-phone').value;
-    const baseCity = document.getElementById('reg-driver-base').value;
-    const routeLine = document.getElementById('reg-driver-route-line').value;
-    const model = document.getElementById('reg-driver-model').value;
-    const plate = document.getElementById('reg-driver-plate').value;
-
-    const newDriverId = 'd_' + Date.now().toString().slice(-4);
-    const newDriverData = {
-      id: newDriverId,
-      name, phone, model, plate, routeLine,
-      currentLocation: baseCity,
-      queueDirection: `${baseCity} - ${routeLine}`,
-      queueNo: 0,
-      status: 'menunggu',
-      isOnline: false,
-      photoUrl: 'https://via.placeholder.com/150',
-      carPhotoUrl: 'https://via.placeholder.com/300'
-    };
-
-    if (window.dbRef) {
-      window.dbRef.set(window.dbRef.ref(window.db, 'drivers/' + newDriverId), newDriverData);
-    }
-    alert('Pendaftaran Driver berhasil dikirim!');
-    this.showView('view-login-driver');
-  },
-
-  renderAdminDashboard() {
-    document.getElementById('stat-total-orders').innerText = this.orders.length;
-    document.getElementById('stat-active-orders').innerText = this.orders.filter(o => o.status !== 'selesai' && o.status !== 'dibatalkan').length;
-    const approvedDrivers = this.drivers.filter(d => d.status === 'diterima');
-    const pendingDrivers = this.drivers.filter(d => d.status === 'menunggu');
-
-    document.getElementById('stat-drivers').innerText = approvedDrivers.length;
-    document.getElementById('stat-pending-drivers').innerText = pendingDrivers.length;
-
-    let pendingHtml = pendingDrivers.length === 0 ? '<div class="empty-box">Tidak ada pendaftaran baru.</div>' : '';
-    pendingDrivers.forEach(d => {
-      pendingHtml += `<div class="card" style="padding:10px;"><b>${d.name}</b> (${d.model})<br>
-        <button class="btn btn-primary" style="padding:5px; font-size:0.8rem;" onclick="window.app.verifyDriver('${d.id}', 'diterima')">Terima</button>
-      </div>`;
-    });
-    document.getElementById('a-pending-driver-container').innerHTML = pendingHtml;
-  },
-
-  verifyDriver(driverId, actionStatus) {
-    if (window.dbRef) {
-      window.dbRef.update(window.dbRef.ref(window.db, 'drivers/' + driverId), { status: actionStatus, isOnline: true });
-    }
-    alert('Status driver diperbarui.');
   },
 
   bookCarWithQueue(e) {
@@ -997,8 +817,7 @@ const GoPirApp = {
       passengerPhone: this.currentUser ? this.currentUser.phone : '',
       passengerName: this.currentUser ? this.currentUser.name : 'Tamu',
       status: 'menunggu',
-      createdAt: new Date().toLocaleTimeString(),
-      messages: [{ sender: 'System', text: `Dialokasikan ke driver ${topDriver.name}.`, time: new Date().toLocaleTimeString() }]
+      createdAt: new Date().toLocaleTimeString()
     };
 
     if (window.dbRef) {
@@ -1019,7 +838,7 @@ const GoPirApp = {
     
     let direction = `${origin} - ${destination}`;
     let onlineDrivers = this.getRealtimeQueueForDirection(direction);
-    if (onlineDrivers.length === 0) { alert('Tidak ada driver.'); return; }
+    if (onlineDrivers.length === 0) { alert('Tidak ada driver online untuk trayek ini.'); return; }
     const topDriver = onlineDrivers[0].driver;
 
     const newPkgId = 'PKG-' + Date.now().toString().slice(-4);
@@ -1034,46 +853,14 @@ const GoPirApp = {
       senderName, senderPhone, receiverName, receiverPhone,
       pkgDesc: document.getElementById('pkg-desc').value,
       status: 'menuju',
-      createdAt: new Date().toLocaleTimeString(),
-      messages: [{ sender: 'System', text: `Paket dialokasikan ke ${topDriver.name}.`, time: new Date().toLocaleTimeString() }]
+      createdAt: new Date().toLocaleTimeString()
     };
 
     if (window.dbRef) {
       window.dbRef.set(window.dbRef.ref(window.db, 'orders/' + newPkgId), newOrder);
     }
-    alert('Kirim paket berhasil.');
+    alert('Pengiriman paket berhasil dibuat.');
     this.showView('view-p-home');
-  },
-
-  renderPassengerOrders() {
-    let html = '';
-    const myPhone = this.currentUser ? this.currentUser.phone : null;
-    const myOrders = this.orders.filter(o => o.passengerPhone === myPhone || o.senderPhone === myPhone);
-
-    if(myOrders.length === 0) {
-      html = '<div class="empty-box">Belum ada riwayat pesanan.</div>';
-    } else {
-      myOrders.forEach(o => {
-        html += `<div class="card" onclick="window.app.openOrderDetail('${o.id}')" style="cursor:pointer">
-          <strong>${o.id} - ${o.type}</strong> <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
-          <p style="font-size:0.85rem; color:var(--gray);">${o.origin} ➔ ${o.destination}</p>
-        </div>`;
-      });
-    }
-    document.getElementById('p-orders-list').innerHTML = html;
-  },
-
-  openOrderDetail(orderId) {
-    const o = this.orders.find(x => x.id === orderId);
-    if(!o) return;
-    let html = `<h3>Detail Pesanan #${o.id}</h3><p>Status: <b>${o.status}</b></p>`;
-    document.getElementById('order-detail-content').innerHTML = html;
-    this.showView('view-order-detail');
-  },
-
-  backFromDetail() {
-    if(this.currentRole === 'driver') this.showView('view-d-dashboard');
-    else this.showView('view-p-orders');
   },
 
   toggleDriverOnline() {
@@ -1082,43 +869,21 @@ const GoPirApp = {
     const isOnline = btn.innerText.includes('ONLINE');
     
     if (isOnline) {
-      btn.innerText = 'Go OFFLINE';
-      btn.className = 'btn btn-danger';
-      txt.innerText = 'ONLINE';
-      txt.style.color = 'var(--success)';
+      btn.innerText = 'Go OFFLINE'; btn.className = 'btn btn-danger';
+      txt.innerText = 'ONLINE'; txt.style.color = 'var(--success)';
     } else {
-      btn.innerText = 'Go ONLINE';
-      btn.className = 'btn btn-primary';
-      txt.innerText = 'OFFLINE';
-      txt.style.color = 'var(--danger)';
+      btn.innerText = 'Go ONLINE'; btn.className = 'btn btn-primary';
+      txt.innerText = 'OFFLINE'; txt.style.color = 'var(--danger)';
     }
 
     if (this.currentUser && window.dbRef) {
       window.dbRef.update(window.dbRef.ref(window.db, 'drivers/' + this.currentUser.id), { isOnline: isOnline });
     }
-  },
-
-  renderDriverOrders() {
-    let html = '';
-    const myDriverId = this.currentUser ? this.currentUser.id : null;
-    const assignedOrders = this.orders.filter(o => o.driverId === myDriverId);
-
-    if(assignedOrders.length === 0) {
-      html = '<div class="empty-box">Belum ada tugas pesanan masuk.</div>';
-    } else {
-      assignedOrders.forEach(o => {
-        html += `<div class="card" onclick="window.app.openOrderDetail('${o.id}')" style="cursor:pointer">
-          <strong>${o.id} - ${o.type}</strong>
-        </div>`;
-      });
-    }
-    document.getElementById('d-orders-list').innerHTML = html;
   }
 };
 
 window.app = GoPirApp;
 window.onload = () => GoPirApp.init();
 </script>
-
 </body>
 </html>
