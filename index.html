@@ -1833,14 +1833,14 @@ Memuat data antrean arah...
         }
       }
 
-      // KOTAK STATUS UTAMA YANG DIBUAT SUPER MENCOLOK SEBAGAI TITIK FOKUS
+      // KOTAK STATUS UTAMA (DIPERKEKCIL & RINGKAS)
       let html = `
-        <div class="card" style="background: linear-gradient(135deg, #f8fafc, #edf2f7); border: 2.5px solid var(--primary); text-align: center; padding: 18px 14px; margin-bottom: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.08);">
-          <span style="font-size: 0.75rem; color: var(--gray); text-transform: uppercase; font-weight: 700; letter-spacing: 1.2px;">Titik Fokus Status Pesanan #${o.id}</span>
-          <div style="margin: 10px 0 6px 0;">
-            <span class="badge badge-${o.status}" style="font-size: 1.15rem; padding: 9px 18px; border-radius: 30px;">${statusDisplay}</span>
+        <div class="card" style="background: #f8fafc; border: 1px solid var(--primary); text-align: center; padding: 10px 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 0.7rem; color: var(--gray); text-transform: uppercase; font-weight: 600;">Status #${o.id}</span>
+            <span class="badge badge-${o.status}" style="font-size: 0.75rem; padding: 3px 10px; border-radius: 12px;">${statusDisplay}</span>
           </div>
-          <p style="font-size: 0.9rem; color: var(--dark); font-weight:600; margin-top: 4px;">${o.origin} ➔ ${o.destination}</p>
+          <p style="font-size: 0.82rem; color: var(--dark); font-weight: 600; text-align: left; margin-top: 2px;">📍 ${o.origin} ➔ ${o.destination}</p>
         </div>
 
         ${topInfoSection}
