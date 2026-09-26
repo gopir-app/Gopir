@@ -231,14 +231,17 @@ color:var(--primary);
 font-weight:700
 }
 
+/* Pembaruan Badge & Efek Mencolok / Fokus */
 .badge{
 display:inline-block;
-padding:4px 8px;
+padding:6px 12px;
 border-radius:20px;
 color:var(--white);
-font-size:.7rem;
-font-weight:700;
-letter-spacing:0.3px;
+font-size:.8rem;
+font-weight:800;
+letter-spacing:0.5px;
+text-transform:uppercase;
+box-shadow:0 2px 5px rgba(0,0,0,0.15);
 }
 
 .badge-menunggu{background:var(--warning)}
@@ -249,6 +252,17 @@ letter-spacing:0.3px;
 .badge-dijemput{background:#8b5cf6}
 .badge-perjalanan{background:#6366f1}
 .badge-sampai{background:#14b8a6}
+
+/* Animasi Denyut (Pulse) untuk Status Aktif */
+.badge-menuju, .badge-dijemput, .badge-perjalanan, .badge-sampai {
+  animation: pulse-badge 1.5s infinite;
+}
+
+@keyframes pulse-badge {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
 
 .toggle-container{
 display:flex;
@@ -374,6 +388,63 @@ border:1px dashed #cbd5e1;
   margin-top: 8px;
 }
 
+/* Styling Peta Ringkas & Modal Interaktif */
+.map-preview-box {
+  width: 100%;
+  height: 110px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  border: 1.5px solid #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.map-preview-box:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px rgba(0, 128, 55, 0.2);
+}
+
+.map-preview-box::after {
+  content: '🔍 Ketuk untuk Memperbesar';
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.65);
+  color: white;
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  border-radius: 4px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+#map-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 99999;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+#map-modal-content {
+  width: 100%;
+  max-width: 440px;
+  height: 70vh;
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
 /* Toast Notification Styling */
 #toast-notification {
   position: fixed;
@@ -401,6 +472,17 @@ border:1px dashed #cbd5e1;
 
 <!-- Toast Notification Element -->
 <div id="toast-notification">Notifikasi sistem</div>
+
+<!-- Modal Peta Layar Penuh -->
+<div id="map-modal" onclick="window.app.closeMapModal(event)">
+  <div id="map-modal-content" onclick="event.stopPropagation()">
+    <div style="background: var(--primary); color: white; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+      <strong style="font-size: 0.95rem;">Peta Lokasi Driver (Layar Penuh)</strong>
+      <button onclick="window.app.closeMapModal()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0 4px;">✕</button>
+    </div>
+    <div id="modal-map-container" style="width: 100%; flex: 1;"></div>
+  </div>
+</div>
 
 <div class="app-container">
 
@@ -672,8 +754,14 @@ Memuat data antrean arah...
 
 <!-- ================= PESANAN SAYA ================= -->
 <div id="view-p-orders" class="view">
-<h3 style="margin-bottom:10px; font-size: 1.1rem;">Pesanan Saya</h3>
+<h3 style="margin-bottom:10px; font-size: 1.1rem;">Pesanan Aktif</h3>
 <div id="p-orders-list"></div>
+</div>
+
+<!-- ================= RIWAYAT PESANAN ================= -->
+<div id="view-p-history" class="view">
+<h3 style="margin-bottom:10px; font-size: 1.1rem;">Riwayat Perjalanan & Paket</h3>
+<div id="p-history-list"></div>
 </div>
 
 <!-- ================= PROFIL PENUMPANG ================= -->
@@ -782,6 +870,7 @@ Memuat data antrean arah...
 <div id="nav-passenger" class="nav-bar" style="display:none">
 <div class="nav-item active" onclick="window.app.showView('view-p-home')"><span>🏠</span>Beranda</div>
 <div class="nav-item" onclick="window.app.showView('view-p-orders')"><span>📦</span>Pesanan</div>
+<div class="nav-item" onclick="window.app.showView('view-p-history')"><span>📜</span>Riwayat</div>
 <div class="nav-item" onclick="window.app.showView('view-p-profile')"><span>👤</span>Profil</div>
 </div>
 
@@ -968,6 +1057,7 @@ Memuat data antrean arah...
       if (!activeView) return;
       if (activeView.id === 'view-p-book-car') this.renderPassengerQueuePreview();
       if (activeView.id === 'view-p-orders') this.renderPassengerOrders();
+      if (activeView.id === 'view-p-history') this.renderPassengerHistory();
       if (activeView.id === 'view-d-dashboard' && this.currentUser) this.renderDriverOrders();
       if (activeView.id === 'view-a-dashboard') this.renderAdminDashboard();
     },
@@ -1022,6 +1112,10 @@ Memuat data antrean arah...
 
       if(viewId === 'view-p-orders') {
         this.renderPassengerOrders();
+      }
+
+      if(viewId === 'view-p-history') {
+        this.renderPassengerHistory();
       }
 
       if(viewId === 'view-d-dashboard' && this.currentUser) {
@@ -1552,10 +1646,14 @@ Memuat data antrean arah...
     renderPassengerOrders() {
       let html = '';
       const myPhone = this.currentUser ? this.currentUser.phone : null;
-      const myOrders = this.orders.filter(o => o.passengerPhone === myPhone || o.senderPhone === myPhone);
+      const myOrders = this.orders.filter(o => 
+        (o.passengerPhone === myPhone || o.senderPhone === myPhone) && 
+        o.status !== 'selesai' && 
+        o.status !== 'dibatalkan'
+      );
 
       if(myOrders.length === 0) {
-        html = '<div class="empty-box">Belum ada riwayat pesanan.</div>';
+        html = '<div class="empty-box">Tidak ada pesanan aktif saat ini.</div>';
       } else {
         myOrders.forEach(o => {
           let statusBadgeText = o.status.toUpperCase();
@@ -1578,6 +1676,46 @@ Memuat data antrean arah...
         });
       }
       document.getElementById('p-orders-list').innerHTML = html;
+    },
+
+    renderPassengerHistory() {
+      let html = '';
+      const myPhone = this.currentUser ? this.currentUser.phone : null;
+      const historyOrders = this.orders.filter(o => 
+        (o.passengerPhone === myPhone || o.senderPhone === myPhone) && 
+        (o.status === 'selesai' || o.status === 'dibatalkan')
+      );
+
+      if(historyOrders.length === 0) {
+        html = '<div class="empty-box">Belum ada riwayat pesanan yang selesai.</div>';
+      } else {
+        historyOrders.forEach(o => {
+          html += `
+            <div class="card" style="background:#f8fafc;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="font-size:0.9rem;">${o.id} - ${o.type}</strong>
+                <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
+              </div>
+              <p style="font-size:0.85rem; color:var(--gray); margin-top:4px">${o.origin} ➔ ${o.destination}</p>
+              <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">Waktu: ${o.createdAt || '-'}</p>
+              <button class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:0.8rem;" onclick="window.app.deleteOrder('${o.id}')">🗑️ Hapus dari Riwayat</button>
+            </div>
+          `;
+        });
+      }
+      document.getElementById('p-history-list').innerHTML = html;
+    },
+
+    deleteOrder(orderId) {
+      if (confirm("Yakin ingin menghapus riwayat pesanan ini secara permanen?")) {
+        remove(ref(database, 'orders/' + orderId)).then(() => {
+          this.playBeep('success');
+          this.showToast('Riwayat pesanan berhasil dihapus.');
+          this.renderPassengerHistory();
+        }).catch((error) => {
+          this.showToast('Gagal menghapus: ' + error.message, true);
+        });
+      }
     },
 
     openOrderDetail(orderId) {
@@ -1695,15 +1833,22 @@ Memuat data antrean arah...
         }
       }
 
+      // KOTAK STATUS UTAMA YANG DIBUAT SUPER MENCOLOK SEBAGAI TITIK FOKUS
       let html = `
-        <h3 style="margin-bottom:4px; font-size: 1.05rem;">Detail Pesanan #${o.id}</h3>
-        <p style="font-size:0.85rem; color:var(--gray); margin-bottom:10px">Status: <b>${statusDisplay}</b></p>
+        <div class="card" style="background: linear-gradient(135deg, #f8fafc, #edf2f7); border: 2.5px solid var(--primary); text-align: center; padding: 18px 14px; margin-bottom: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.08);">
+          <span style="font-size: 0.75rem; color: var(--gray); text-transform: uppercase; font-weight: 700; letter-spacing: 1.2px;">Titik Fokus Status Pesanan #${o.id}</span>
+          <div style="margin: 10px 0 6px 0;">
+            <span class="badge badge-${o.status}" style="font-size: 1.15rem; padding: 9px 18px; border-radius: 30px;">${statusDisplay}</span>
+          </div>
+          <p style="font-size: 0.9rem; color: var(--dark); font-weight:600; margin-top: 4px;">${o.origin} ➔ ${o.destination}</p>
+        </div>
+
         ${topInfoSection}
 
-        <!-- PETA PELACAKAN GPS LEAFLET.JS -->
+        <!-- PETA PELACAKAN GPS LEAFLET.JS (Diperkecil & Bisa Diketuk) -->
         <div class="card" style="padding:10px; margin-bottom:12px;">
           <h4 style="font-size:0.9rem; margin-bottom:6px;">🗺️ Peta Lokasi Driver (Live GPS)</h4>
-          <div id="map-${o.id}" style="width: 100%; height: 180px; border-radius: var(--radius); z-index: 1;"></div>
+          <div id="map-${o.id}" class="map-preview-box" onclick="window.app.expandMap('${o.id}')"></div>
           ${this.currentRole === 'driver' ? '<button class="btn btn-secondary" style="margin-top:8px; padding:6px;" onclick="window.app.updateMyGPSLocation(\''+o.id+'\')">📍 Perbarui Posisi GPS Saya</button>' : ''}
         </div>
 
@@ -1721,27 +1866,20 @@ Memuat data antrean arah...
       this.showView('view-order-detail');
 
       setTimeout(() => {
-        this.initMap(o.id, assignedDriver);
+        let lat = assignedDriver && assignedDriver.lat ? assignedDriver.lat : 0.9325;
+        let lng = assignedDriver && assignedDriver.lng ? assignedDriver.lng : 127.7651;
+        this.initMap(`map-${o.id}`, lat, lng, assignedDriver ? assignedDriver.name : 'Driver', 11);
       }, 200);
     },
 
-    initMap(orderId, driver) {
-      let lat = 0.9325; 
-      let lng = 127.7651;
-
-      if (driver && driver.lat && driver.lng) {
-        lat = driver.lat;
-        lng = driver.lng;
-      }
-
-      const mapContainerId = `map-${orderId}`;
-      if (document.getElementById(mapContainerId)) {
-        if (window.activeMap) {
-          window.activeMap.remove();
+    initMap(containerId, lat, lng, driverName, zoomLevel = 11) {
+      if (document.getElementById(containerId)) {
+        if (window[containerId + '_map']) {
+          window[containerId + '_map'].remove();
         }
 
-        const map = L.map(mapContainerId).setView([lat, lng], 11);
-        window.activeMap = map;
+        const map = L.map(containerId).setView([lat, lng], zoomLevel);
+        window[containerId + '_map'] = map;
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
@@ -1749,8 +1887,31 @@ Memuat data antrean arah...
         }).addTo(map);
 
         L.marker([lat, lng]).addTo(map)
-          .bindPopup(`<b>${driver ? driver.name : 'Driver'}</b><br>Posisi Armada GoPir`)
+          .bindPopup(`<b>${driverName || 'Driver'}</b><br>Posisi Armada GoPir`)
           .openPopup();
+      }
+    },
+
+    expandMap(orderId) {
+      const o = this.orders.find(x => x.id === orderId);
+      if(!o) return;
+      const assignedDriver = this.drivers.find(d => d.id === o.driverId);
+
+      let lat = assignedDriver && assignedDriver.lat ? assignedDriver.lat : 0.9325;
+      let lng = assignedDriver && assignedDriver.lng ? assignedDriver.lng : 127.7651;
+      let driverName = assignedDriver ? assignedDriver.name : 'Driver';
+
+      document.getElementById('map-modal').style.display = 'flex';
+
+      setTimeout(() => {
+        this.initMap('modal-map-container', lat, lng, driverName, 14);
+      }, 100);
+    },
+
+    closeMapModal() {
+      document.getElementById('map-modal').style.display = 'none';
+      if (window['modal-map-container_map']) {
+        window['modal-map-container_map'].remove();
       }
     },
 
