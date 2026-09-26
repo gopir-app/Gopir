@@ -368,10 +368,34 @@ border:1px dashed #cbd5e1;
   gap: 6px;
   margin-top: 8px;
 }
+
+/* Toast Notification Styling */
+#toast-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: var(--dark);
+  color: var(--white);
+  padding: 10px 18px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  z-index: 9999;
+  transition: transform 0.3s ease-in-out;
+  text-align: center;
+  max-width: 90%;
+}
+#toast-notification.show {
+  transform: translateX(-50%) translateY(0);
+}
 </style>
 </head>
 
 <body>
+
+<!-- Toast Notification Element -->
+<div id="toast-notification">Notifikasi sistem</div>
 
 <div class="app-container">
 
@@ -778,9 +802,8 @@ Memuat data antrean arah...
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getDatabase } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  import { getDatabase, ref, set, get, onValue, push, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // Konfigurasi Firebase Anda yang asli
   const firebaseConfig = {
     apiKey: "AIzaSyCB9VFST65f7UhMiHg826ZYJaoBXJfY6qs",
     authDomain: "gopir-app.firebaseapp.com",
@@ -791,88 +814,118 @@ Memuat data antrean arah...
     appId: "1:213809630129:web:544ff0f19e442652250b90"
   };
 
-  // Inisialisasi Firebase
   const firebaseApp = initializeApp(firebaseConfig);
   const auth = getAuth(firebaseApp);
   const database = getDatabase(firebaseApp);
-  
-  console.log("Firebase Realtime Database berhasil terhubung ke gopir-app!");
 
-  // Logika Utama Aplikasi GoPir
   const GoPirApp = {
     currentUser: null,
     currentRole: null,
     adminUsername: 'admin',      
     adminPassword: 'admin123',   
     orders: [],
-    registeredPassengers: [
-      { phone: '08123456789', name: 'Budi Penumpang' }
-    ],
-    drivers: [
-      { 
-        id: 'd1', 
-        name: 'Budi Driver Tobelo', 
-        phone: '08213456789', 
-        model: 'Avanza', 
-        plate: 'DG 1234 AA', 
-        routeLine: 'Tobelo', 
-        currentLocation: 'Malifut', 
-        queueDirection: 'Malifut - Tobelo', 
-        queueNo: 1, 
-        status: 'diterima',
-        isOnline: true, 
-        photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', 
-        carPhotoUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=300'
-      },
-      { 
-        id: 'd2', 
-        name: 'Samsul Driver Sofifi', 
-        phone: '08213456791', 
-        model: 'Calya', 
-        plate: 'DG 9012 CC', 
-        routeLine: 'Sofifi', 
-        currentLocation: 'Malifut', 
-        queueDirection: 'Malifut - Sofifi', 
-        queueNo: 1, 
-        status: 'diterima',
-        isOnline: true, 
-        photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150', 
-        carPhotoUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=300'
-      },
-      { 
-        id: 'd3', 
-        name: 'Jefri Driver Tobelo 2', 
-        phone: '08213456792', 
-        model: 'Xenia', 
-        plate: 'DG 4321 BB', 
-        routeLine: 'Tobelo', 
-        currentLocation: 'Malifut', 
-        queueDirection: 'Malifut - Tobelo', 
-        queueNo: 2, 
-        status: 'diterima',
-        isOnline: true, 
-        photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', 
-        carPhotoUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=300'
-      },
-      { 
-        id: 'd4', 
-        name: 'Rian Driver Tobelo 3', 
-        phone: '08213456793', 
-        model: 'Terios', 
-        plate: 'DG 5678 DD', 
-        routeLine: 'Tobelo', 
-        currentLocation: 'Malifut', 
-        queueDirection: 'Malifut - Tobelo', 
-        queueNo: 3, 
-        status: 'diterima',
-        isOnline: true, 
-        photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150', 
-        carPhotoUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=300'
-      }
-    ],
+    registeredPassengers: [],
+    drivers: [],
     
     init() {
       this.showView('view-landing');
+      this.initFirebaseListeners();
+    },
+
+    showToast(message, isError = false) {
+      const toast = document.getElementById('toast-notification');
+      toast.innerText = message;
+      toast.style.background = isError ? 'var(--danger)' : 'var(--dark)';
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    },
+
+    initFirebaseListeners() {
+      // 1. Sync Orders
+      onValue(ref(database, 'orders'), (snapshot) => {
+        const data = snapshot.val();
+        const oldOrdersCount = this.orders.length;
+        this.orders = data ? Object.values(data) : [];
+        
+        // Deteksi pesanan baru masuk untuk driver yang sedang login
+        if (this.currentRole === 'driver' && this.currentUser && this.orders.length > oldOrdersCount) {
+          const latestOrder = this.orders[this.orders.length - 1];
+          if (latestOrder.driverId === this.currentUser.id) {
+            this.playBeep('order');
+            this.showToast(`🔔 Tugas Baru Masuk: #${latestOrder.id}`);
+          }
+        }
+
+        this.refreshActiveViews();
+      });
+
+      // 2. Sync Drivers
+      onValue(ref(database, 'drivers'), (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          // Seed initial drivers if empty
+          this.seedInitialDrivers();
+        } else {
+          this.drivers = Object.values(data);
+        }
+        this.refreshActiveViews();
+      });
+
+      // 3. Sync Passengers
+      onValue(ref(database, 'passengers'), (snapshot) => {
+        const data = snapshot.val();
+        this.passengers = data ? Object.values(data) : [{ phone: '08123456789', name: 'Budi Penumpang' }];
+        this.registeredPassengers = this.passengers;
+      });
+    },
+
+    seedInitialDrivers() {
+      const defaultDrivers = [
+        { 
+          id: 'd1', 
+          name: 'Budi Driver Tobelo', 
+          phone: '08213456789', 
+          model: 'Avanza', 
+          plate: 'DG 1234 AA', 
+          routeLine: 'Tobelo', 
+          currentLocation: 'Malifut', 
+          queueDirection: 'Malifut - Tobelo', 
+          queueNo: 1, 
+          status: 'diterima',
+          isOnline: true, 
+          photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', 
+          carPhotoUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=300'
+        },
+        { 
+          id: 'd2', 
+          name: 'Samsul Driver Sofifi', 
+          phone: '08213456791', 
+          model: 'Calya', 
+          plate: 'DG 9012 CC', 
+          routeLine: 'Sofifi', 
+          currentLocation: 'Malifut', 
+          queueDirection: 'Malifut - Sofifi', 
+          queueNo: 1, 
+          status: 'diterima',
+          isOnline: true, 
+          photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150', 
+          carPhotoUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=300'
+        }
+      ];
+      defaultDrivers.forEach(d => {
+        set(ref(database, 'drivers/' + d.id), d);
+      });
+    },
+
+    refreshActiveViews() {
+      const activeView = document.querySelector('.view.active');
+      if (!activeView) return;
+      if (activeView.id === 'view-p-book-car') this.renderPassengerQueuePreview();
+      if (activeView.id === 'view-p-orders') this.renderPassengerOrders();
+      if (activeView.id === 'view-d-dashboard' && this.currentUser) this.renderDriverOrders();
+      if (activeView.id === 'view-a-dashboard') this.renderAdminDashboard();
     },
 
     playBeep(type = 'success') {
@@ -1042,7 +1095,7 @@ Memuat data antrean arah...
         this.currentUser = existingPassenger;
       } else {
         const newPassenger = { phone: phone, name: 'Penumpang ' + phone };
-        this.registeredPassengers.push(newPassenger);
+        set(ref(database, 'passengers/' + phone.replace(/\D/g,'')), newPassenger);
         this.currentUser = newPassenger;
       }
 
@@ -1051,6 +1104,7 @@ Memuat data antrean arah...
       document.getElementById('logout-btn').style.display = 'block';
       document.getElementById('nav-passenger').style.display = 'flex';
       this.playBeep('success');
+      this.showToast(`Selamat datang, ${this.currentUser.name}`);
       this.showView('view-p-home');
     },
 
@@ -1076,6 +1130,7 @@ Memuat data antrean arah...
       document.getElementById('logout-btn').style.display = 'block';
       document.getElementById('nav-driver').style.display = 'flex';
       this.playBeep('success');
+      this.showToast(`Login Driver Berhasil: ${found.name}`);
       this.showView('view-d-dashboard');
       this.renderDriverOrders();
     },
@@ -1093,6 +1148,7 @@ Memuat data antrean arah...
       document.getElementById('logout-btn').style.display = 'block';
       document.getElementById('nav-admin').style.display = 'flex';
       this.playBeep('success');
+      this.showToast('Login Admin Berhasil');
       this.showView('view-a-dashboard');
     },
 
@@ -1111,7 +1167,7 @@ Memuat data antrean arah...
       this.adminPassword = newPass;
 
       this.playBeep('success');
-      alert('Kredensial Admin berhasil diperbarui!');
+      this.showToast('Kredensial Admin diperbarui');
       this.showView('view-a-dashboard');
     },
 
@@ -1145,8 +1201,9 @@ Memuat data antrean arah...
       const photoInput = document.getElementById('reg-driver-photo').files[0];
       const carPhotoInput = document.getElementById('reg-driver-car-photo').files[0];
 
+      const driverId = 'd_' + Date.now().toString().slice(-4);
       const newDriverData = {
-        id: 'd_' + Date.now().toString().slice(-4),
+        id: driverId,
         name,
         phone,
         model,
@@ -1161,9 +1218,9 @@ Memuat data antrean arah...
         carPhotoUrl: carPhotoInput ? URL.createObjectURL(carPhotoInput) : 'https://via.placeholder.com/300'
       };
 
-      this.drivers.push(newDriverData);
+      set(ref(database, 'drivers/' + driverId), newDriverData);
       this.playBeep('success');
-      alert('Pendaftaran Driver berhasil dikirim! Menunggu verifikasi Admin.');
+      this.showToast('Pendaftaran Driver terkirim!');
       this.showView('view-login-driver');
     },
 
@@ -1244,32 +1301,29 @@ Memuat data antrean arah...
         const sameDirDrivers = this.drivers.filter(x => x.status === 'diterima' && x.queueDirection === d.queueDirection);
         d.queueNo = sameDirDrivers.length;
         d.isOnline = true;
-        alert(`Driver ${d.name} diterima dan dimasukkan ke antrean arah ${d.queueDirection}!`);
+        this.showToast(`Driver ${d.name} diterima.`);
       } else {
-        alert(`Pendaftaran ditolak.`);
+        this.showToast(`Pendaftaran ditolak.`);
       }
+      set(ref(database, 'drivers/' + d.id), d);
       this.renderAdminDashboard();
     },
 
     deleteDriver(driverId) {
-      const driverIndex = this.drivers.findIndex(d => d.id === driverId);
-      if (driverIndex === -1) return;
+      const driver = this.drivers.find(d => d.id === driverId);
+      if (!driver) return;
 
-      const driver = this.drivers[driverIndex];
       const enteredPassword = prompt(`Konfirmasi Keamanan Admin\n\nMasukkan Password Admin untuk menghapus driver "${driver.name}":`);
-      
       if (enteredPassword === null) return;
-
       if (enteredPassword !== this.adminPassword) {
         alert('Password Admin SALAH!');
         return;
       }
 
       if (confirm(`Yakin ingin menghapus driver "${driver.name}" secara permanen?`)) {
-        this.drivers.splice(driverIndex, 1);
+        remove(ref(database, 'drivers/' + driverId));
         this.playBeep('success');
-        alert(`Driver berhasil dihapus.`);
-        this.showView('view-a-dashboard');
+        this.showToast('Driver dihapus.');
         this.renderAdminDashboard();
       }
     },
@@ -1300,8 +1354,9 @@ Memuat data antrean arah...
       const newName = document.getElementById('prof-name').value;
       if(this.currentUser) {
         this.currentUser.name = newName;
+        set(ref(database, 'passengers/' + this.currentUser.phone.replace(/\D/g,'')), this.currentUser);
         document.getElementById('p-welcome').innerHTML = `Halo, ${this.currentUser.name}!<br><span style="font-size:0.75rem; font-weight:normal; opacity:0.9;">No. TLP: ${this.currentUser.phone}</span>`;
-        alert('Profil diperbarui!');
+        this.showToast('Profil diperbarui!');
         this.showView('view-p-home');
       }
     },
@@ -1340,8 +1395,9 @@ Memuat data antrean arah...
         let passengersToThisCar = Math.min(remainingPassengers, availableSeatsInCar);
         let newTotalInCar = currentQueueItem.filledSeats + passengersToThisCar;
 
+        const orderId = 'ORD-' + Date.now().toString().slice(-4) + '-' + (queueIndex + 1);
         const newOrder = {
-          id: 'ORD-' + Date.now().toString().slice(-4) + '-' + (queueIndex + 1),
+          id: orderId,
           type: 'Mobil',
           direction: direction,
           originCity: originCity,
@@ -1359,7 +1415,7 @@ Memuat data antrean arah...
           ]
         };
 
-        this.orders.push(newOrder);
+        set(ref(database, 'orders/' + orderId), newOrder);
         allocatedOrdersSummary.push(`${passengersToThisCar} kursi ke Driver ${assignedDriver.name}`);
 
         remainingPassengers -= passengersToThisCar;
@@ -1370,7 +1426,7 @@ Memuat data antrean arah...
         alert(`Sebagian kursi tercatat, namun sisa ${remainingPassengers} penumpang belum mendapat armada.`);
       } else {
         this.playBeep('success');
-        alert(`Berhasil! Alokasi pesanan:\n- ` + allocatedOrdersSummary.join('\n- '));
+        this.showToast('Booking kursi berhasil!');
       }
 
       this.showView('view-p-orders');
@@ -1396,8 +1452,9 @@ Memuat data antrean arah...
       }
       const topDriver = onlineDrivers[0].driver;
 
+      const orderId = 'PKG-' + Date.now().toString().slice(-4);
       const newOrder = {
-        id: 'PKG-' + Date.now().toString().slice(-4),
+        id: orderId,
         type: 'Paket',
         direction: direction,
         originCity: origin,
@@ -1418,9 +1475,9 @@ Memuat data antrean arah...
           { sender: 'System', text: `Paket dialokasikan ke driver ${topDriver.name}.`, time: new Date().toLocaleTimeString() }
         ]
       };
-      this.orders.push(newOrder);
+      set(ref(database, 'orders/' + orderId), newOrder);
       this.playBeep('success');
-      alert(`Pesanan paket berhasil terhubung ke Driver ${topDriver.name}.`);
+      this.showToast('Paket berhasil dikirim!');
       this.showView('view-p-home');
     },
 
@@ -1429,9 +1486,9 @@ Memuat data antrean arah...
         const order = this.orders.find(o => o.id === orderId);
         if (!order) return;
         order.status = 'dibatalkan';
+        set(ref(database, 'orders/' + orderId), order);
         this.playBeep('success');
-        alert('Pesanan dibatalkan.');
-        this.showView('view-p-orders');
+        this.showToast('Pesanan dibatalkan.');
         this.renderPassengerOrders();
       }
     },
@@ -1617,6 +1674,7 @@ Memuat data antrean arah...
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
 
+      set(ref(database, 'orders/' + orderId), o);
       inputEl.value = '';
       this.playBeep('success');
       this.openOrderDetail(orderId);
@@ -1637,7 +1695,8 @@ Memuat data antrean arah...
       let maxQueue = sameDirDrivers.length > 0 ? Math.max(...sameDirDrivers.map(d => d.queueNo || 0)) : 0;
       
       driver.queueNo = maxQueue + 1;
-      alert(`🔄 Rotasi Otomatis PP: Driver ${driver.name} kini tiba di ${destCity} dan otomatis masuk ke antrean arah sebaliknya (${returnDirection}) di nomor #${driver.queueNo}!`);
+      set(ref(database, 'drivers/' + driver.id), driver);
+      this.showToast(`Driver berpindah pool ke ${destCity}`);
     },
 
     updateOrderStatus(orderId, newStatus) {
@@ -1658,8 +1717,9 @@ Memuat data antrean arah...
           }
         }
 
+        set(ref(database, 'orders/' + orderId), o);
         this.playBeep('success');
-        alert('Status pesanan diperbarui.');
+        this.showToast('Status pesanan diperbarui');
         this.openOrderDetail(orderId);
       }
     },
@@ -1677,6 +1737,10 @@ Memuat data antrean arah...
         btn.className = 'btn btn-danger';
         txt.innerText = 'ONLINE';
         txt.style.color = 'var(--success)';
+        if(this.currentUser) {
+          this.currentUser.isOnline = true;
+          set(ref(database, 'drivers/' + this.currentUser.id), this.currentUser);
+        }
         this.playBeep('order');
         this.renderDriverOrders();
       } else {
@@ -1684,6 +1748,10 @@ Memuat data antrean arah...
         btn.className = 'btn btn-primary';
         txt.innerText = 'OFFLINE';
         txt.style.color = 'var(--danger)';
+        if(this.currentUser) {
+          this.currentUser.isOnline = false;
+          set(ref(database, 'drivers/' + this.currentUser.id), this.currentUser);
+        }
         document.getElementById('d-orders-list').innerHTML = '<div class="empty-box">Anda sedang offline.</div>';
       }
     },
@@ -1705,7 +1773,7 @@ Memuat data antrean arah...
                 <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
               </div>
               <p style="font-size:0.85rem; margin-top:4px"><b>Pemesan/Pengirim:</b> ${o.passengerName}${packageBadge}</p>
-              <p style="font-size:0.8rem; color:var(--gray); margin-top:2px;">${o.origin} ➔ ${o.destination}</p>
+              <p style="font-size:0.80rem; color:var(--gray); margin-top:2px;">${o.origin} ➔ ${o.destination}</p>
             </div>
           `;
         });
