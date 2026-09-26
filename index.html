@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GoPir - Transportasi & Pengiriman Paket</title>
 
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <style>
 :root{
 --primary:#008037;
@@ -323,7 +328,7 @@ border:1px dashed #cbd5e1;
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: 240px;
+  height: 200px;
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: var(--radius);
@@ -830,6 +835,41 @@ Memuat data antrean arah...
     init() {
       this.showView('view-landing');
       this.initFirebaseListeners();
+      this.loadAdminCredentials();
+    },
+
+    loadAdminCredentials() {
+      get(ref(database, 'settings/admin')).then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          this.adminUsername = data.username;
+          this.adminPassword = data.password;
+        } else {
+          set(ref(database, 'settings/admin'), {
+            username: this.adminUsername,
+            password: this.adminPassword
+          });
+        }
+      });
+    },
+
+    requestNotificationPermission() {
+      if ("Notification" in window && Notification.permission !== "granted") {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            this.showToast("Notifikasi browser diaktifkan!");
+          }
+        });
+      }
+    },
+
+    showBrowserNotification(title, body) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(title, {
+          body: body,
+          icon: "https://cdn-icons-png.flaticon.com/512/3063/3063823.png"
+        });
+      }
     },
 
     showToast(message, isError = false) {
@@ -855,6 +895,7 @@ Memuat data antrean arah...
           if (latestOrder.driverId === this.currentUser.id) {
             this.playBeep('order');
             this.showToast(`🔔 Tugas Baru Masuk: #${latestOrder.id}`);
+            this.showBrowserNotification("Tugas Baru GoPir", `Pesanan #${latestOrder.id} telah dialokasikan kepada Anda.`);
           }
         }
 
@@ -865,7 +906,6 @@ Memuat data antrean arah...
       onValue(ref(database, 'drivers'), (snapshot) => {
         const data = snapshot.val();
         if (!data) {
-          // Seed initial drivers if empty
           this.seedInitialDrivers();
         } else {
           this.drivers = Object.values(data);
@@ -895,6 +935,8 @@ Memuat data antrean arah...
           queueNo: 1, 
           status: 'diterima',
           isOnline: true, 
+          lat: 0.9325,
+          lng: 127.7651,
           photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', 
           carPhotoUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=300'
         },
@@ -910,6 +952,8 @@ Memuat data antrean arah...
           queueNo: 1, 
           status: 'diterima',
           isOnline: true, 
+          lat: 0.7289,
+          lng: 127.5381,
           photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150', 
           carPhotoUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=300'
         }
@@ -1087,6 +1131,7 @@ Memuat data antrean arah...
 
     loginPassenger(e) {
       e.preventDefault();
+      this.requestNotificationPermission();
       const phone = document.getElementById('p-phone').value.trim();
       
       let existingPassenger = this.registeredPassengers.find(p => p.phone === phone);
@@ -1110,6 +1155,7 @@ Memuat data antrean arah...
 
     loginDriver(e) {
       e.preventDefault();
+      this.requestNotificationPermission();
       const phone = document.getElementById('d-phone').value;
       const found = this.drivers.find(d => d.phone === phone);
       
@@ -1166,9 +1212,17 @@ Memuat data antrean arah...
       this.adminUsername = newUser;
       this.adminPassword = newPass;
 
-      this.playBeep('success');
-      this.showToast('Kredensial Admin diperbarui');
-      this.showView('view-a-dashboard');
+      // Simpan perubahan permanen ke Firebase
+      set(ref(database, 'settings/admin'), {
+        username: newUser,
+        password: newPass
+      }).then(() => {
+        this.playBeep('success');
+        this.showToast('Kredensial Admin berhasil diperbarui permanen!');
+        this.showView('view-a-dashboard');
+      }).catch((error) => {
+        this.showToast('Gagal menyimpan kredensial: ' + error.message, true);
+      });
     },
 
     logout() {
@@ -1214,6 +1268,8 @@ Memuat data antrean arah...
         queueNo: 0,
         status: 'menunggu',
         isOnline: false,
+        lat: 0.9325,
+        lng: 127.7651,
         photoUrl: photoInput ? URL.createObjectURL(photoInput) : 'https://via.placeholder.com/150',
         carPhotoUrl: carPhotoInput ? URL.createObjectURL(carPhotoInput) : 'https://via.placeholder.com/300'
       };
@@ -1643,7 +1699,15 @@ Memuat data antrean arah...
         <h3 style="margin-bottom:4px; font-size: 1.05rem;">Detail Pesanan #${o.id}</h3>
         <p style="font-size:0.85rem; color:var(--gray); margin-bottom:10px">Status: <b>${statusDisplay}</b></p>
         ${topInfoSection}
-        <div class="chat-container" style="height: 200px;">
+
+        <!-- PETA PELACAKAN GPS LEAFLET.JS -->
+        <div class="card" style="padding:10px; margin-bottom:12px;">
+          <h4 style="font-size:0.9rem; margin-bottom:6px;">🗺️ Peta Lokasi Driver (Live GPS)</h4>
+          <div id="map-${o.id}" style="width: 100%; height: 180px; border-radius: var(--radius); z-index: 1;"></div>
+          ${this.currentRole === 'driver' ? '<button class="btn btn-secondary" style="margin-top:8px; padding:6px;" onclick="window.app.updateMyGPSLocation(\''+o.id+'\')">📍 Perbarui Posisi GPS Saya</button>' : ''}
+        </div>
+
+        <div class="chat-container">
           <div style="font-size:0.8rem; font-weight:700; color:var(--gray); margin-bottom:4px;">💬 Chat Koordinasi:</div>
           <div class="chat-messages">${chatHtml}</div>
           <form onsubmit="window.app.sendChatMessage(event, '${o.id}')" class="chat-input-row">
@@ -1655,6 +1719,60 @@ Memuat data antrean arah...
       `;
       document.getElementById('order-detail-content').innerHTML = html;
       this.showView('view-order-detail');
+
+      setTimeout(() => {
+        this.initMap(o.id, assignedDriver);
+      }, 200);
+    },
+
+    initMap(orderId, driver) {
+      let lat = 0.9325; 
+      let lng = 127.7651;
+
+      if (driver && driver.lat && driver.lng) {
+        lat = driver.lat;
+        lng = driver.lng;
+      }
+
+      const mapContainerId = `map-${orderId}`;
+      if (document.getElementById(mapContainerId)) {
+        if (window.activeMap) {
+          window.activeMap.remove();
+        }
+
+        const map = L.map(mapContainerId).setView([lat, lng], 11);
+        window.activeMap = map;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        L.marker([lat, lng]).addTo(map)
+          .bindPopup(`<b>${driver ? driver.name : 'Driver'}</b><br>Posisi Armada GoPir`)
+          .openPopup();
+      }
+    },
+
+    updateMyGPSLocation(orderId) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          if (this.currentUser && this.currentRole === 'driver') {
+            this.currentUser.lat = lat;
+            this.currentUser.lng = lng;
+            set(ref(database, 'drivers/' + this.currentUser.id), this.currentUser);
+            this.showToast('Koordinat GPS berhasil diperbarui!');
+            this.openOrderDetail(orderId);
+          }
+        }, (error) => {
+          this.showToast('Gagal mengambil GPS: ' + error.message, true);
+        });
+      } else {
+        this.showToast('Browser Anda tidak mendukung Geolocation', true);
+      }
     },
 
     sendChatMessage(e, orderId) {
@@ -1720,6 +1838,7 @@ Memuat data antrean arah...
         set(ref(database, 'orders/' + orderId), o);
         this.playBeep('success');
         this.showToast('Status pesanan diperbarui');
+        this.showBrowserNotification("Status Diperbarui", `Pesanan #${o.id} sekarang berstatus ${newStatus.toUpperCase()}`);
         this.openOrderDetail(orderId);
       }
     },
