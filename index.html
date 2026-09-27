@@ -1834,19 +1834,6 @@ Memuat data antrean arah...
 
       const assignedDriver = this.drivers.find(d => d.id === o.driverId);
 
-      let totalFilledSeats = 0;
-      if (assignedDriver && o.direction) {
-        const driverActiveOrders = this.orders.filter(ord => 
-          ord.driverId === assignedDriver.id && 
-          ord.direction === o.direction && 
-          ord.status !== 'selesai' && 
-          ord.status !== 'dibatalkan'
-        );
-        driverActiveOrders.forEach(ord => totalFilledSeats += (ord.passengers || 1));
-      }
-      if (totalFilledSeats > 4) totalFilledSeats = 4;
-      const isCarFull = totalFilledSeats >= 4;
-
       let topInfoSection = '';
       if (this.currentRole === 'driver') {
         if (o.type === 'Paket') {
@@ -1907,61 +1894,37 @@ Memuat data antrean arah...
         chatHtml = '<div style="text-align:center; color:var(--gray); font-size:0.8rem;">Belum ada pesan.</div>';
       }
 
+      // Tombol Dinamis Interaktif untuk Driver (Jemput ➔ Berangkat ➔ Sampai ➔ Selesai)
       let driverActionButtons = '';
-      if (this.currentRole === 'driver' && o.status !== 'dibatalkan') {
-        if (o.type === 'Mobil') {
-          if (!isCarFull) {
-            driverActionButtons = `
-              <div style="margin-top:12px; background:#fffbeb; border:1px solid #fcd34d; padding:10px; border-radius:var(--radius);">
-                <p style="font-size:0.85rem; color:#b45309; font-weight:700;">⚠️ Kursi Belum Penuh (${totalFilledSeats}/4 Kursi)</p>
-                <p style="font-size:0.78rem; color:var(--gray); margin-top:2px;">Tombol aksi trayek baru akan muncul jika kursi sudah 4/4.</p>
-              </div>
-            `;
-          } else {
-            let currentOrderStatus = o.status;
-            let singleBtnText = '';
-            let singleBtnAction = '';
-            let singleBtnStyle = 'background: var(--primary);';
+      if (this.currentRole === 'driver') {
+        let nextStatusText = '';
+        let targetStatus = '';
+        let btnClass = 'btn-primary';
 
-            if (currentOrderStatus === 'menunggu' || currentOrderStatus === 'diterima') {
-              singleBtnText = '🚗 1. Mulai Penjemputan / Berangkat';
-              singleBtnAction = `window.app.updateOrderStatus('${o.id}', 'dijemput')`;
-              singleBtnStyle = 'background: var(--secondary);';
-            } else if (currentOrderStatus === 'dijemput') {
-              singleBtnText = '🛣️ 2. Ubah Status: Perjalanan';
-              singleBtnAction = `window.app.updateOrderStatus('${o.id}', 'perjalanan')`;
-              singleBtnStyle = 'background: #3b82f6;';
-            } else if (currentOrderStatus === 'perjalanan') {
-              singleBtnText = '🏁 3. Status: Sampai Tujuan';
-              singleBtnAction = `window.app.updateOrderStatus('${o.id}', 'sampai')`;
-              singleBtnStyle = 'background: var(--warning);';
-            } else if (currentOrderStatus === 'sampai') {
-              singleBtnText = '✅ 4. Selesaikan Trip Ini';
-              singleBtnAction = `window.app.updateOrderStatus('${o.id}', 'selesai')`;
-              singleBtnStyle = 'background: var(--success);';
-            } else if (currentOrderStatus === 'selesai') {
-              singleBtnText = '🔄 5. Pindah Pool & Rotasi ke Arah Balik';
-              singleBtnAction = `window.app.triggerPoolTransferAndFinish('${o.id}')`;
-              singleBtnStyle = 'background: #8b5cf6; animation: pulse-badge 1.5s infinite;';
-            }
+        if (o.status === 'menunggu') {
+          targetStatus = 'menuju';
+          nextStatusText = '👉 Lanjut: Berangkat';
+        } else if (o.status === 'menuju') {
+          targetStatus = 'sampai';
+          nextStatusText = '👉 Lanjut: Sampai';
+          btnClass = 'btn-secondary';
+        } else if (o.status === 'sampai') {
+          targetStatus = 'selesai';
+          nextStatusText = '✅ Selesaikan Tugas';
+          btnClass = 'btn-warning';
+        }
 
-            driverActionButtons = `
-              <div style="margin-top:12px">
-                <h4 style="font-size:0.9rem; margin-bottom:6px;">Aksi Trayek Armada (Kursi Full 4/4):</h4>
-                <button class="btn btn-primary" style="${singleBtnStyle}" onclick="${singleBtnAction}">${singleBtnText}</button>
-                <p style="font-size:0.75rem; color:var(--gray); margin-top:6px; text-align:center;">
-                  ℹ️ Tombol ini akan otomatis memperbarui status dan berpindah tahap saat diketuk.
-                </p>
-              </div>
-            `;
-          }
-        } else {
+        if (targetStatus) {
           driverActionButtons = `
-            <div style="margin-top:12px">
-              <h4 style="font-size:0.9rem; margin-bottom:6px;">Ubah Status Paket:</h4>
-              <button class="btn btn-secondary" onclick="window.app.updateOrderStatus('${o.id}', 'dijemput')">Paket Dijemput Kurir</button>
-              <button class="btn btn-primary" onclick="window.app.updateOrderStatus('${o.id}', 'perjalanan')">Dalam Perjalanan</button>
-              <button class="btn btn-success" onclick="window.app.updateOrderStatus('${o.id}', 'selesai')">✅ Paket Diterima & Selesai</button>
+            <div class="card" style="background:#f8fafc; border:1.5px dashed var(--primary); padding:10px; margin-top:12px;">
+              <h4 style="font-size:0.85rem; margin-bottom:6px; color:var(--primary);">Status Progress Tugas:</h4>
+              <button class="btn ${btnClass}" onclick="window.app.updateOrderStatus('${o.id}', '${targetStatus}')">${nextStatusText}</button>
+            </div>
+          `;
+        } else if (o.status === 'selesai') {
+          driverActionButtons = `
+            <div class="card" style="background:#f0fdf4; border:1px solid var(--success); padding:10px; margin-top:12px; text-align:center;">
+              <strong style="color:var(--success); font-size:0.85rem;">Tugas Ini Telah Selesai ✅</strong>
             </div>
           `;
         }
@@ -2091,40 +2054,6 @@ Memuat data antrean arah...
       this.openOrderDetail(orderId);
     },
 
-    triggerPoolTransferAndFinish(orderId) {
-      const o = this.orders.find(x => x.id === orderId);
-      if (!o) return;
-
-      const driver = this.drivers.find(d => d.id === o.driverId);
-      if (!driver) {
-        this.showToast('Data driver tidak ditemukan.', true);
-        return;
-      }
-
-      let parts = o.direction.split(' - ');
-      let originCity = parts[0];
-      let destCity = parts[1];
-
-      if (confirm(`Yakin ingin memindahkan pool driver ke ${destCity} dan merotasi arah balik (${destCity} - ${originCity})?`)) {
-        driver.currentLocation = destCity; 
-        let returnDirection = `${destCity} - ${originCity}`;
-        driver.queueDirection = returnDirection;
-
-        const sameDirDrivers = this.drivers.filter(d => d.status === 'diterima' && d.queueDirection === returnDirection && d.id !== driver.id);
-        let maxQueue = sameDirDrivers.length > 0 ? Math.max(...sameDirDrivers.map(d => d.queueNo || 0)) : 0;
-        
-        driver.queueNo = maxQueue + 1;
-
-        set(ref(database, 'drivers/' + driver.id), driver).then(() => {
-          this.playBeep('success');
-          this.showToast(`Driver resmi berpindah pool ke ${destCity}!`);
-          this.showView('view-d-dashboard');
-        }).catch((error) => {
-          this.showToast('Gagal memindah pool: ' + error.message, true);
-        });
-      }
-    },
-
     updateOrderStatus(orderId, newStatus) {
       const o = this.orders.find(x => x.id === orderId);
       if(o) {
@@ -2194,14 +2123,23 @@ Memuat data antrean arah...
       } else {
         assignedOrders.forEach(o => {
           let packageBadge = o.type === 'Paket' ? ` | <b>Penerima:</b> ${o.receiverName} (${o.receiverPhone})` : '';
+          
+          // Tombol aksi dinamis per kartu daftar tugas
+          let actionBtnLabel = 'Detail / Ubah Status';
+          let btnColor = 'btn-primary';
+          if (o.status === 'menunggu') actionBtnLabel = '👉 Lanjut: Berangkat';
+          else if (o.status === 'menuju') { actionBtnLabel = '👉 Lanjut: Sampai'; btnColor = 'btn-secondary'; }
+          else if (o.status === 'sampai') { actionBtnLabel = '✅ Selesaikan Tugas'; btnColor = 'btn-warning'; }
+
           html += `
-            <div class="card" onclick="window.app.openOrderDetail('${o.id}')" style="cursor:pointer; border-left: 4px solid var(--primary); padding:10px;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="card" style="border-left: 4px solid var(--primary); padding:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')">
                 <strong style="font-size:0.9rem;">${o.id} - ${o.type} ${o.passengers ? `(${o.passengers} Kursi)` : ''}</strong>
                 <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
               </div>
-              <p style="font-size:0.85rem; margin-top:4px"><b>Pemesan/Pengirim:</b> ${o.passengerName}${packageBadge}</p>
-              <p style="font-size:0.80rem; color:var(--gray); margin-top:2px;">${o.origin} ➔ ${o.destination}</p>
+              <p style="font-size:0.85rem; margin-top:4px; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')"><b>Pemesan:</b> ${o.passengerName}${packageBadge}</p>
+              <p style="font-size:0.80rem; color:var(--gray); margin-top:2px; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')">${o.origin} ➔ ${o.destination}</p>
+              <button class="btn ${btnColor}" style="margin-top:8px; padding:6px; font-size:0.8rem;" onclick="window.app.openOrderDetail('${o.id}')">${actionBtnLabel}</button>
             </div>
           `;
         });
