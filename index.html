@@ -2010,6 +2010,21 @@ Memuat data antrean arah...
 
     rotateDriverToReturnPool(driver, order) {
       if (!order.direction) return;
+
+      // PERBAIKAN: Cek apakah masih ada order lain dari driver ini yang belum selesai dalam arah yang sama
+      const remainingActiveOrders = this.orders.filter(o => 
+        o.driverId === driver.id && 
+        o.direction === order.direction && 
+        o.id !== order.id && 
+        o.status !== 'selesai' && 
+        o.status !== 'dibatalkan'
+      );
+
+      // Jika masih ada penumpang lain di mobil yang sama, jangan pindah pool dulu!
+      if (remainingActiveOrders.length > 0) {
+        return; 
+      }
+
       let parts = order.direction.split(' - ');
       let originCity = parts[0];
       let destCity = parts[1];
@@ -2024,7 +2039,7 @@ Memuat data antrean arah...
       
       driver.queueNo = maxQueue + 1;
       set(ref(database, 'drivers/' + driver.id), driver);
-      this.showToast(`Driver berpindah pool ke ${destCity}`);
+      this.showToast(`Semua penumpang selesai. Driver berpindah pool ke ${destCity}`);
     },
 
     updateOrderStatus(orderId, newStatus) {
