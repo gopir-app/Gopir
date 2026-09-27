@@ -1638,14 +1638,10 @@ Memuat data antrean arah...
       }
     },
 
-    // ----------------------------------------------------
-    // PEMBARUAN UTAMA: PESANAN AKTIF & RIWAYAT (TERMASUK SELESAI)
-    // ----------------------------------------------------
     renderPassengerOrders() {
       let html = '';
       const myPhone = this.currentUser ? this.currentUser.phone : null;
       
-      // HANYA menampilkan pesanan yang MASIH AKTIF (Status 'selesai' dan 'dibatalkan' otomatis disembunyikan ke Riwayat)
       const myOrders = this.orders.filter(o => 
         (o.passengerPhone === myPhone || o.senderPhone === myPhone) && 
         o.status !== 'selesai' && 
@@ -1682,7 +1678,6 @@ Memuat data antrean arah...
       let html = '';
       const myPhone = this.currentUser ? this.currentUser.phone : null;
       
-      // Pesanan yang statusnya 'selesai' atau 'dibatalkan' otomatis masuk ke sini
       const historyOrders = this.orders.filter(o => 
         (o.passengerPhone === myPhone || o.senderPhone === myPhone) && 
         (o.status === 'selesai' || o.status === 'dibatalkan')
@@ -1719,7 +1714,6 @@ Memuat data antrean arah...
         });
       }
     },
-    // ----------------------------------------------------
 
     openOrderDetail(orderId) {
       const o = this.orders.find(x => x.id === orderId);
@@ -2040,10 +2034,16 @@ Memuat data antrean arah...
     renderDriverOrders() {
       let html = '';
       const myDriverId = this.currentUser ? this.currentUser.id : null;
-      const assignedOrders = this.orders.filter(o => o.driverId === myDriverId);
+      
+      // HANYA menampilkan tugas yang statusnya BELUM selesai atau dibatalkan
+      const assignedOrders = this.orders.filter(o => 
+        o.driverId === myDriverId && 
+        o.status !== 'selesai' && 
+        o.status !== 'dibatalkan'
+      );
 
       if(assignedOrders.length === 0) {
-        html = '<div class="empty-box">Belum ada tugas pesanan masuk.</div>';
+        html = '<div class="empty-box">Belum ada tugas pesanan aktif.</div>';
       } else {
         assignedOrders.forEach(o => {
           let packageBadge = o.type === 'Paket' ? ` | <b>Penerima:</b> ${o.receiverName} (${o.receiverPhone})` : '';
