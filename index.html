@@ -803,6 +803,12 @@ Memuat data antrean arah...
 <div id="d-orders-list"></div>
 </div>
 
+<!-- ================= RIWAYAT TUGAS DRIVER ================= -->
+<div id="view-d-history" class="view">
+<h3 style="margin-bottom:10px; font-size: 1.1rem;">Riwayat Tugas & Pengiriman</h3>
+<div id="d-history-list"></div>
+</div>
+
 <!-- ================= ADMIN DASHBOARD ================= -->
 <div id="view-a-dashboard" class="view">
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -883,6 +889,7 @@ Memuat data antrean arah...
 <!-- NAV BAR DRIVER -->
 <div id="nav-driver" class="nav-bar" style="display:none">
 <div class="nav-item active" onclick="window.app.showView('view-d-dashboard')"><span>🚗</span>Dashboard</div>
+<div class="nav-item" onclick="window.app.showView('view-d-history')"><span>📜</span>Riwayat</div>
 </div>
 
 <!-- NAV BAR ADMIN -->
@@ -1064,6 +1071,7 @@ Memuat data antrean arah...
       if (activeView.id === 'view-p-orders') this.renderPassengerOrders();
       if (activeView.id === 'view-p-history') this.renderPassengerHistory();
       if (activeView.id === 'view-d-dashboard' && this.currentUser) this.renderDriverOrders();
+      if (activeView.id === 'view-d-history' && this.currentUser) this.renderDriverHistory();
       if (activeView.id === 'view-a-dashboard') this.renderAdminDashboard();
     },
 
@@ -1121,6 +1129,10 @@ Memuat data antrean arah...
 
       if(viewId === 'view-p-history') {
         this.renderPassengerHistory();
+      }
+
+      if(viewId === 'view-d-history' && this.currentUser) {
+        this.renderDriverHistory();
       }
 
       if(viewId === 'view-d-dashboard' && this.currentUser) {
@@ -1757,6 +1769,36 @@ Memuat data antrean arah...
       document.getElementById('p-history-list').innerHTML = html;
     },
 
+    renderDriverHistory() {
+      let html = '';
+      const myDriverId = this.currentUser ? this.currentUser.id : null;
+      
+      const historyOrders = this.orders.filter(o => 
+        o.driverId === myDriverId && 
+        (o.status === 'selesai' || o.status === 'dibatalkan')
+      );
+
+      if(historyOrders.length === 0) {
+        html = '<div class="empty-box">Belum ada riwayat tugas pesanan yang selesai.</div>';
+      } else {
+        historyOrders.forEach(o => {
+          let earningsInfo = o.type === 'Mobil' && o.passengers ? `<p style="font-size:0.78rem; color:var(--primary); font-weight:600; margin-top:2px;">Kursi Terangkut: ${o.passengers}</p>` : '';
+          html += `
+            <div class="card" style="background:#f8fafc;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="font-size:0.9rem;">${o.id} - ${o.type}</strong>
+                <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
+              </div>
+              <p style="font-size:0.85rem; color:var(--gray); margin-top:4px">${o.origin} ➔ ${o.destination}</p>
+              <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">Waktu Selesai/Tercatat: ${o.createdAt || '-'}</p>
+              ${earningsInfo}
+            </div>
+          `;
+        });
+      }
+      document.getElementById('d-history-list').innerHTML = html;
+    },
+
     deleteOrder(orderId) {
       if (confirm("Yakin ingin menghapus riwayat pesanan ini secara permanen?")) {
         remove(ref(database, 'orders/' + orderId)).then(() => {
@@ -2011,7 +2053,6 @@ Memuat data antrean arah...
     rotateDriverToReturnPool(driver, order) {
       if (!order.direction) return;
 
-      // PERBAIKAN: Memastikan driver hanya berpindah pool jika seluruh pesanan/penumpang dalam trip ini sudah selesai
       const remainingActiveOrders = this.orders.filter(o => 
         o.driverId === driver.id && 
         o.direction === order.direction && 
