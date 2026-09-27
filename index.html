@@ -2011,7 +2011,7 @@ Memuat data antrean arah...
     rotateDriverToReturnPool(driver, order) {
       if (!order.direction) return;
 
-      // PERBAIKAN: Cek apakah masih ada order lain dari driver ini yang belum selesai dalam arah yang sama
+      // PERBAIKAN: Cek apakah masih ada order lain dari driver ini yang BELUM SELESAI dalam arah yang sama
       const remainingActiveOrders = this.orders.filter(o => 
         o.driverId === driver.id && 
         o.direction === order.direction && 
@@ -2020,11 +2020,12 @@ Memuat data antrean arah...
         o.status !== 'dibatalkan'
       );
 
-      // Jika masih ada penumpang lain di mobil yang sama, jangan pindah pool dulu!
+      // JANGAN pindah pool jika masih ada pesanan lain yang aktif dalam trip ini!
       if (remainingActiveOrders.length > 0) {
         return; 
       }
 
+      // Jika semua pesanan pada trip ini sudah selesai, baru lakukan rotasi pool
       let parts = order.direction.split(' - ');
       let originCity = parts[0];
       let destCity = parts[1];
@@ -2039,7 +2040,7 @@ Memuat data antrean arah...
       
       driver.queueNo = maxQueue + 1;
       set(ref(database, 'drivers/' + driver.id), driver);
-      this.showToast(`Semua penumpang selesai. Driver berpindah pool ke ${destCity}`);
+      this.showToast(`Semua pesanan trip ini selesai. Driver resmi berpindah pool ke ${destCity}`);
     },
 
     updateOrderStatus(orderId, newStatus) {
@@ -2053,6 +2054,10 @@ Memuat data antrean arah...
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
 
+        // Simpan perubahan status pesanan terlebih dahulu
+        set(ref(database, 'orders/' + orderId), o);
+
+        // Jika status diubah menjadi selesai, cek apakah seluruh pesanan di trip ini sudah selesai
         if (newStatus === 'selesai' && o.driverId) {
           const assignedDriver = this.drivers.find(d => d.id === o.driverId);
           if (assignedDriver) {
@@ -2060,7 +2065,6 @@ Memuat data antrean arah...
           }
         }
 
-        set(ref(database, 'orders/' + orderId), o);
         this.playBeep('success');
         this.showToast('Status pesanan diperbarui');
         this.showBrowserNotification("Status Diperbarui", `Pesanan #${o.id} sekarang berstatus ${newStatus.toUpperCase()}`);
