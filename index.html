@@ -2160,6 +2160,14 @@ Memuat data antrean arah...
         return;
       }
 
+      // Hitung total kursi mobil yang sudah terisi dari pesanan tipe 'Mobil'
+      let totalPassengerSeats = 0;
+      assignedOrders.forEach(o => {
+        if (o.type === 'Mobil' && o.passengers) {
+          totalPassengerSeats += parseInt(o.passengers);
+        }
+      });
+
       let sampleStatus = assignedOrders[0].status;
       let nextStatusText = '';
       let targetStatus = '';
@@ -2193,11 +2201,23 @@ Memuat data antrean arah...
         `;
       });
 
-      if (targetStatus) {
+      // Tombol Aksi Cepat HANYA MUNCUL jika total kursi penumpang sudah mencapai 4 (FULL) atau status sudah berjalan
+      const isFull = totalPassengerSeats >= 4;
+
+      if (targetStatus && (isFull || sampleStatus !== 'menunggu')) {
+        let infoKuorum = sampleStatus === 'menunggu' ? `<p style="font-size:0.75rem; color:var(--success); margin-bottom:4px; font-weight:600;">✓ Kuota Kursi Penuh (4/4)</p>` : '';
         html += `
           <div class="card" style="background:#f8fafc; border:1.5px dashed var(--primary); padding:12px; margin-top:12px; text-align:center;">
+            ${infoKuorum}
             <p style="font-size:0.8rem; color:var(--gray); margin-bottom:6px;">Aksi Cepat untuk Seluruh Penumpang/Paket di atas:</p>
             <button class="btn ${btnColor}" style="margin:0; padding:10px; font-size:0.9rem;" onclick="window.app.updateBatchOrderStatus('${targetStatus}')">${nextStatusText}</button>
+          </div>
+        `;
+      } else if (sampleStatus === 'menunggu' && !isFull) {
+        html += `
+          <div class="card" style="background:#fffbeb; border:1.5px dashed var(--warning); padding:10px; margin-top:12px; text-align:center;">
+            <p style="font-size:0.8rem; color:var(--warning); font-weight:600;">⏳ Menunggu Kursi Penumpang Full (${totalPassengerSeats}/4 Kursi)</p>
+            <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">Tombol aksi cepat akan muncul otomatis saat kuota mencapai 4 kursi.</p>
           </div>
         `;
       }
