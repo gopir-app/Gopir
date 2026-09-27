@@ -1894,7 +1894,7 @@ Memuat data antrean arah...
         chatHtml = '<div style="text-align:center; color:var(--gray); font-size:0.8rem;">Belum ada pesan.</div>';
       }
 
-      // Tombol Dinamis Interaktif untuk Driver (Jemput ➔ Berangkat ➔ Sampai ➔ Selesai)
+      // Tombol Dinamis Interaktif untuk Detail Driver
       let driverActionButtons = '';
       if (this.currentRole === 'driver') {
         let nextStatusText = '';
@@ -2076,6 +2076,42 @@ Memuat data antrean arah...
       }
     },
 
+    updateBatchOrderStatus(newStatus) {
+      const myDriverId = this.currentUser ? this.currentUser.id : null;
+      if (!myDriverId) return;
+
+      const assignedOrders = this.orders.filter(o => 
+        o.driverId === myDriverId && 
+        o.status !== 'selesai' && 
+        o.status !== 'dibatalkan'
+      );
+
+      if (assignedOrders.length === 0) {
+        this.showToast('Tidak ada tugas aktif untuk diperbarui.', true);
+        return;
+      }
+
+      let updatePromises = assignedOrders.map(o => {
+        o.status = newStatus;
+        if(!o.messages) o.messages = [];
+        o.messages.push({
+          sender: 'System',
+          text: `Status diperbarui massal oleh Driver: ${newStatus.toUpperCase()}`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        return set(ref(database, 'orders/' + o.id), o);
+      });
+
+      Promise.all(updatePromises).then(() => {
+        this.playBeep('success');
+        this.showToast(`Semua status tugas berhasil diubah ke: ${newStatus.toUpperCase()}`);
+        this.showBrowserNotification("Status Diperbarui", `Semua tugas Anda sekarang berstatus ${newStatus.toUpperCase()}`);
+        this.renderDriverOrders();
+      }).catch((error) => {
+        this.showToast('Gagal memperbarui status: ' + error.message, true);
+      });
+    },
+
     backFromDetail() {
       if(this.currentRole === 'driver') this.showView('view-d-dashboard');
       else this.showView('view-p-orders');
@@ -2120,30 +2156,52 @@ Memuat data antrean arah...
 
       if(assignedOrders.length === 0) {
         html = '<div class="empty-box">Belum ada tugas pesanan aktif.</div>';
-      } else {
-        assignedOrders.forEach(o => {
-          let packageBadge = o.type === 'Paket' ? ` | <b>Penerima:</b> ${o.receiverName} (${o.receiverPhone})` : '';
-          
-          // Tombol aksi dinamis per kartu daftar tugas
-          let actionBtnLabel = 'Detail / Ubah Status';
-          let btnColor = 'btn-primary';
-          if (o.status === 'menunggu') actionBtnLabel = '👉 Lanjut: Berangkat';
-          else if (o.status === 'menuju') { actionBtnLabel = '👉 Lanjut: Sampai'; btnColor = 'btn-secondary'; }
-          else if (o.status === 'sampai') { actionBtnLabel = '✅ Selesaikan Tugas'; btnColor = 'btn-warning'; }
-
-          html += `
-            <div class="card" style="border-left: 4px solid var(--primary); padding:10px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')">
-                <strong style="font-size:0.9rem;">${o.id} - ${o.type} ${o.passengers ? `(${o.passengers} Kursi)` : ''}</strong>
-                <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
-              </div>
-              <p style="font-size:0.85rem; margin-top:4px; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')"><b>Pemesan:</b> ${o.passengerName}${packageBadge}</p>
-              <p style="font-size:0.80rem; color:var(--gray); margin-top:2px; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')">${o.origin} ➔ ${o.destination}</p>
-              <button class="btn ${btnColor}" style="margin-top:8px; padding:6px; font-size:0.8rem;" onclick="window.app.openOrderDetail('${o.id}')">${actionBtnLabel}</button>
-            </div>
-          `;
-        });
+        document.getElementById('d-orders-list').innerHTML = html;
+        return;
       }
+
+      let sampleStatus = assignedOrders[0].status;
+      let nextStatusText = '';
+      let targetStatus = '';
+      let btnColor = 'btn-primary';
+
+      if (sampleStatus === 'menunggu') {
+        targetStatus = 'menuju';
+        nextStatusText = '👉 Lanjut Semua: Berangkat';
+      } else if (sampleStatus === 'menuju') {
+        targetStatus = 'sampai';
+        nextStatusText = '👉 Lanjut Semua: Sampai';
+        btnColor = 'btn-secondary';
+      } else if (sampleStatus === 'sampai') {
+        targetStatus = 'selesai';
+        nextStatusText = '✅ Selesaikan Semua Tugas';
+        btnColor = 'btn-warning';
+      }
+
+      assignedOrders.forEach(o => {
+        let packageBadge = o.type === 'Paket' ? ` | <b>Penerima:</b> ${o.receiverName} (${o.receiverPhone})` : '';
+        
+        html += `
+          <div class="card" style="border-left: 4px solid var(--primary); padding:10px; margin-bottom: 8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')">
+              <strong style="font-size:0.9rem;">${o.id} - ${o.type} ${o.passengers ? `(${o.passengers} Kursi)` : ''}</strong>
+              <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
+            </div>
+            <p style="font-size:0.85rem; margin-top:4px; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')"><b>Pemesan:</b> ${o.passengerName}${packageBadge}</p>
+            <p style="font-size:0.80rem; color:var(--gray); margin-top:2px; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')">${o.origin} ➔ ${o.destination}</p>
+          </div>
+        `;
+      });
+
+      if (targetStatus) {
+        html += `
+          <div class="card" style="background:#f8fafc; border:1.5px dashed var(--primary); padding:12px; margin-top:12px; text-align:center;">
+            <p style="font-size:0.8rem; color:var(--gray); margin-bottom:6px;">Aksi Cepat untuk Seluruh Penumpang/Paket di atas:</p>
+            <button class="btn ${btnColor}" style="margin:0; padding:10px; font-size:0.9rem;" onclick="window.app.updateBatchOrderStatus('${targetStatus}')">${nextStatusText}</button>
+          </div>
+        `;
+      }
+
       document.getElementById('d-orders-list').innerHTML = html;
     }
   };
