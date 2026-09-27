@@ -1792,6 +1792,7 @@ Memuat data antrean arah...
               <p style="font-size:0.85rem; color:var(--gray); margin-top:4px">${o.origin} ➔ ${o.destination}</p>
               <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">Waktu Selesai/Tercatat: ${o.createdAt || '-'}</p>
               ${earningsInfo}
+              <button class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:0.8rem;" onclick="window.app.deleteDriverHistoryOrder('${o.id}')">🗑️ Hapus dari Riwayat</button>
             </div>
           `;
         });
@@ -1805,6 +1806,18 @@ Memuat data antrean arah...
           this.playBeep('success');
           this.showToast('Riwayat pesanan berhasil dihapus.');
           this.renderPassengerHistory();
+        }).catch((error) => {
+          this.showToast('Gagal menghapus: ' + error.message, true);
+        });
+      }
+    },
+
+    deleteDriverHistoryOrder(orderId) {
+      if (confirm("Yakin ingin menghapus riwayat tugas ini dari daftar Anda?")) {
+        remove(ref(database, 'orders/' + orderId)).then(() => {
+          this.playBeep('success');
+          this.showToast('Riwayat tugas berhasil dihapus.');
+          this.renderDriverHistory();
         }).catch((error) => {
           this.showToast('Gagal menghapus: ' + error.message, true);
         });
