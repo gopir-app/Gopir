@@ -1917,13 +1917,35 @@ Memuat data antrean arah...
               </div>
             `;
           } else {
+            // Cek apakah masih ada pesanan lain di trip ini yang belum selesai
+            const activeOrdersOnTrip = this.orders.filter(ord => 
+              ord.driverId === assignedDriver.id && 
+              ord.direction === o.direction && 
+              ord.id !== o.id && 
+              ord.status !== 'selesai' && 
+              ord.status !== 'dibatalkan'
+            );
+            const isCurrentOrderFinished = (o.status === 'selesai');
+            let showPoolTransferButton = isCurrentOrderFinished && activeOrdersOnTrip.length === 0;
+
             driverActionButtons = `
               <div style="margin-top:12px">
                 <h4 style="font-size:0.9rem; margin-bottom:6px;">Ubah Status Trayek (Kursi Full 4/4):</h4>
                 <button class="btn btn-secondary" onclick="window.app.updateOrderStatus('${o.id}', 'dijemput')">🚗 Mulai Penjemputan / Berangkat</button>
                 <button class="btn btn-primary" onclick="window.app.updateOrderStatus('${o.id}', 'perjalanan')">Status: Perjalanan</button>
                 <button class="btn btn-warning" onclick="window.app.updateOrderStatus('${o.id}', 'sampai')">Status Sampai Tujuan</button>
-                <button class="btn btn-primary" style="background:var(--success); margin-top:6px;" onclick="window.app.updateOrderStatus('${o.id}', 'selesai')">✅ Selesaikan Trip & Pindah Pool</button>
+                
+                <!-- Tombol Selesai Terpisah -->
+                <button class="btn btn-primary" style="background:var(--success); margin-top:6px;" onclick="window.app.updateOrderStatus('${o.id}', 'selesai')">✅ Selesaikan Trip Ini</button>
+                
+                ${showPoolTransferButton ? `
+                  <!-- Tombol Pindah Pool (Hanya muncul jika trip benar-benar bersih/selesai semua) -->
+                  <button class="btn btn-secondary" style="background:#8b5cf6; margin-top:10px; animation: pulse-badge 1.5s infinite;" onclick="window.app.triggerPoolTransfer('${o.id}')">🔄 Pindah Pool & Rotasi ke Arah Balik</button>
+                ` : `
+                  <p style="font-size:0.75rem; color:var(--gray); margin-top:8px; text-align:center;">
+                    ℹ️ Tombol pindah pool akan muncul setelah semua penumpang di trip ini berstatus <b>Selesai</b>.
+                  </p>
+                `}
               </div>
             `;
           }
@@ -2063,36 +2085,40 @@ Memuat data antrean arah...
       this.openOrderDetail(orderId);
     },
 
-    rotateDriverToReturnPool(driver, order) {
-      if (!order.direction) return;
+    triggerPoolTransfer(orderId) {
+      const o = this.orders.find(x => x.id === orderId);
+      if (!o) return;
 
-      const remainingActiveOrders = this.orders.filter(o => 
-        o.driverId === driver.id && 
-        o.direction === order.direction && 
-        o.id !== order.id && 
-        o.status !== 'selesai' && 
-        o.status !== 'dibatalkan'
-      );
-
-      if (remainingActiveOrders.length > 0) {
-        return; 
+      const driver = this.drivers.find(d => d.id === o.driverId);
+      if (!driver) {
+        this.showToast('Data driver tidak ditemukan.', true);
+        return;
       }
 
-      let parts = order.direction.split(' - ');
+      if (!o.direction) return;
+
+      let parts = o.direction.split(' - ');
       let originCity = parts[0];
       let destCity = parts[1];
 
-      driver.currentLocation = destCity; 
+      if (confirm(`Semua penumpang telah selesai. Yakin ingin memindahkan pool driver ke ${destCity} (Arah: ${destCity} - ${originCity})?`)) {
+        driver.currentLocation = destCity; 
+        let returnDirection = `${destCity} - ${originCity}`;
+        driver.queueDirection = returnDirection;
 
-      let returnDirection = `${destCity} - ${originCity}`;
-      driver.queueDirection = returnDirection;
+        const sameDirDrivers = this.drivers.filter(d => d.status === 'diterima' && d.queueDirection === returnDirection && d.id !== driver.id);
+        let maxQueue = sameDirDrivers.length > 0 ? Math.max(...sameDirDrivers.map(d => d.queueNo || 0)) : 0;
+        
+        driver.queueNo = maxQueue + 1;
 
-      const sameDirDrivers = this.drivers.filter(d => d.status === 'diterima' && d.queueDirection === returnDirection && d.id !== driver.id);
-      let maxQueue = sameDirDrivers.length > 0 ? Math.max(...sameDirDrivers.map(d => d.queueNo || 0)) : 0;
-      
-      driver.queueNo = maxQueue + 1;
-      set(ref(database, 'drivers/' + driver.id), driver);
-      this.showToast(`Semua pesanan trip ini selesai. Driver resmi berpindah pool ke ${destCity}`);
+        set(ref(database, 'drivers/' + driver.id), driver).then(() => {
+          this.playBeep('success');
+          this.showToast(`Driver resmi berpindah pool ke ${destCity}!`);
+          this.openOrderDetail(orderId);
+        }).catch((error) => {
+          this.showToast('Gagal memindah pool: ' + error.message, true);
+        });
+      }
     },
 
     updateOrderStatus(orderId, newStatus) {
@@ -2106,19 +2132,14 @@ Memuat data antrean arah...
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
 
-        set(ref(database, 'orders/' + orderId), o);
-
-        if (newStatus === 'selesai' && o.driverId) {
-          const assignedDriver = this.drivers.find(d => d.id === o.driverId);
-          if (assignedDriver) {
-            this.rotateDriverToReturnPool(assignedDriver, o);
-          }
-        }
-
-        this.playBeep('success');
-        this.showToast('Status pesanan diperbarui');
-        this.showBrowserNotification("Status Diperbarui", `Pesanan #${o.id} sekarang berstatus ${newStatus.toUpperCase()}`);
-        this.openOrderDetail(orderId);
+        set(ref(database, 'orders/' + orderId), o).then(() => {
+          this.playBeep('success');
+          this.showToast('Status pesanan diperbarui');
+          this.showBrowserNotification("Status Diperbarui", `Pesanan #${o.id} sekarang berstatus ${newStatus.toUpperCase()}`);
+          this.openOrderDetail(orderId);
+        }).catch((error) => {
+          this.showToast('Gagal memperbarui status: ' + error.message, true);
+        });
       }
     },
 
