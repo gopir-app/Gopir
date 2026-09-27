@@ -391,13 +391,14 @@ border:1px dashed #cbd5e1;
 /* Styling Peta Ringkas & Modal Interaktif */
 .map-preview-box {
   width: 100%;
-  height: 110px;
+  height: 140px;
   border-radius: var(--radius);
   overflow: hidden;
   position: relative;
   cursor: pointer;
   border: 1.5px solid #cbd5e1;
   transition: all 0.2s ease;
+  margin-top: 4px;
 }
 
 .map-preview-box:hover {
@@ -415,7 +416,7 @@ border:1px dashed #cbd5e1;
   padding: 3px 8px;
   font-size: 0.7rem;
   border-radius: 4px;
-  z-index: 1000;
+  z-index: 10;
   pointer-events: none;
 }
 
@@ -1913,39 +1914,44 @@ Memuat data antrean arah...
             driverActionButtons = `
               <div style="margin-top:12px; background:#fffbeb; border:1px solid #fcd34d; padding:10px; border-radius:var(--radius);">
                 <p style="font-size:0.85rem; color:#b45309; font-weight:700;">⚠️ Kursi Belum Penuh (${totalFilledSeats}/4 Kursi)</p>
-                <p style="font-size:0.78rem; color:var(--gray); margin-top:2px;">Tombol aksi jalan baru terbuka jika kursi sudah 4/4.</p>
+                <p style="font-size:0.78rem; color:var(--gray); margin-top:2px;">Tombol aksi trayek baru akan muncul jika kursi sudah 4/4.</p>
               </div>
             `;
           } else {
-            // Cek apakah masih ada pesanan lain di trip ini yang belum selesai
-            const activeOrdersOnTrip = this.orders.filter(ord => 
-              ord.driverId === assignedDriver.id && 
-              ord.direction === o.direction && 
-              ord.id !== o.id && 
-              ord.status !== 'selesai' && 
-              ord.status !== 'dibatalkan'
-            );
-            const isCurrentOrderFinished = (o.status === 'selesai');
-            let showPoolTransferButton = isCurrentOrderFinished && activeOrdersOnTrip.length === 0;
+            let currentOrderStatus = o.status;
+            let singleBtnText = '';
+            let singleBtnAction = '';
+            let singleBtnStyle = 'background: var(--primary);';
+
+            if (currentOrderStatus === 'menunggu' || currentOrderStatus === 'diterima') {
+              singleBtnText = '🚗 1. Mulai Penjemputan / Berangkat';
+              singleBtnAction = `window.app.updateOrderStatus('${o.id}', 'dijemput')`;
+              singleBtnStyle = 'background: var(--secondary);';
+            } else if (currentOrderStatus === 'dijemput') {
+              singleBtnText = '🛣️ 2. Ubah Status: Perjalanan';
+              singleBtnAction = `window.app.updateOrderStatus('${o.id}', 'perjalanan')`;
+              singleBtnStyle = 'background: #3b82f6;';
+            } else if (currentOrderStatus === 'perjalanan') {
+              singleBtnText = '🏁 3. Status: Sampai Tujuan';
+              singleBtnAction = `window.app.updateOrderStatus('${o.id}', 'sampai')`;
+              singleBtnStyle = 'background: var(--warning);';
+            } else if (currentOrderStatus === 'sampai') {
+              singleBtnText = '✅ 4. Selesaikan Trip Ini';
+              singleBtnAction = `window.app.updateOrderStatus('${o.id}', 'selesai')`;
+              singleBtnStyle = 'background: var(--success);';
+            } else if (currentOrderStatus === 'selesai') {
+              singleBtnText = '🔄 5. Pindah Pool & Rotasi ke Arah Balik';
+              singleBtnAction = `window.app.triggerPoolTransferAndFinish('${o.id}')`;
+              singleBtnStyle = 'background: #8b5cf6; animation: pulse-badge 1.5s infinite;';
+            }
 
             driverActionButtons = `
               <div style="margin-top:12px">
-                <h4 style="font-size:0.9rem; margin-bottom:6px;">Ubah Status Trayek (Kursi Full 4/4):</h4>
-                <button class="btn btn-secondary" onclick="window.app.updateOrderStatus('${o.id}', 'dijemput')">🚗 Mulai Penjemputan / Berangkat</button>
-                <button class="btn btn-primary" onclick="window.app.updateOrderStatus('${o.id}', 'perjalanan')">Status: Perjalanan</button>
-                <button class="btn btn-warning" onclick="window.app.updateOrderStatus('${o.id}', 'sampai')">Status Sampai Tujuan</button>
-                
-                <!-- Tombol Selesai Terpisah -->
-                <button class="btn btn-primary" style="background:var(--success); margin-top:6px;" onclick="window.app.updateOrderStatus('${o.id}', 'selesai')">✅ Selesaikan Trip Ini</button>
-                
-                ${showPoolTransferButton ? `
-                  <!-- Tombol Pindah Pool (Hanya muncul jika trip benar-benar bersih/selesai semua) -->
-                  <button class="btn btn-secondary" style="background:#8b5cf6; margin-top:10px; animation: pulse-badge 1.5s infinite;" onclick="window.app.triggerPoolTransfer('${o.id}')">🔄 Pindah Pool & Rotasi ke Arah Balik</button>
-                ` : `
-                  <p style="font-size:0.75rem; color:var(--gray); margin-top:8px; text-align:center;">
-                    ℹ️ Tombol pindah pool akan muncul setelah semua penumpang di trip ini berstatus <b>Selesai</b>.
-                  </p>
-                `}
+                <h4 style="font-size:0.9rem; margin-bottom:6px;">Aksi Trayek Armada (Kursi Full 4/4):</h4>
+                <button class="btn btn-primary" style="${singleBtnStyle}" onclick="${singleBtnAction}">${singleBtnText}</button>
+                <p style="font-size:0.75rem; color:var(--gray); margin-top:6px; text-align:center;">
+                  ℹ️ Tombol ini akan otomatis memperbarui status dan berpindah tahap saat diketuk.
+                </p>
               </div>
             `;
           }
@@ -2085,7 +2091,7 @@ Memuat data antrean arah...
       this.openOrderDetail(orderId);
     },
 
-    triggerPoolTransfer(orderId) {
+    triggerPoolTransferAndFinish(orderId) {
       const o = this.orders.find(x => x.id === orderId);
       if (!o) return;
 
@@ -2095,13 +2101,11 @@ Memuat data antrean arah...
         return;
       }
 
-      if (!o.direction) return;
-
       let parts = o.direction.split(' - ');
       let originCity = parts[0];
       let destCity = parts[1];
 
-      if (confirm(`Semua penumpang telah selesai. Yakin ingin memindahkan pool driver ke ${destCity} (Arah: ${destCity} - ${originCity})?`)) {
+      if (confirm(`Yakin ingin memindahkan pool driver ke ${destCity} dan merotasi arah balik (${destCity} - ${originCity})?`)) {
         driver.currentLocation = destCity; 
         let returnDirection = `${destCity} - ${originCity}`;
         driver.queueDirection = returnDirection;
@@ -2114,7 +2118,7 @@ Memuat data antrean arah...
         set(ref(database, 'drivers/' + driver.id), driver).then(() => {
           this.playBeep('success');
           this.showToast(`Driver resmi berpindah pool ke ${destCity}!`);
-          this.openOrderDetail(orderId);
+          this.showView('view-d-dashboard');
         }).catch((error) => {
           this.showToast('Gagal memindah pool: ' + error.message, true);
         });
