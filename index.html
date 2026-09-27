@@ -231,7 +231,7 @@ color:var(--primary);
 font-weight:700
 }
 
-/* Pembaruan Badge & Efek Mencolok / Fokus */
+/* Badge & Efek Mencolok */
 .badge{
 display:inline-block;
 padding:6px 12px;
@@ -978,7 +978,6 @@ Memuat data antrean arah...
         const oldOrdersCount = this.orders.length;
         this.orders = data ? Object.values(data) : [];
         
-        // Deteksi pesanan baru masuk untuk driver yang sedang login
         if (this.currentRole === 'driver' && this.currentUser && this.orders.length > oldOrdersCount) {
           const latestOrder = this.orders[this.orders.length - 1];
           if (latestOrder.driverId === this.currentUser.id) {
@@ -1306,7 +1305,6 @@ Memuat data antrean arah...
       this.adminUsername = newUser;
       this.adminPassword = newPass;
 
-      // Simpan perubahan permanen ke Firebase
       set(ref(database, 'settings/admin'), {
         username: newUser,
         password: newPass
@@ -1529,7 +1527,6 @@ Memuat data antrean arah...
       }
 
       let remainingPassengers = requestedPassengers;
-      let allocatedOrdersSummary = [];
       let queueIndex = 0;
 
       while (remainingPassengers > 0 && queueIndex < realtimeQueue.length) {
@@ -1566,8 +1563,6 @@ Memuat data antrean arah...
         };
 
         set(ref(database, 'orders/' + orderId), newOrder);
-        allocatedOrdersSummary.push(`${passengersToThisCar} kursi ke Driver ${assignedDriver.name}`);
-
         remainingPassengers -= passengersToThisCar;
         queueIndex++;
       }
@@ -1643,9 +1638,14 @@ Memuat data antrean arah...
       }
     },
 
+    // ----------------------------------------------------
+    // PEMBARUAN UTAMA: PESANAN AKTIF & RIWAYAT (TERMASUK SELESAI)
+    // ----------------------------------------------------
     renderPassengerOrders() {
       let html = '';
       const myPhone = this.currentUser ? this.currentUser.phone : null;
+      
+      // HANYA menampilkan pesanan yang MASIH AKTIF (Status 'selesai' dan 'dibatalkan' otomatis disembunyikan ke Riwayat)
       const myOrders = this.orders.filter(o => 
         (o.passengerPhone === myPhone || o.senderPhone === myPhone) && 
         o.status !== 'selesai' && 
@@ -1681,6 +1681,8 @@ Memuat data antrean arah...
     renderPassengerHistory() {
       let html = '';
       const myPhone = this.currentUser ? this.currentUser.phone : null;
+      
+      // Pesanan yang statusnya 'selesai' atau 'dibatalkan' otomatis masuk ke sini
       const historyOrders = this.orders.filter(o => 
         (o.passengerPhone === myPhone || o.senderPhone === myPhone) && 
         (o.status === 'selesai' || o.status === 'dibatalkan')
@@ -1717,6 +1719,7 @@ Memuat data antrean arah...
         });
       }
     },
+    // ----------------------------------------------------
 
     openOrderDetail(orderId) {
       const o = this.orders.find(x => x.id === orderId);
@@ -1833,7 +1836,6 @@ Memuat data antrean arah...
         }
       }
 
-      // KOTAK STATUS UTAMA (DIPERKEKCIL & RINGKAS)
       let html = `
         <div class="card" style="background: #f8fafc; border: 1px solid var(--primary); text-align: center; padding: 10px 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -1845,7 +1847,6 @@ Memuat data antrean arah...
 
         ${topInfoSection}
 
-        <!-- PETA PELACAKAN GPS LEAFLET.JS (Diperkecil & Bisa Diketuk) -->
         <div class="card" style="padding:10px; margin-bottom:12px;">
           <h4 style="font-size:0.9rem; margin-bottom:6px;">🗺️ Peta Lokasi Driver (Live GPS)</h4>
           <div id="map-${o.id}" class="map-preview-box" onclick="window.app.expandMap('${o.id}')"></div>
