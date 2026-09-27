@@ -823,6 +823,12 @@ Memuat data antrean arah...
 <div id="a-trayek-summary-container"></div>
 </div>
 
+<!-- BAGIAN PESANAN AKTIF (KONTROL ADMIN) -->
+<div class="card" style="margin-top:12px">
+<h4 style="color:var(--secondary);font-size:0.95rem;margin-bottom:8px;">📦 Daftar Pesanan Aktif (Kontrol Admin)</h4>
+<div id="a-active-orders-container"></div>
+</div>
+
 <div class="card" style="margin-top:12px">
 <h4 style="color:var(--warning);font-size:0.95rem;margin-bottom:8px;">🔔 Pendaftaran Driver Baru (Menunggu Verifikasi)</h4>
 <div id="a-pending-driver-container"></div>
@@ -1374,7 +1380,8 @@ Memuat data antrean arah...
 
     renderAdminDashboard() {
       document.getElementById('stat-total-orders').innerText = this.orders.length;
-      document.getElementById('stat-active-orders').innerText = this.orders.filter(o => o.status !== 'selesai' && o.status !== 'dibatalkan').length;
+      const activeOrdersList = this.orders.filter(o => o.status !== 'selesai' && o.status !== 'dibatalkan');
+      document.getElementById('stat-active-orders').innerText = activeOrdersList.length;
       
       const approvedDrivers = this.drivers.filter(d => d.status === 'diterima');
       const pendingDrivers = this.drivers.filter(d => d.status === 'menunggu');
@@ -1397,6 +1404,30 @@ Memuat data antrean arah...
       });
       trayekHtml += '</div>';
       document.getElementById('a-trayek-summary-container').innerHTML = trayekHtml;
+
+      // Render Pesanan Aktif untuk Admin
+      let activeOrdersHtml = '';
+      if (activeOrdersList.length === 0) {
+        activeOrdersHtml = '<div class="empty-box">Tidak ada pesanan aktif saat ini.</div>';
+      } else {
+        activeOrdersList.forEach(o => {
+          let statusBadgeText = o.status.toUpperCase();
+          if(o.status === 'menunggu') statusBadgeText = 'MENUNGGU KURSI FULL';
+          
+          activeOrdersHtml += `
+            <div class="card" style="margin-bottom:8px; background:#f8fafc; padding:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="font-size:0.85rem;">${o.id} - ${o.type} ${o.passengers ? `(${o.passengers} Kursi)` : ''}</strong>
+                <span class="badge badge-${o.status}" style="font-size:0.7rem;">${statusBadgeText}</span>
+              </div>
+              <p style="font-size:0.8rem; color:var(--gray); margin-top:4px;"><b>Pemesan:</b> ${o.passengerName} (${o.passengerPhone || '-'})</p>
+              <p style="font-size:0.78rem; color:var(--gray); margin-top:2px;">${o.origin} ➔ ${o.destination}</p>
+              <button class="btn btn-danger" style="margin-top:6px; padding:5px; font-size:0.78rem;" onclick="window.app.adminCancelOrder('${o.id}')">❌ Batalkan Pesanan Ini</button>
+            </div>
+          `;
+        });
+      }
+      document.getElementById('a-active-orders-container').innerHTML = activeOrdersHtml;
 
       let pendingHtml = '';
       if (pendingDrivers.length === 0) {
@@ -1438,6 +1469,29 @@ Memuat data antrean arah...
         });
       }
       document.getElementById('a-driver-list-container').innerHTML = activeHtml;
+    },
+
+    adminCancelOrder(orderId) {
+      if (confirm(`Admin: Yakin ingin membatalkan pesanan #${orderId}?`)) {
+        const order = this.orders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        order.status = 'dibatalkan';
+        if (!order.messages) order.messages = [];
+        order.messages.push({
+          sender: 'Admin',
+          text: 'Pesanan dibatalkan oleh Admin sistem.',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+
+        set(ref(database, 'orders/' + orderId), order).then(() => {
+          this.playBeep('success');
+          this.showToast(`Pesanan #${orderId} dibatalkan oleh Admin.`);
+          this.renderAdminDashboard();
+        }).catch((error) => {
+          this.showToast('Gagal membatalkan pesanan: ' + error.message, true);
+        });
+      }
     },
 
     verifyDriver(driverId, actionStatus) {
@@ -2035,7 +2089,6 @@ Memuat data antrean arah...
       let html = '';
       const myDriverId = this.currentUser ? this.currentUser.id : null;
       
-      // HANYA menampilkan tugas yang statusnya BELUM selesai atau dibatalkan
       const assignedOrders = this.orders.filter(o => 
         o.driverId === myDriverId && 
         o.status !== 'selesai' && 
