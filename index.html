@@ -1180,14 +1180,16 @@ Memuat data antrean arah...
       let queueResult = [];
 
       onlineDrivers.forEach(d => {
-        const activeOrdersD = this.orders.filter(o => 
+        // PERBAIKAN LOGIKA: Hanya menghitung pesanan bertipe 'Mobil' untuk kapasitas kursi penumpang
+        const activeCarOrdersD = this.orders.filter(o => 
           o.driverId === d.id && 
           o.direction === direction && 
+          o.type === 'Mobil' &&
           o.status !== 'selesai' && 
           o.status !== 'dibatalkan'
         );
         let filled = 0;
-        activeOrdersD.forEach(o => filled += (o.passengers || 1));
+        activeCarOrdersD.forEach(o => filled += (o.passengers || 1));
         if(filled > 4) filled = 4;
 
         queueResult.push({
@@ -1224,7 +1226,7 @@ Memuat data antrean arah...
           ? ' <b style="color:var(--primary);">(UTAMA - 1)</b>' 
           : (q.isFull ? ' <span style="color:var(--success); font-weight:bold;">(FULL)</span>' : ` (Antrean ke-${index + 1})`);
         
-        html += `<li><b>${q.driver.name}</b> (${q.driver.model})${statusLabel} — Terisi: <b>${q.filledSeats}/4</b></li>`;
+        html += `<li><b>${q.driver.name}</b> (${q.driver.model})${statusLabel} — Terisi: <b>${q.filledSeats}/4 Kursi</b></li>`;
       });
       html += '</ul>';
       container.innerHTML = html;
@@ -2160,7 +2162,7 @@ Memuat data antrean arah...
         return;
       }
 
-      // Hitung total kursi mobil yang sudah terisi dari pesanan tipe 'Mobil'
+      // PERBAIKAN LOGIKA: Hanya menghitung jumlah kursi dari pesanan tipe 'Mobil'
       let totalPassengerSeats = 0;
       assignedOrders.forEach(o => {
         if (o.type === 'Mobil' && o.passengers) {
@@ -2205,7 +2207,7 @@ Memuat data antrean arah...
       const isFull = totalPassengerSeats >= 4;
 
       if (targetStatus && (isFull || sampleStatus !== 'menunggu')) {
-        let infoKuorum = sampleStatus === 'menunggu' ? `<p style="font-size:0.75rem; color:var(--success); margin-bottom:4px; font-weight:600;">✓ Kuota Kursi Penuh (4/4)</p>` : '';
+        let infoKuorum = sampleStatus === 'menunggu' ? `<p style="font-size:0.75rem; color:var(--success); margin-bottom:4px; font-weight:600;">✓ Kuota Kursi Penumpang Penuh (${totalPassengerSeats}/4)</p>` : '';
         html += `
           <div class="card" style="background:#f8fafc; border:1.5px dashed var(--primary); padding:12px; margin-top:12px; text-align:center;">
             ${infoKuorum}
@@ -2217,7 +2219,7 @@ Memuat data antrean arah...
         html += `
           <div class="card" style="background:#fffbeb; border:1.5px dashed var(--warning); padding:10px; margin-top:12px; text-align:center;">
             <p style="font-size:0.8rem; color:var(--warning); font-weight:600;">⏳ Menunggu Kursi Penumpang Full (${totalPassengerSeats}/4 Kursi)</p>
-            <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">Tombol aksi cepat akan muncul otomatis saat kuota mencapai 4 kursi.</p>
+            <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">Paket tidak mengurangi jatah kursi penumpang. Tombol jalan aktif saat kursi penumpang 4/4.</p>
           </div>
         `;
       }
