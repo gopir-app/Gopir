@@ -292,12 +292,12 @@ margin-bottom:2px;
 }
 
 .empty-box{
-padding:16px;
+padding:12px;
 text-align:center;
 background:#f8fafc;
 border-radius:var(--radius);
 color:var(--gray);
-font-size:.85rem;
+font-size:.8rem;
 border:1px dashed #cbd5e1;
 }
 
@@ -663,14 +663,14 @@ Keluar
 </div>
 </div>
 
-<!-- FITUR BARU: Ketersediaan Driver di Pangkalan -->
+<!-- FITUR: Ketersediaan Driver di 3 Pangkalan (Malifut, Sofifi, Tobelo) -->
 <div class="card" style="background:#f8fafc; border-color:#cbd5e1;">
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-  <h4 style="font-size:0.95rem; color:var(--dark);">📍 Ketersediaan Driver di Pangkalan</h4>
+  <h4 style="font-size:0.95rem; color:var(--dark);">📍 Lihat Driver di Pangkalan</h4>
   <span style="font-size:0.75rem; color:var(--primary); font-weight:700;">Live Status</span>
 </div>
-<p style="font-size:0.8rem; color:var(--gray); margin-bottom:10px;">Pantau armada driver yang sedang stanby/online di pangkalan kota.</p>
-<div id="p-driver-availability-list">Memuat data driver...</div>
+<p style="font-size:0.8rem; color:var(--gray); margin-bottom:10px;">Pantau armada driver yang sedang stanby/online berdasarkan pangkalan (Malifut, Sofifi, Tobelo).</p>
+<div id="p-driver-availability-list">Memuat data pangkalan...</div>
 </div>
 
 <div class="card">
@@ -1022,7 +1022,6 @@ Memuat data antrean arah...
           this.seedInitialDrivers();
         } else {
           this.drivers = Object.values(data);
-          // Jika role driver sedang aktif, perbarui data currentUser real-time dari database
           if (this.currentRole === 'driver' && this.currentUser) {
             const updatedMe = this.drivers.find(d => d.id === this.currentUser.id);
             if (updatedMe) {
@@ -1071,8 +1070,8 @@ Memuat data antrean arah...
           model: 'Calya', 
           plate: 'DG 9012 CC', 
           routeLine: 'Sofifi', 
-          currentLocation: 'Malifut', 
-          queueDirection: 'Malifut - Sofifi', 
+          currentLocation: 'Sofifi', 
+          queueDirection: 'Sofifi - Malifut', 
           queueNo: 1, 
           status: 'diterima',
           isOnline: true, 
@@ -1231,50 +1230,69 @@ Memuat data antrean arah...
       return [...activeQueue, ...fullQueue];
     },
 
+    /* FITUR PEMERIKSAAN PANGKALAN: Malifut, Sofifi, Tobelo */
     renderPassengerHomeAvailability() {
       const container = document.getElementById('p-driver-availability-list');
-      const approvedOnlineDrivers = this.drivers.filter(d => d.status === 'diterima' && d.isOnline);
+      const approvedDrivers = this.drivers.filter(d => d.status === 'diterima');
 
-      if (approvedOnlineDrivers.length === 0) {
-        container.innerHTML = `<div class="empty-box" style="padding:10px; font-size:0.8rem;">Belum ada driver yang stanby/online di pangkalan saat ini.</div>`;
-        return;
-      }
+      const pangkalanList = ['Malifut', 'Sofifi', 'Tobelo'];
+      let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
 
-      let html = '<div style="display:flex; flex-direction:column; gap:8px;">';
-      approvedOnlineDrivers.forEach(d => {
-        // Hitung kursi terisi untuk driver ini
-        const driverOrders = this.orders.filter(o => 
-          o.driverId === d.id && 
-          o.type === 'Mobil' &&
-          o.status !== 'selesai' && 
-          o.status !== 'dibatalkan'
-        );
-        let filledSeats = 0;
-        driverOrders.forEach(o => filledSeats += (o.passengers || 1));
-        if(filledSeats > 4) filledSeats = 4;
-
-        const badgeColor = filledSeats >= 4 ? 'var(--success)' : 'var(--warning)';
-        const seatLabel = filledSeats >= 4 ? 'FULL (4/4)' : `${filledSeats}/4 Kursi Terisi`;
+      pangkalanList.forEach(pangkalanName => {
+        // Periksa apakah ada driver pada pangkalan ini
+        const driversInThisBase = approvedDrivers.filter(d => d.currentLocation === pangkalanName);
 
         html += `
-          <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <strong style="font-size:0.85rem; color:var(--dark);">${d.name}</strong>
-              <div style="font-size:0.75rem; color:var(--gray); margin-top:2px;">
-                🚗 ${d.model} (${d.plate}) | Pangkalan: <b>${d.currentLocation}</b>
-              </div>
-              <div style="font-size:0.73rem; color:var(--secondary); margin-top:1px;">
-                Trayek: ${d.queueDirection}
-              </div>
+          <div style="background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
+              <strong style="font-size:0.85rem; color:var(--primary-dark);">🚩 Pangkalan ${pangkalanName}</strong>
+              <span style="font-size:0.72rem; color:var(--gray); font-weight:600;">${driversInThisBase.length} Driver Terdaftar</span>
             </div>
-            <div style="text-align:right;">
-              <span style="display:inline-block; background:${badgeColor}; color:white; font-size:0.68rem; font-weight:700; padding:3px 8px; border-radius:10px;">
-                ${seatLabel}
-              </span>
-            </div>
-          </div>
         `;
+
+        if (driversInThisBase.length === 0) {
+          html += `<div style="font-size:0.78rem; color:var(--gray); font-style:italic; padding:4px 0;">Belum ada driver di pangkalan ${pangkalanName}.</div>`;
+        } else {
+          html += '<div style="display:flex; flex-direction:column; gap:6px;">';
+          driversInThisBase.forEach(d => {
+            const isOnlineBadge = d.isOnline 
+              ? '<span style="color:var(--success); font-weight:bold;">● ONLINE</span>' 
+              : '<span style="color:var(--danger); font-weight:bold;">● OFFLINE</span>';
+
+            // Hitung kursi terisi jika driver online
+            let seatLabel = '-';
+            let badgeColor = 'var(--gray)';
+            if (d.isOnline) {
+              const driverOrders = this.orders.filter(o => 
+                o.driverId === d.id && 
+                o.type === 'Mobil' &&
+                o.status !== 'selesai' && 
+                o.status !== 'dibatalkan'
+              );
+              let filledSeats = 0;
+              driverOrders.forEach(o => filledSeats += (o.passengers || 1));
+              if(filledSeats > 4) filledSeats = 4;
+
+              badgeColor = filledSeats >= 4 ? 'var(--success)' : 'var(--warning)';
+              seatLabel = filledSeats >= 4 ? 'FULL (4/4)' : `${filledSeats}/4 Kursi`;
+            }
+
+            html += `
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:6px 8px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-size:0.82rem; font-weight:600; color:var(--dark);">${d.name} ${isOnlineBadge}</div>
+                  <div style="font-size:0.73rem; color:var(--gray);">🚗 ${d.model} (${d.plate}) | Arah: ${d.queueDirection || '-'}</div>
+                </div>
+                ${d.isOnline ? `<div style="text-align:right;"><span style="display:inline-block; background:${badgeColor}; color:white; font-size:0.65rem; font-weight:700; padding:2px 6px; border-radius:8px;">${seatLabel}</span></div>` : '<span style="font-size:0.7rem; color:var(--gray);">Istirahat</span>'}
+              </div>
+            `;
+          });
+          html += '</div>';
+        }
+
+        html += `</div>`;
       });
+
       html += '</div>';
       container.innerHTML = html;
     },
@@ -2146,7 +2164,6 @@ Memuat data antrean arah...
         let updates = {};
         updates['orders/' + orderId] = o;
 
-        // LOGIKA PINDAH POL OTOMATIS KETIKA SELESAI
         if (newStatus === 'selesai' && this.currentUser && this.currentRole === 'driver') {
           const destinationCity = o.destinationCity || o.destination;
           
@@ -2210,7 +2227,6 @@ Memuat data antrean arah...
         updates['orders/' + o.id] = o;
       });
 
-      // LOGIKA PINDAH POL OTOMATIS BATCH KETIKA SELESAI
       if (newStatus === 'selesai' && this.currentUser) {
         if (targetDestination) {
           this.currentUser.currentLocation = targetDestination;
