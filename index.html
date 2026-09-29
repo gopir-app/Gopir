@@ -662,6 +662,17 @@ Keluar
 <strong style="font-size:0.9rem;">Kirim Paket</strong>
 </div>
 </div>
+
+<!-- FITUR BARU: Ketersediaan Driver di Pangkalan -->
+<div class="card" style="background:#f8fafc; border-color:#cbd5e1;">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+  <h4 style="font-size:0.95rem; color:var(--dark);">📍 Ketersediaan Driver di Pangkalan</h4>
+  <span style="font-size:0.75rem; color:var(--primary); font-weight:700;">Live Status</span>
+</div>
+<p style="font-size:0.8rem; color:var(--gray); margin-bottom:10px;">Pantau armada driver yang sedang stanby/online di pangkalan kota.</p>
+<div id="p-driver-availability-list">Memuat data driver...</div>
+</div>
+
 <div class="card">
 <h4 style="font-size:0.95rem;margin-bottom:8px;">Pesanan Aktif Terakhir</h4>
 <div id="p-active-order-summary" style="margin-top:6px; font-size:0.85rem;">Belum ada pesanan.</div>
@@ -1079,6 +1090,7 @@ Memuat data antrean arah...
     refreshActiveViews() {
       const activeView = document.querySelector('.view.active');
       if (!activeView) return;
+      if (activeView.id === 'view-p-home') this.renderPassengerHomeAvailability();
       if (activeView.id === 'view-p-book-car') this.renderPassengerQueuePreview();
       if (activeView.id === 'view-p-orders') this.renderPassengerOrders();
       if (activeView.id === 'view-p-history') this.renderPassengerHistory();
@@ -1129,6 +1141,10 @@ Memuat data antrean arah...
         document.getElementById('set-admin-user').value = this.adminUsername;
         document.getElementById('set-admin-pass').value = '';
         document.getElementById('set-admin-pass-confirm').value = '';
+      }
+
+      if(viewId === 'view-p-home') {
+        this.renderPassengerHomeAvailability();
       }
 
       if(viewId === 'view-p-book-car') {
@@ -1213,6 +1229,54 @@ Memuat data antrean arah...
       let fullQueue = queueResult.filter(q => q.isFull);
 
       return [...activeQueue, ...fullQueue];
+    },
+
+    renderPassengerHomeAvailability() {
+      const container = document.getElementById('p-driver-availability-list');
+      const approvedOnlineDrivers = this.drivers.filter(d => d.status === 'diterima' && d.isOnline);
+
+      if (approvedOnlineDrivers.length === 0) {
+        container.innerHTML = `<div class="empty-box" style="padding:10px; font-size:0.8rem;">Belum ada driver yang stanby/online di pangkalan saat ini.</div>`;
+        return;
+      }
+
+      let html = '<div style="display:flex; flex-direction:column; gap:8px;">';
+      approvedOnlineDrivers.forEach(d => {
+        // Hitung kursi terisi untuk driver ini
+        const driverOrders = this.orders.filter(o => 
+          o.driverId === d.id && 
+          o.type === 'Mobil' &&
+          o.status !== 'selesai' && 
+          o.status !== 'dibatalkan'
+        );
+        let filledSeats = 0;
+        driverOrders.forEach(o => filledSeats += (o.passengers || 1));
+        if(filledSeats > 4) filledSeats = 4;
+
+        const badgeColor = filledSeats >= 4 ? 'var(--success)' : 'var(--warning)';
+        const seatLabel = filledSeats >= 4 ? 'FULL (4/4)' : `${filledSeats}/4 Kursi Terisi`;
+
+        html += `
+          <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="font-size:0.85rem; color:var(--dark);">${d.name}</strong>
+              <div style="font-size:0.75rem; color:var(--gray); margin-top:2px;">
+                🚗 ${d.model} (${d.plate}) | Pangkalan: <b>${d.currentLocation}</b>
+              </div>
+              <div style="font-size:0.73rem; color:var(--secondary); margin-top:1px;">
+                Trayek: ${d.queueDirection}
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <span style="display:inline-block; background:${badgeColor}; color:white; font-size:0.68rem; font-weight:700; padding:3px 8px; border-radius:10px;">
+                ${seatLabel}
+              </span>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
     },
 
     renderPassengerQueuePreview() {
