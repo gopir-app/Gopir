@@ -663,19 +663,29 @@ Keluar
 </div>
 </div>
 
-<!-- FITUR: Ketersediaan Driver di 3 Pangkalan (Malifut, Sofifi, Tobelo) -->
-<div class="card" style="background:#f8fafc; border-color:#cbd5e1;">
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-  <h4 style="font-size:0.95rem; color:var(--dark);">📍 Lihat Driver di Pangkalan</h4>
-  <span style="font-size:0.75rem; color:var(--primary); font-weight:700;">Live Status</span>
-</div>
-<p style="font-size:0.8rem; color:var(--gray); margin-bottom:10px;">Pantau armada driver yang sedang stanby/online berdasarkan pangkalan (Malifut, Sofifi, Tobelo).</p>
-<div id="p-driver-availability-list">Memuat data pangkalan...</div>
+<!-- KEMASAN BARU: Tombol Menu Lihat Driver & Pangkalan -->
+<div class="card" style="text-align:center; cursor:pointer; padding:16px; background:#f0fdf4; border-color:#bbf7d0;" onclick="window.app.showView('view-p-bases')">
+<div style="font-size:1.8rem; margin-bottom:4px;">📍</div>
+<strong style="font-size:0.95rem; color:var(--primary-dark);">Lihat Driver di Pangkalan</strong>
+<p style="font-size:0.78rem; color:var(--gray); margin-top:2px;">Pantau armada stanby di Malifut, Sofifi, dan Tobelo</p>
 </div>
 
 <div class="card">
 <h4 style="font-size:0.95rem;margin-bottom:8px;">Pesanan Aktif Terakhir</h4>
 <div id="p-active-order-summary" style="margin-top:6px; font-size:0.85rem;">Belum ada pesanan.</div>
+</div>
+</div>
+
+<!-- ================= HALAMAN KHUSUS: LIHAT DRIVER DI PANGKALAN ================= -->
+<div id="view-p-bases" class="view">
+<button class="btn btn-outline" style="width:auto; margin-bottom:10px; padding:6px 14px; font-size: 0.8rem;" onclick="window.app.showView('view-p-home')">← Kembali ke Beranda</button>
+<div class="card" style="margin-top:0;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <h3 style="font-size: 1.05rem; color:var(--primary-dark);">📍 Ketersediaan Pangkalan & Driver</h3>
+    <span style="font-size:0.75rem; color:var(--primary); font-weight:700;">Live Status</span>
+  </div>
+  <p style="font-size:0.8rem; color:var(--gray); margin-bottom:12px;">Pantau armada driver yang sedang stanby/online berdasarkan pangkalan (Malifut, Sofifi, Tobelo).</p>
+  <div id="p-driver-availability-list">Memuat data pangkalan...</div>
 </div>
 </div>
 
@@ -1089,7 +1099,7 @@ Memuat data antrean arah...
     refreshActiveViews() {
       const activeView = document.querySelector('.view.active');
       if (!activeView) return;
-      if (activeView.id === 'view-p-home') this.renderPassengerHomeAvailability();
+      if (activeView.id === 'view-p-bases') this.renderPassengerHomeAvailability();
       if (activeView.id === 'view-p-book-car') this.renderPassengerQueuePreview();
       if (activeView.id === 'view-p-orders') this.renderPassengerOrders();
       if (activeView.id === 'view-p-history') this.renderPassengerHistory();
@@ -1142,7 +1152,7 @@ Memuat data antrean arah...
         document.getElementById('set-admin-pass-confirm').value = '';
       }
 
-      if(viewId === 'view-p-home') {
+      if(viewId === 'view-p-bases') {
         this.renderPassengerHomeAvailability();
       }
 
@@ -1239,7 +1249,6 @@ Memuat data antrean arah...
       let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
 
       pangkalanList.forEach(pangkalanName => {
-        // Periksa apakah ada driver pada pangkalan ini
         const driversInThisBase = approvedDrivers.filter(d => d.currentLocation === pangkalanName);
 
         html += `
@@ -1259,7 +1268,6 @@ Memuat data antrean arah...
               ? '<span style="color:var(--success); font-weight:bold;">● ONLINE</span>' 
               : '<span style="color:var(--danger); font-weight:bold;">● OFFLINE</span>';
 
-            // Hitung kursi terisi jika driver online
             let seatLabel = '-';
             let badgeColor = 'var(--gray)';
             if (d.isOnline) {
@@ -2361,7 +2369,7 @@ Memuat data antrean arah...
       } else if (sampleStatus === 'menunggu' && !isFull) {
         html += `
           <div class="card" style="background:#fffbeb; border:1.5px dashed var(--warning); padding:10px; margin-top:12px; text-align:center;">
-            <p style="font-size:0.8rem; color:var(--warning); font-weight:600;">⏳ Menunggu Kursi Penumpang Full (${totalPassengerSeats}/4 Kursi)</p>
+            <p style="font-size:0.80rem; color:var(--warning); font-weight:600;">⏳ Menunggu Kursi Penumpang Full (${totalPassengerSeats}/4 Kursi)</p>
             <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">Paket tidak mengurangi jatah kursi penumpang. Tombol jalan aktif saat kursi penumpang 4/4.</p>
           </div>
         `;
