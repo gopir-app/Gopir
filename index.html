@@ -1011,6 +1011,17 @@ Memuat data antrean arah...
           this.seedInitialDrivers();
         } else {
           this.drivers = Object.values(data);
+          // Jika role driver sedang aktif, perbarui data currentUser real-time dari database
+          if (this.currentRole === 'driver' && this.currentUser) {
+            const updatedMe = this.drivers.find(d => d.id === this.currentUser.id);
+            if (updatedMe) {
+              this.currentUser = updatedMe;
+              const locEl = document.getElementById('d-current-location');
+              if (locEl) {
+                locEl.innerText = `📍 Posisi Pangkalan Anda Saat Ini: ${this.currentUser.currentLocation} (Antre ke Arah: ${this.currentUser.queueDirection})`;
+              }
+            }
+          }
         }
         this.refreshActiveViews();
       });
@@ -1180,7 +1191,6 @@ Memuat data antrean arah...
       let queueResult = [];
 
       onlineDrivers.forEach(d => {
-        // PERBAIKAN LOGIKA: Hanya menghitung pesanan bertipe 'Mobil' untuk kapasitas kursi penumpang
         const activeCarOrdersD = this.orders.filter(o => 
           o.driverId === d.id && 
           o.direction === direction && 
@@ -1420,7 +1430,6 @@ Memuat data antrean arah...
       trayekHtml += '</div>';
       document.getElementById('a-trayek-summary-container').innerHTML = trayekHtml;
 
-      // Render Pesanan Aktif untuk Admin
       let activeOrdersHtml = '';
       if (activeOrdersList.length === 0) {
         activeOrdersHtml = '<div class="empty-box">Tidak ada pesanan aktif saat ini.</div>';
@@ -1597,6 +1606,7 @@ Memuat data antrean arah...
 
       let remainingPassengers = requestedPassengers;
       let queueIndex = 0;
+      let updates = {};
 
       while (remainingPassengers > 0 && queueIndex < realtimeQueue.length) {
         let currentQueueItem = realtimeQueue[queueIndex];
@@ -1631,20 +1641,23 @@ Memuat data antrean arah...
           ]
         };
 
-        set(ref(database, 'orders/' + orderId), newOrder);
+        updates['orders/' + orderId] = newOrder;
         remainingPassengers -= passengersToThisCar;
         queueIndex++;
       }
 
       if (remainingPassengers > 0) {
         alert(`Sebagian kursi tercatat, namun sisa ${remainingPassengers} penumpang belum mendapat armada.`);
-      } else {
-        this.playBeep('success');
-        this.showToast('Booking kursi berhasil!');
       }
 
-      this.showView('view-p-orders');
-      this.renderPassengerOrders();
+      update(ref(database), updates).then(() => {
+        this.playBeep('success');
+        this.showToast('Booking kursi berhasil!');
+        this.showView('view-p-orders');
+        this.renderPassengerOrders();
+      }).catch((error) => {
+        this.showToast('Gagal memproses booking: ' + error.message, true);
+      });
     },
 
     submitPackageBooking(e) {
@@ -1896,7 +1909,6 @@ Memuat data antrean arah...
         chatHtml = '<div style="text-align:center; color:var(--gray); font-size:0.8rem;">Belum ada pesan.</div>';
       }
 
-      // Tombol Dinamis Interaktif untuk Detail Driver
       let driverActionButtons = '';
       if (this.currentRole === 'driver') {
         let nextStatusText = '';
@@ -2067,10 +2079,37 @@ Memuat data antrean arah...
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
 
-        set(ref(database, 'orders/' + orderId), o).then(() => {
+        let updates = {};
+        updates['orders/' + orderId] = o;
+
+        // LOGIKA PINDAH POL OTOMATIS KETIKA SELESAI
+        if (newStatus === 'selesai' && this.currentUser && this.currentRole === 'driver') {
+          const destinationCity = o.destinationCity || o.destination;
+          
+          if (destinationCity) {
+            this.currentUser.currentLocation = destinationCity;
+            
+            let routeLine = this.currentUser.routeLine || 'Tobelo';
+            if (destinationCity === 'Malifut') {
+              this.currentUser.queueDirection = `Malifut - ${routeLine}`;
+            } else {
+              this.currentUser.queueDirection = `${destinationCity} - Malifut`;
+            }
+
+            const sameDirDrivers = this.drivers.filter(x => x.status === 'diterima' && x.queueDirection === this.currentUser.queueDirection);
+            this.currentUser.queueNo = sameDirDrivers.length + 1;
+
+            updates['drivers/' + this.currentUser.id] = this.currentUser;
+            this.showToast(`Tugas selesai! Pool Anda pindah ke ${destinationCity}.`);
+          }
+        }
+
+        update(ref(database), updates).then(() => {
           this.playBeep('success');
-          this.showToast('Status pesanan diperbarui');
-          this.showBrowserNotification("Status Diperbarui", `Pesanan #${o.id} sekarang berstatus ${newStatus.toUpperCase()}`);
+          if (newStatus !== 'selesai') {
+            this.showToast('Status pesanan diperbarui');
+            this.showBrowserNotification("Status Diperbarui", `Pesanan #${o.id} sekarang berstatus ${newStatus.toUpperCase()}`);
+          }
           this.openOrderDetail(orderId);
         }).catch((error) => {
           this.showToast('Gagal memperbarui status: ' + error.message, true);
@@ -2093,7 +2132,10 @@ Memuat data antrean arah...
         return;
       }
 
-      let updatePromises = assignedOrders.map(o => {
+      const targetDestination = assignedOrders[0].destinationCity || assignedOrders[0].destination;
+
+      let updates = {};
+      assignedOrders.forEach(o => {
         o.status = newStatus;
         if(!o.messages) o.messages = [];
         o.messages.push({
@@ -2101,12 +2143,35 @@ Memuat data antrean arah...
           text: `Status diperbarui massal oleh Driver: ${newStatus.toUpperCase()}`,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
-        return set(ref(database, 'orders/' + o.id), o);
+        updates['orders/' + o.id] = o;
       });
 
-      Promise.all(updatePromises).then(() => {
+      // LOGIKA PINDAH POL OTOMATIS BATCH KETIKA SELESAI
+      if (newStatus === 'selesai' && this.currentUser) {
+        if (targetDestination) {
+          this.currentUser.currentLocation = targetDestination;
+          let routeLine = this.currentUser.routeLine || 'Tobelo';
+          
+          if (targetDestination === 'Malifut') {
+            this.currentUser.queueDirection = `Malifut - ${routeLine}`;
+          } else {
+            this.currentUser.queueDirection = `${targetDestination} - Malifut`;
+          }
+
+          const sameDirDrivers = this.drivers.filter(x => x.status === 'diterima' && x.queueDirection === this.currentUser.queueDirection);
+          this.currentUser.queueNo = sameDirDrivers.length + 1;
+
+          updates['drivers/' + this.currentUser.id] = this.currentUser;
+        }
+      }
+
+      update(ref(database), updates).then(() => {
         this.playBeep('success');
-        this.showToast(`Semua status tugas berhasil diubah ke: ${newStatus.toUpperCase()}`);
+        if (newStatus === 'selesai') {
+          this.showToast(`Semua tugas selesai! Anda kini berpindah pol ke ${targetDestination}.`);
+        } else {
+          this.showToast(`Semua status tugas diubah ke: ${newStatus.toUpperCase()}`);
+        }
         this.showBrowserNotification("Status Diperbarui", `Semua tugas Anda sekarang berstatus ${newStatus.toUpperCase()}`);
         this.renderDriverOrders();
       }).catch((error) => {
@@ -2162,7 +2227,6 @@ Memuat data antrean arah...
         return;
       }
 
-      // PERBAIKAN LOGIKA: Hanya menghitung jumlah kursi dari pesanan tipe 'Mobil'
       let totalPassengerSeats = 0;
       assignedOrders.forEach(o => {
         if (o.type === 'Mobil' && o.passengers) {
@@ -2203,7 +2267,6 @@ Memuat data antrean arah...
         `;
       });
 
-      // Tombol Aksi Cepat HANYA MUNCUL jika total kursi penumpang sudah mencapai 4 (FULL) atau status sudah berjalan
       const isFull = totalPassengerSeats >= 4;
 
       if (targetStatus && (isFull || sampleStatus !== 'menunggu')) {
