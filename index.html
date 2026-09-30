@@ -1,2387 +1,1097 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GoPir - Transportasi & Pengiriman Paket</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoPir - Transportasi & Pengiriman Paket Antarkota</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #FF5722;
+      --primary-dark: #E64A19;
+      --secondary: #2196F3;
+      --success: #4CAF50;
+      --warning: #FF9800;
+      --danger: #F44336;
+      --dark: #212121;
+      --light: #F9F9F9;
+      --gray: #757575;
+      --border: #E0E0E0;
+    }
 
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
 
-<style>
-:root{
---primary:#008037;
---primary-dark:#005c27;
---secondary:#0284c7;
---light:#f8fafc;
---dark:#0f172a;
---gray:#64748b;
---white:#fff;
---warning:#f59e0b;
---danger:#ef4444;
---success:#10b981;
---whatsapp:#25D366;
---whatsapp-dark:#1EBE5D;
---radius:10px;
---shadow:0 4px 6px -1px rgba(0,0,0,.05), 0 2px 4px -2px rgba(0,0,0,.05);
-}
+    body {
+      background-color: #f0f2f5;
+      color: var(--dark);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
-font-family:Segoe UI,Tahoma,Verdana,sans-serif
-}
+    #app-container {
+      width: 100%;
+      max-width: 480px;
+      background: #fff;
+      min-height: 100vh;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
 
-body{
-background:#f1f5f9;
-color:var(--dark);
-display:flex;
-justify-content:center;
-min-height:100vh;
-overflow-x: hidden;
-}
+    @media (min-width: 481px) {
+      #app-container {
+        height: 90vh;
+        border-radius: 24px;
+        overflow-y: auto;
+      }
+    }
 
-.app-container{
-width:100%;
-max-width:480px;
-min-height:100vh;
-background:var(--white);
-box-shadow:0 0 25px rgba(0,0,0,.08);
-position:relative;
-display:flex;
-flex-direction:column;
-}
+    .view {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
 
-header{
-background:var(--primary);
-color:var(--white);
-padding:12px 16px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-position:sticky;
-top:0;
-z-index:100;
-box-shadow:0 2px 4px rgba(0,0,0,.1);
-}
+    .view.active {
+      display: flex;
+    }
 
-header h1{font-size:1.15rem; letter-spacing:0.5px;}
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-.btn-logout{
-background:rgba(255,255,255,.2);
-color:var(--white);
-border:0;
-padding:5px 12px;
-border-radius:20px;
-cursor:pointer;
-font-size:0.8rem;
-font-weight:600;
-transition:background 0.2s;
-}
-.btn-logout:hover{background:rgba(255,255,255,.3);}
+    /* Komponen Umum */
+    h2, h3 { color: var(--dark); margin-bottom: 12px; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--gray);
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+    }
 
-.content{
-padding:12px 16px;
-padding-bottom:70px;
-flex:1;
-}
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--secondary); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--dark); }
 
-.view{display:none}
-.view.active{display:block}
+    /* Navigasi Bawah Pelanggan/Driver */
+    .bottom-nav {
+      display: flex;
+      background: #fff;
+      border-top: 1px solid var(--border);
+      position: sticky;
+      bottom: 0;
+      width: 100%;
+      z-index: 10;
+      margin-top: auto;
+    }
+    .nav-item {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.75rem;
+      color: var(--gray);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-item i { font-size: 1.2rem; }
+    .nav-item.active { color: var(--primary); font-weight: 600; }
 
-.card{
-background:var(--white);
-border:1px solid #e2e8f0;
-border-radius:var(--radius);
-padding:14px;
-margin-bottom:12px;
-box-shadow:var(--shadow);
-transition:transform 0.2s, box-shadow 0.2s;
-}
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--dark);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      z-index: 9999;
+      transition: transform 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
 
-.btn{
-width:100%;
-padding:10px;
-border:0;
-border-radius:var(--radius);
-font-weight:600;
-cursor:pointer;
-margin-top:8px;
-font-size:0.9rem;
-transition:opacity 0.2s, transform 0.1s;
-}
-.btn:active{transform:scale(0.98);}
+    .preview-img-box {
+      width: 100%;
+      height: 120px;
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      background: #fafafa;
+    }
+    .preview-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .checkbox-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.85rem;
+      margin: 12px 0;
+    }
 
-.btn-primary{
-background:var(--primary);
-color:var(--white);
-}
-.btn-primary:hover{background:var(--primary-dark);}
-
-.btn-secondary{
-background:var(--secondary);
-color:var(--white);
-}
-
-.btn-outline{
-background:var(--white);
-border:1.5px solid var(--primary);
-color:var(--primary);
-}
-.btn-outline:hover{background:#f0fdf4;}
-
-.btn-danger{
-background:var(--danger);
-color:var(--white);
-}
-
-.btn-warning{
-background:var(--warning);
-color:var(--white);
-}
-
-.btn-wa {
-background: var(--whatsapp);
-color: var(--white);
-display: block;
-text-align: center;
-text-decoration: none;
-padding: 9px;
-border-radius: var(--radius);
-font-weight: 600;
-margin-top: 8px;
-font-size: 0.85rem;
-box-shadow: 0 2px 4px rgba(37,211,102,.2);
-}
-.btn-wa:hover {
-background: var(--whatsapp-dark);
-}
-
-.form-group{
-margin-bottom:10px
-}
-
-.form-group label{
-display:block;
-font-size:.8rem;
-font-weight:600;
-color:var(--gray);
-margin-bottom:4px
-}
-
-.form-control{
-width:100%;
-padding:8px 10px;
-border:1.5px solid #cbd5e1;
-border-radius:var(--radius);
-font-size:.85rem;
-background:#fff;
-color:var(--dark);
-transition:border-color 0.2s;
-}
-.form-control:focus{
-outline:none;
-border-color:var(--primary);
-}
-
-textarea.form-control{
-resize:vertical
-}
-
-.grid-2{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px
-}
-
-.nav-bar{
-position:fixed;
-bottom:0;
-width:100%;
-max-width:480px;
-background:var(--white);
-border-top:1px solid #e2e8f0;
-display:flex;
-justify-content:space-around;
-padding:8px 0;
-z-index:100;
-box-shadow:0 -4px 10px rgba(0,0,0,.03);
-}
-
-.nav-item{
-display:flex;
-flex-direction:column;
-align-items:center;
-font-size:.7rem;
-color:var(--gray);
-cursor:pointer;
-gap:1px;
-transition:color 0.2s;
-}
-
-.nav-item span{
-font-size:1.1rem
-}
-
-.nav-item.active{
-color:var(--primary);
-font-weight:700
-}
-
-/* Badge & Efek Mencolok */
-.badge{
-display:inline-block;
-padding:6px 12px;
-border-radius:20px;
-color:var(--white);
-font-size:.8rem;
-font-weight:800;
-letter-spacing:0.5px;
-text-transform:uppercase;
-box-shadow:0 2px 5px rgba(0,0,0,0.15);
-}
-
-.badge-menunggu{background:var(--warning)}
-.badge-diterima, .badge-selesai{background:var(--success)}
-.badge-ditolak, .badge-dibatalkan{background:var(--danger)}
-.badge-ditemukan{background:var(--secondary)}
-.badge-menuju{background:#3b82f6}
-.badge-dijemput{background:#8b5cf6}
-.badge-perjalanan{background:#6366f1}
-.badge-sampai{background:#14b8a6}
-
-/* Animasi Denyut (Pulse) untuk Status Aktif */
-.badge-menuju, .badge-dijemput, .badge-perjalanan, .badge-sampai {
-  animation: pulse-badge 1.5s infinite;
-}
-
-@keyframes pulse-badge {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
-  70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
-}
-
-.toggle-container{
-display:flex;
-justify-content:space-between;
-align-items:center;
-background:#f8fafc;
-border:1px solid #e2e8f0;
-padding:12px;
-border-radius:var(--radius);
-margin-bottom:12px
-}
-
-.stat-card{
-background:#f8fafc;
-border:1px solid #e2e8f0;
-padding:12px;
-border-radius:var(--radius);
-text-align:center;
-box-shadow:var(--shadow);
-}
-
-.stat-card .number{
-font-size:1.3rem;
-font-weight:700;
-color:var(--primary);
-margin-bottom:2px;
-}
-
-.empty-box{
-padding:12px;
-text-align:center;
-background:#f8fafc;
-border-radius:var(--radius);
-color:var(--gray);
-font-size:.8rem;
-border:1px dashed #cbd5e1;
-}
-
-.checkbox-box {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  padding: 12px;
-  border-radius: var(--radius);
-  margin-bottom: 12px;
-  font-size: 0.8rem;
-  line-height: 1.35;
-  color: var(--dark);
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-.checkbox-box input[type="checkbox"] {
-  margin-top: 2px;
-  transform: scale(1.1);
-  cursor: pointer;
-}
-
-.preview-img-box {
-  width: 100%;
-  height: 130px;
-  background: #f1f5f9;
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border: 1.5px dashed #cbd5e1;
-  margin-top: 4px;
-}
-
-.preview-img-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.chat-container {
-  display: flex;
-  flex-direction: column;
-  height: 200px;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: var(--radius);
-  padding: 10px;
-  margin-top: 12px;
-}
-
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-right: 4px;
-}
-
-.chat-bubble {
-  max-width: 80%;
-  padding: 8px 12px;
-  border-radius: var(--radius);
-  font-size: 0.85rem;
-  line-height: 1.35;
-  box-shadow: 0 1px 2px rgba(0,0,0,.05);
-}
-
-.chat-bubble.me {
-  background: var(--primary);
-  color: var(--white);
-  align-self: flex-end;
-  border-bottom-right-radius: 4px;
-}
-
-.chat-bubble.other {
-  background: #e2e8f0;
-  color: var(--dark);
-  align-self: flex-start;
-  border-bottom-left-radius: 4px;
-}
-
-.chat-input-row {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-/* Styling Peta Ringkas & Modal Interaktif */
-.map-preview-box {
-  width: 100%;
-  height: 140px;
-  border-radius: var(--radius);
-  overflow: hidden;
-  position: relative;
-  cursor: pointer;
-  border: 1.5px solid #cbd5e1;
-  transition: all 0.2s ease;
-  margin-top: 4px;
-}
-
-.map-preview-box:hover {
-  border-color: var(--primary);
-  box-shadow: 0 0 8px rgba(0, 128, 55, 0.2);
-}
-
-.map-preview-box::after {
-  content: '🔍 Ketuk untuk Memperbesar';
-  position: absolute;
-  bottom: 6px;
-  right: 6px;
-  background: rgba(0, 0, 0, 0.65);
-  color: white;
-  padding: 3px 8px;
-  font-size: 0.7rem;
-  border-radius: 4px;
-  z-index: 10;
-  pointer-events: none;
-}
-
-#map-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.75);
-  z-index: 99999;
-  justify-content: center;
-  align-items: center;
-  padding: 16px;
-}
-
-#map-modal-content {
-  width: 100%;
-  max-width: 440px;
-  height: 70vh;
-  background: white;
-  border-radius: var(--radius);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
-/* Toast Notification Styling */
-#toast-notification {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100px);
-  background: var(--dark);
-  color: var(--white);
-  padding: 10px 18px;
-  border-radius: 30px;
-  font-size: 0.85rem;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  z-index: 9999;
-  transition: transform 0.3s ease-in-out;
-  text-align: center;
-  max-width: 90%;
-}
-#toast-notification.show {
-  transform: translateX(-50%) translateY(0);
-}
-</style>
+    /* Modal Riwayat Pesanan Admin */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: #fff;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+  </style>
 </head>
-
 <body>
 
-<!-- Toast Notification Element -->
-<div id="toast-notification">Notifikasi sistem</div>
+  <div id="toast">Pesan notifikasi</div>
 
-<!-- Modal Peta Layar Penuh -->
-<div id="map-modal" onclick="window.app.closeMapModal(event)">
-  <div id="map-modal-content" onclick="event.stopPropagation()">
-    <div style="background: var(--primary); color: white; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
-      <strong style="font-size: 0.95rem;">Peta Lokasi Driver (Layar Penuh)</strong>
-      <button onclick="window.app.closeMapModal()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0 4px;">✕</button>
+  <!-- MODAL DETAIL RIWAYAT PESANAN ADMIN -->
+  <div id="admin-order-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="color: var(--secondary); margin-bottom: 8px;"><i class="fa-solid fa-receipt"></i> Detail Riwayat Pesanan</h3>
+      <div id="admin-modal-body" style="font-size: 0.85rem; margin-bottom: 16px; line-height: 1.5;"></div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-danger" onclick="window.app.adminDeleteOrder()">Hapus Riwayat Pesanan</button>
+        <button class="btn btn-outline" onclick="window.app.closeAdminModal()">Tutup</button>
+      </div>
     </div>
-    <div id="modal-map-container" style="width: 100%; flex: 1;"></div>
   </div>
-</div>
 
-<div class="app-container">
+  <div id="app-container">
 
-<header>
-<h1>GoPir</h1>
-<button id="logout-btn"
-class="btn-logout"
-onclick="window.app.logout()"
-style="display:none">
-Keluar
-</button>
-</header>
+    <!-- 1. SPLASH / PEMILIHAN PERAN -->
+    <div id="view-splash" class="view active" style="justify-content: center; align-items: center; text-align: center;">
+      <div style="font-size: 3.5rem; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-car-side"></i></div>
+      <h1 style="font-size: 2rem; font-weight: 700; color: var(--primary);">GoPir</h1>
+      <p style="color: var(--gray); margin-bottom: 30px; font-size: 0.9rem;">Solusi Transportasi & Paket Antarkota Cepat & Aman</p>
+      
+      <button class="btn btn-primary" onclick="window.app.showView('view-customer-home')">
+        <i class="fa-solid fa-user"></i> Masuk sebagai Penumpang / Kirim Paket
+      </button>
+      <button class="btn btn-secondary" onclick="window.app.showView('view-login-driver')">
+        <i class="fa-solid fa-id-card"></i> Masuk / Daftar Driver
+      </button>
+      <button class="btn btn-outline" onclick="window.app.showView('view-admin-dashboard')" style="margin-top: 20px; border-color: var(--dark);">
+        <i class="fa-solid fa-shield-halved"></i> Panel Admin Pusat
+      </button>
+    </div>
 
-<div class="content">
+    <!-- 2. BERANDA / PEMESANAN PELANGGAN -->
+    <div id="view-customer-home" class="view">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2>Halo, Penumpang!</h2>
+        <button class="btn btn-outline" style="width: auto; padding: 6px 12px; font-size: 0.8rem;" onclick="window.app.showView('view-splash')">Keluar</button>
+      </div>
 
-<!-- ================= LANDING ================= -->
-<div id="view-landing" class="view active">
-<div style="text-align:center;margin:25px 0 20px">
-<h2 style="color:var(--primary);font-size:2rem;font-weight:800;letter-spacing:-0.5px;">GoPir</h2>
-<p style="color:var(--gray);font-size:0.9rem;margin-top:4px;">Transportasi Mobil Antarkota & Pengiriman Paket Maluku Utara</p>
-</div>
+      <div class="card">
+        <h3>Pesan Perjalanan / Paket</h3>
+        <form onsubmit="window.app.createOrder(event)">
+          <div class="form-group">
+            <label>Layanan</label>
+            <select id="order-type" class="form-control">
+              <option value="Mobil">Sewa Mobil / Penumpang</option>
+              <option value="Paket">Kirim Paket / Barang</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Pilih Pangkalan / Rute Utama</label>
+            <select id="order-route" class="form-control">
+              <!-- Dinamis dimuat dari database rute -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nama Pemesan</label>
+            <input type="text" id="order-name" class="form-control" placeholder="Nama lengkap Anda" required>
+          </div>
+          <div class="form-group">
+            <label>Nomor WhatsApp</label>
+            <input type="tel" id="order-phone" class="form-control" placeholder="08xxxxxxxxxx" required>
+          </div>
+          <div class="form-group">
+            <label>Catatan / Alamat Penjemputan</label>
+            <textarea id="order-notes" class="form-control" rows="2" placeholder="Contoh: Depan pasar lama Tobelo"></textarea>
+          </div>
+          <button class="btn btn-primary">Cari Driver Terdekat</button>
+        </form>
+      </div>
+      
+      <div class="card" id="customer-active-order-box" style="display:none;">
+        <h3 style="color:var(--primary);">Status Pesanan Anda</h3>
+        <div id="customer-order-details" style="font-size: 0.9rem; margin-bottom: 10px;"></div>
+        <button class="btn btn-danger" onclick="window.app.cancelCustomerOrder()">Batalkan Pesanan</button>
+      </div>
 
-<div class="card">
-<h3 style="text-align:center;margin-bottom:12px;font-size:1.05rem;color:var(--dark);">Pilih Peran Anda</h3>
-<button class="btn btn-primary" onclick="window.app.showLogin('passenger')">🚗 Penumpang & Paket</button>
-<button class="btn btn-secondary" onclick="window.app.showLogin('driver')">🚙 Driver</button>
-<button class="btn btn-outline" onclick="window.app.showLogin('admin')">⚙️ Admin System</button>
-</div>
+      <div class="bottom-nav">
+        <div class="nav-item active" onclick="window.app.showView('view-customer-home')">
+          <i class="fa-solid fa-house"></i><span>Pesan</span>
+        </div>
+        <div class="nav-item" onclick="window.app.showView('view-customer-pool-status')">
+          <i class="fa-solid fa-signs-post"></i><span>Antrean Pool</span>
+        </div>
+      </div>
+    </div>
 
-<div class="card" style="background:#f0fdf4; border-color:#bbf7d0;">
-<h4 style="color:var(--primary-dark);font-size:0.9rem;margin-bottom:2px;">Trayek & Rute Utama Bolak-Balik (PP)</h4>
-<p style="font-size:0.85rem;color:var(--gray);line-height:1.4;">Malifut ⇄ Sofifi<br>Malifut ⇄ Tobelo</p>
-</div>
-</div>
+    <!-- 3. CEK STATUS ANTREAN PANGKALAN (PELANGGAN) -->
+    <div id="view-customer-pool-status" class="view">
+      <h2>Status Antrean Pangkalan</h2>
+      <p style="font-size:0.85rem; color:var(--gray); margin-bottom: 12px;">Pantau nomor antrean driver yang siap berangkat di masing-masing pangkalan secara real-time.</p>
+      
+      <div id="pool-list-container"></div>
 
-<!-- ================= LOGIN PENUMPANG ================= -->
-<div id="view-login-passenger" class="view">
-<div class="card">
-<h3>Login Penumpang</h3>
-<p style="font-size:0.85rem;color:var(--gray);margin:8px 0 14px">Masukkan nomor telepon Anda. Sistem akan mengenali profil Anda secara otomatis.</p>
-<form onsubmit="window.app.loginPassenger(event)">
-<div class="form-group">
-<label>Nomor Telepon</label>
-<input type="tel" id="p-phone" class="form-control" placeholder="08123456789" required>
-</div>
-<button class="btn btn-primary">Masuk / Lanjutkan</button>
-<button type="button" class="btn btn-outline" onclick="window.app.showView('view-landing')">Kembali</button>
-</form>
-</div>
-</div>
+      <div class="bottom-nav">
+        <div class="nav-item" onclick="window.app.showView('view-customer-home')">
+          <i class="fa-solid fa-house"></i><span>Pesan</span>
+        </div>
+        <div class="nav-item active" onclick="window.app.showView('view-customer-pool-status')">
+          <i class="fa-solid fa-signs-post"></i><span>Antrean Pool</span>
+        </div>
+      </div>
+    </div>
 
-<!-- ================= LOGIN DRIVER ================= -->
-<div id="view-login-driver" class="view">
-<div class="card">
-<h3>Login Driver</h3>
-<p style="font-size:0.85rem;color:var(--gray);margin:8px 0 14px">Masukkan nomor telepon Driver yang terdaftar.</p>
-<form onsubmit="window.app.loginDriver(event)">
-<div class="form-group">
-<label>Nomor Telepon Driver</label>
-<input type="tel" id="d-phone" class="form-control" placeholder="08213456789" required>
-</div>
-<button class="btn btn-secondary">Masuk Driver</button>
-<button type="button" class="btn btn-outline" onclick="window.app.showView('view-landing')">Kembali</button>
-</form>
-</div>
-<div class="card">
-<h4 style="font-size:0.95rem;margin-bottom:8px;">Belum menjadi Driver?</h4>
-<button class="btn btn-outline" onclick="window.app.openDriverRegistration()">Daftar Sebagai Driver</button>
-</div>
-</div>
-
-<!-- ================= PENDAFTARAN DRIVER ================= -->
-<div id="view-driver-register" class="view">
-<div class="card">
-<h3>Pendaftaran Driver GoPir</h3>
-<p style="font-size:0.85rem;color:var(--gray);margin:8px 0 14px">Lengkapi data diri, basis pangkalan awal, serta unggah foto pendukung.</p>
-<form onsubmit="window.app.registerDriver(event)">
-<div class="form-group">
-<label>Nama Lengkap Driver</label>
-<input type="text" id="reg-driver-name" class="form-control" required>
-</div>
-<div class="form-group">
-<label>Nomor Telepon</label>
-<input type="tel" id="reg-driver-phone" class="form-control" required>
-</div>
-<div class="form-group">
-<label>Basis Pangkalan / Kota Asal Utama</label>
-<select id="reg-driver-base" class="form-control" required>
-<option value="Malifut">Pangkalan Malifut</option>
-<option value="Tobelo">Pangkalan Tobelo</option>
-<option value="Sofifi">Pangkalan Sofifi</option>
-</select>
-</div>
-<div class="form-group">
-<label>Spesialisasi Jalur Trayek</label>
-<select id="reg-driver-route-line" class="form-control" required>
-<option value="Tobelo">Lintas Malifut - Tobelo (PP)</option>
-<option value="Sofifi">Lintas Malifut - Sofifi (PP)</option>
-</select>
-</div>
-<div class="form-group">
-<label>Model Kendaraan</label>
-<input type="text" id="reg-driver-model" class="form-control" placeholder="Contoh: Avanza" required>
-</div>
-<div class="form-group">
-<label>Plat Nomor</label>
-<input type="text" id="reg-driver-plate" class="form-control" placeholder="DG 1234 XX" required>
-</div>
-
-<div class="form-group">
-<label>Foto Wajah Driver</label>
-<input type="file" id="reg-driver-photo" class="form-control" accept="image/*" onchange="window.app.previewImage(event, 'preview-photo')" required>
-<div class="preview-img-box">
-  <img id="preview-photo" src="https://via.placeholder.com/150?text=Belum+Ada+Foto+Wajah" alt="Pratinjau Foto Wajah">
-</div>
-</div>
-
-<div class="form-group">
-<label>Foto Mobil Tampak Depan</label>
-<input type="file" id="reg-driver-car-photo" class="form-control" accept="image/*" onchange="window.app.previewImage(event, 'preview-car-photo')" required>
-<div class="preview-img-box">
-  <img id="preview-car-photo" src="https://via.placeholder.com/300?text=Belum+Ada+Foto+Mobil" alt="Pratinjau Foto Mobil">
-</div>
-</div>
-
-<div class="checkbox-box">
-  <input type="checkbox" id="reg-agreement" required>
-  <label for="reg-agreement" style="cursor:pointer; display:inline; font-weight:normal; color:var(--dark);">
-    <b>Pernyataan Persetujuan Driver:</b>
-    <ul style="margin-left: 12px; margin-top: 2px;">
-      <li>Unit yang didaftarkan adalah unit yang <b>laik jalan</b> dan sehat secara teknis.</li>
-      <li>Segala bentuk <b>insiden</b> di jalan raya merupakan tanggung jawab pribadi.</li>
-      <li>Manajemen GoPir dibebaskan dari segala tuntutan hukum akibat insiden.</li>
-    </ul>
-  </label>
-</div>
-
-<button class="btn btn-secondary">Daftar Sekarang</button>
-<button type="button" class="btn btn-outline" onclick="window.app.showView('view-login-driver')">Kembali</button>
-</form>
-</div>
-</div>
-
-<!-- ================= LOGIN ADMIN ================= -->
-<div id="view-login-admin" class="view">
-<div class="card">
-<h3>Login Admin</h3>
-<form onsubmit="window.app.loginAdmin(event)" style="margin-top: 12px;">
-<div class="form-group">
-<label>Username</label>
-<input type="text" id="a-user" class="form-control" placeholder="Username admin" required>
-</div>
-<div class="form-group">
-<label>Password</label>
-<input type="password" id="a-pass" class="form-control" placeholder="Password admin" required>
-</div>
-<button class="btn btn-primary">Masuk Admin</button>
-<button type="button" class="btn btn-outline" onclick="window.app.showView('view-landing')">Kembali</button>
-</form>
-</div>
-</div>
-
-<!-- ================= HOME PENUMPANG ================= -->
-<div id="view-p-home" class="view">
-<div class="card" style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:var(--white);border:none;">
-<h3 id="p-welcome" style="font-size:1.15rem;">Halo!</h3>
-<p style="font-size:0.85rem;margin-top:4px;opacity:0.95;">Mau bepergian atau kirim paket hari ini?</p>
-</div>
-<div class="grid-2">
-<div class="card" style="text-align:center;cursor:pointer;padding:18px 12px;" onclick="window.app.showView('view-p-book-car')">
-<div style="font-size:2.2rem;margin-bottom:6px;">🚗</div>
-<strong style="font-size:0.9rem;">Pesan Mobil</strong>
-</div>
-<div class="card" style="text-align:center;cursor:pointer;padding:18px 12px;" onclick="window.app.showView('view-p-book-package')">
-<div style="font-size:2.2rem;margin-bottom:6px;">📦</div>
-<strong style="font-size:0.9rem;">Kirim Paket</strong>
-</div>
-</div>
-
-<!-- KEMASAN BARU: Tombol Menu Lihat Driver & Pangkalan -->
-<div class="card" style="text-align:center; cursor:pointer; padding:16px; background:#f0fdf4; border-color:#bbf7d0;" onclick="window.app.showView('view-p-bases')">
-<div style="font-size:1.8rem; margin-bottom:4px;">📍</div>
-<strong style="font-size:0.95rem; color:var(--primary-dark);">Lihat Driver di Pangkalan</strong>
-<p style="font-size:0.78rem; color:var(--gray); margin-top:2px;">Pantau armada stanby di Malifut, Sofifi, dan Tobelo</p>
-</div>
-
-<div class="card">
-<h4 style="font-size:0.95rem;margin-bottom:8px;">Pesanan Aktif Terakhir</h4>
-<div id="p-active-order-summary" style="margin-top:6px; font-size:0.85rem;">Belum ada pesanan.</div>
-</div>
-</div>
-
-<!-- ================= HALAMAN KHUSUS: LIHAT DRIVER DI PANGKALAN ================= -->
-<div id="view-p-bases" class="view">
-<button class="btn btn-outline" style="width:auto; margin-bottom:10px; padding:6px 14px; font-size: 0.8rem;" onclick="window.app.showView('view-p-home')">← Kembali ke Beranda</button>
-<div class="card" style="margin-top:0;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-    <h3 style="font-size: 1.05rem; color:var(--primary-dark);">📍 Ketersediaan Pangkalan & Driver</h3>
-    <span style="font-size:0.75rem; color:var(--primary); font-weight:700;">Live Status</span>
-  </div>
-  <p style="font-size:0.8rem; color:var(--gray); margin-bottom:12px;">Pantau armada driver yang sedang stanby/online berdasarkan pangkalan (Malifut, Sofifi, Tobelo).</p>
-  <div id="p-driver-availability-list">Memuat data pangkalan...</div>
-</div>
-</div>
-
-<!-- ================= TENTUKAN PERJALANAN ANDA ================= -->
-<div id="view-p-book-car" class="view">
-<div class="card" style="margin-bottom: 0;">
-<h3 style="font-size: 1rem; margin-bottom: 8px;">TENTUKAN PERJALANAN ANDA</h3>
-
-<div class="card" style="background:#f8fafc; border:1px dashed #cbd5e1; margin:8px 0 10px 0; padding:10px;">
-<h4 id="queue-title-direction" style="font-size:0.82rem; margin-bottom:6px; color:var(--dark);">🚗 Status Kursi & Antrean Arah Ini:</h4>
-<div id="passenger-queue-preview" style="font-size:0.8rem; color:var(--gray); max-height: 52px; overflow-y: auto; padding-right: 4px;">
-Memuat data antrean arah...
-</div>
-</div>
-
-<form onsubmit="window.app.bookCarWithQueue(event)">
-<div class="form-group">
-<label>Pilih Trayek & Arah Perjalanan Spesifik</label>
-<select id="car-direction" class="form-control" onchange="window.app.onDirectionChange()" required>
-<option value="Malifut - Tobelo">Malifut ➔ Tobelo</option>
-<option value="Tobelo - Malifut">Tobelo ➔ Malifut</option>
-<option value="Malifut - Sofifi">Malifut ➔ Sofifi</option>
-<option value="Sofifi - Malifut">Sofifi ➔ Malifut</option>
-</select>
-</div>
-
-<div class="form-group">
-<label>Titik Penjemputan Detail (Desa/Patokan)</label>
-<input type="text" id="car-origin" class="form-control" placeholder="Contoh: Depan Kantor Desa / Rumah" required>
-</div>
-
-<div class="form-group">
-<label>Jumlah Kursi / Penumpang</label>
-<input type="number" id="car-passengers" class="form-control" min="1" max="10" value="1" required>
-</div>
-
-<div class="form-group" style="margin-bottom: 8px;">
-<label>Catatan (Opsional)</label>
-<textarea id="car-notes" class="form-control" rows="1" placeholder="Contoh: Bawa barang bawaan..."></textarea>
-</div>
-
-<button type="submit" class="btn btn-primary" style="margin-top: 4px; padding: 9px;">Booking Kursi Mobil</button>
-<button type="button" class="btn btn-outline" style="margin-top: 6px; padding: 8px;" onclick="window.app.showView('view-p-home')">Kembali</button>
-</form>
-</div>
-</div>
-
-<!-- ================= PAKET ================= -->
-<div id="view-p-book-package" class="view">
-<div class="card">
-<h3>Pengiriman Paket Antarkota</h3>
-<p style="font-size:0.85rem; color:var(--gray); margin:6px 0 12px;">Lengkapi informasi pengirim, penerima, dan rute kota tujuan.</p>
-<form onsubmit="window.app.submitPackageBooking(event)">
-<div class="form-group">
-<label>Nama Pengirim</label>
-<input id="pkg-sender-name" class="form-control" placeholder="Nama lengkap pengirim" required>
-</div>
-<div class="form-group">
-<label>Nomor Telepon Pengirim (WhatsApp)</label>
-<input id="pkg-sender-phone" type="tel" class="form-control" placeholder="08123456789" required>
-</div>
-<div class="form-group">
-<label>Lokasi Pengambilan Paket (Kota Asal)</label>
-<input id="pkg-origin" class="form-control" list="route-list" placeholder="Contoh: Malifut" required>
-</div>
-<hr style="border:0; border-top:1px dashed #cbd5e1; margin:12px 0;">
-<div class="form-group">
-<label>Nama Penerima</label>
-<input id="pkg-receiver-name" class="form-control" placeholder="Nama lengkap penerima" required>
-</div>
-<div class="form-group">
-<label>Nomor Telepon Penerima (WhatsApp)</label>
-<input id="pkg-receiver-phone" type="tel" class="form-control" placeholder="08213456789" required>
-</div>
-<div class="form-group">
-<label>Lokasi Tujuan Paket (Kota Tujuan)</label>
-<input id="pkg-destination" class="form-control" list="route-list" placeholder="Contoh: Tobelo" required>
-</div>
-<div class="form-group">
-<label>Deskripsi / Isi Paket</label>
-<textarea id="pkg-desc" class="form-control" rows="2" placeholder="Contoh: Dokumen / Kotak Makanan" required></textarea>
-</div>
-<button class="btn btn-secondary">Kirim Paket Sekarang</button>
-<button type="button" class="btn btn-outline" onclick="window.app.showView('view-p-home')">Kembali</button>
-</form>
-</div>
-</div>
-
-<!-- ================= PESANAN SAYA ================= -->
-<div id="view-p-orders" class="view">
-<h3 style="margin-bottom:10px; font-size: 1.1rem;">Pesanan Aktif</h3>
-<div id="p-orders-list"></div>
-</div>
-
-<!-- ================= RIWAYAT PESANAN ================= -->
-<div id="view-p-history" class="view">
-<h3 style="margin-bottom:10px; font-size: 1.1rem;">Riwayat Perjalanan & Paket</h3>
-<div id="p-history-list"></div>
-</div>
-
-<!-- ================= PROFIL PENUMPANG ================= -->
-<div id="view-p-profile" class="view">
-<div class="card">
-<h3>Profil Penumpang</h3>
-<form onsubmit="window.app.updateProfile(event)" style="margin-top:12px;">
-<div class="form-group">
-<label>Nama Lengkap</label>
-<input type="text" id="prof-name" class="form-control" required>
-</div>
-<div class="form-group">
-<label>Nomor Telepon (ID Sistem)</label>
-<input type="tel" id="prof-phone" class="form-control" readonly style="background:#f1f5f9;">
-</div>
-<button class="btn btn-primary">Simpan Perubahan</button>
-</form>
-</div>
-</div>
-
-<!-- ================= DETAIL ORDER + CHAT ================= -->
-<div id="view-order-detail" class="view">
-<button class="btn btn-outline" style="width:auto; margin-bottom:10px; padding:6px 14px; font-size: 0.8rem;" onclick="window.app.backFromDetail()">← Kembali</button>
-<div class="card" id="order-detail-content" style="margin-top:0"></div>
-</div>
-
-<!-- ================= DASHBOARD DRIVER ================= -->
-<div id="view-d-dashboard" class="view">
-<div class="card">
-<h3 id="d-welcome" style="font-size:1.1rem;">Dashboard Driver</h3>
-<p id="d-vehicle-info" style="font-size:0.8rem;color:var(--gray);margin-top:3px;"></p>
-<p id="d-current-location" style="font-size:0.8rem; margin-top:4px; font-weight:600; color:var(--primary);"></p>
-</div>
-<div class="toggle-container">
-<span style="font-size: 0.85rem;">Status: <strong id="d-status-text" style="color:var(--danger)">OFFLINE</strong></span>
-<button id="d-toggle-btn" class="btn btn-primary" style="width:auto;margin:0;padding:6px 14px; font-size: 0.85rem;" onclick="window.app.toggleDriverOnline()">Go ONLINE</button>
-</div>
-<h4 style="margin-bottom:8px;font-size:0.95rem;">📋 Daftar Penumpang & Paket Tugas Anda</h4>
-<div id="d-orders-list"></div>
-</div>
-
-<!-- ================= RIWAYAT TUGAS DRIVER ================= -->
-<div id="view-d-history" class="view">
-<h3 style="margin-bottom:10px; font-size: 1.1rem;">Riwayat Tugas & Pengiriman</h3>
-<div id="d-history-list"></div>
-</div>
-
-<!-- ================= ADMIN DASHBOARD ================= -->
-<div id="view-a-dashboard" class="view">
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-  <h3 style="font-size: 1.1rem;">Admin Dashboard</h3>
-  <button class="btn btn-outline" style="width:auto; margin:0; padding:5px 12px; font-size:0.8rem;" onclick="window.app.showView('view-admin-settings')">⚙️ Kredensial</button>
-</div>
-
-<div class="grid-2" style="margin-top:8px">
-<div class="stat-card"><div class="number" id="stat-total-orders">0</div>Pesanan</div>
-<div class="stat-card"><div class="number" id="stat-active-orders">0</div>Aktif</div>
-<div class="stat-card"><div class="number" id="stat-drivers">0</div>Driver Disetujui</div>
-<div class="stat-card"><div class="number" id="stat-pending-drivers">0</div>Pendaftar Baru</div>
-</div>
-
-<div class="card" style="margin-top:12px">
-<h4 style="color:var(--primary);font-size:0.95rem;margin-bottom:4px;">🛣️ Ringkasan Antrean Pool Berdasarkan Arah (PP)</h4>
-<p style="font-size:0.8rem; color:var(--gray); margin-bottom:10px">Pantau posisi pangkalan aktif driver.</p>
-<div id="a-trayek-summary-container"></div>
-</div>
-
-<!-- BAGIAN PESANAN AKTIF (KONTROL ADMIN) -->
-<div class="card" style="margin-top:12px">
-<h4 style="color:var(--secondary);font-size:0.95rem;margin-bottom:8px;">📦 Daftar Pesanan Aktif (Kontrol Admin)</h4>
-<div id="a-active-orders-container"></div>
-</div>
-
-<div class="card" style="margin-top:12px">
-<h4 style="color:var(--warning);font-size:0.95rem;margin-bottom:8px;">🔔 Pendaftaran Driver Baru (Menunggu Verifikasi)</h4>
-<div id="a-pending-driver-container"></div>
-</div>
-
-<div class="card" style="margin-top:12px">
-<h4 style="font-size:0.95rem;margin-bottom:8px;">Daftar Seluruh Driver Aktif</h4>
-<div id="a-driver-list-container"></div>
-</div>
-</div>
-
-<!-- ================= ADMIN: PENGATURAN KREDENSIAL ================= -->
-<div id="view-admin-settings" class="view">
-<button class="btn btn-outline" style="width:auto; margin-bottom:10px; padding:6px 14px; font-size: 0.8rem;" onclick="window.app.showView('view-a-dashboard')">← Kembali</button>
-<div class="card" style="margin-top:0">
-<h3>Ubah Username & Password Admin</h3>
-<p style="font-size:0.85rem; color:var(--gray); margin:6px 0 12px;">Perbarui data login admin untuk keamanan sistem GoPir.</p>
-<form onsubmit="window.app.updateAdminCredentials(event)">
-<div class="form-group">
-<label>Username Baru</label>
-<input type="text" id="set-admin-user" class="form-control" required>
-</div>
-<div class="form-group">
-<label>Password Baru</label>
-<input type="password" id="set-admin-pass" class="form-control" placeholder="Kosongkan jika tidak ingin mengubah password" required>
-</div>
-<div class="form-group">
-<label>Konfirmasi Password Baru</label>
-<input type="password" id="set-admin-pass-confirm" class="form-control" required>
-</div>
-<button class="btn btn-primary">Simpan Kredensial Baru</button>
-</form>
-</div>
-</div>
-
-<!-- ================= ADMIN: DETAIL DRIVER ================= -->
-<div id="view-admin-driver-detail" class="view">
-<button class="btn btn-outline" style="width:auto; margin-bottom:10px; padding:6px 14px; font-size: 0.8rem;" onclick="window.app.showView('view-a-dashboard')">← Kembali</button>
-<div class="card" id="admin-driver-detail-content" style="margin-top:0"></div>
-</div>
-
-</div><!-- /content -->
-
-<!-- NAV BAR PENUMPANG -->
-<div id="nav-passenger" class="nav-bar" style="display:none">
-<div class="nav-item active" onclick="window.app.showView('view-p-home')"><span>🏠</span>Beranda</div>
-<div class="nav-item" onclick="window.app.showView('view-p-orders')"><span>📦</span>Pesanan</div>
-<div class="nav-item" onclick="window.app.showView('view-p-history')"><span>📜</span>Riwayat</div>
-<div class="nav-item" onclick="window.app.showView('view-p-profile')"><span>👤</span>Profil</div>
-</div>
-
-<!-- NAV BAR DRIVER -->
-<div id="nav-driver" class="nav-bar" style="display:none">
-<div class="nav-item active" onclick="window.app.showView('view-d-dashboard')"><span>🚗</span>Dashboard</div>
-<div class="nav-item" onclick="window.app.showView('view-d-history')"><span>📜</span>Riwayat</div>
-</div>
-
-<!-- NAV BAR ADMIN -->
-<div id="nav-admin" class="nav-bar" style="display:none">
-<div class="nav-item active" onclick="window.app.showView('view-a-dashboard')"><span>⚙️</span>Admin</div>
-</div>
-
-</div><!-- /app-container -->
-
-<datalist id="route-list">
-<option value="Malifut">
-<option value="Sofifi">
-<option value="Tobelo">
-</datalist>
-
-<!-- ================= INTEGRASI FIREBASE (REALTIME DATABASE) ================= -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getDatabase, ref, set, get, onValue, push, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCB9VFST65f7UhMiHg826ZYJaoBXJfY6qs",
-    authDomain: "gopir-app.firebaseapp.com",
-    databaseURL: "https://gopir-app-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "gopir-app",
-    storageBucket: "gopir-app.firebasestorage.app",
-    messagingSenderId: "213809630129",
-    appId: "1:213809630129:web:544ff0f19e442652250b90"
-  };
-
-  const firebaseApp = initializeApp(firebaseConfig);
-  const auth = getAuth(firebaseApp);
-  const database = getDatabase(firebaseApp);
-
-  const GoPirApp = {
-    currentUser: null,
-    currentRole: null,
-    adminUsername: 'admin',      
-    adminPassword: 'admin123',   
-    orders: [],
-    registeredPassengers: [],
-    drivers: [],
-    
-    init() {
-      this.showView('view-landing');
-      this.initFirebaseListeners();
-      this.loadAdminCredentials();
-    },
-
-    loadAdminCredentials() {
-      get(ref(database, 'settings/admin')).then((snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          this.adminUsername = data.username;
-          this.adminPassword = data.password;
-        } else {
-          set(ref(database, 'settings/admin'), {
-            username: this.adminUsername,
-            password: this.adminPassword
-          });
-        }
-      });
-    },
-
-    requestNotificationPermission() {
-      if ("Notification" in window && Notification.permission !== "granted") {
-        Notification.requestPermission().then(permission => {
-          if (permission === "granted") {
-            this.showToast("Notifikasi browser diaktifkan!");
-          }
-        });
-      }
-    },
-
-    showBrowserNotification(title, body) {
-      if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(title, {
-          body: body,
-          icon: "https://cdn-icons-png.flaticon.com/512/3063/3063823.png"
-        });
-      }
-    },
-
-    showToast(message, isError = false) {
-      const toast = document.getElementById('toast-notification');
-      toast.innerText = message;
-      toast.style.background = isError ? 'var(--danger)' : 'var(--dark)';
-      toast.classList.add('show');
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3500);
-    },
-
-    initFirebaseListeners() {
-      // 1. Sync Orders
-      onValue(ref(database, 'orders'), (snapshot) => {
-        const data = snapshot.val();
-        const oldOrdersCount = this.orders.length;
-        this.orders = data ? Object.values(data) : [];
+    <!-- 4. LOGIN DRIVER -->
+    <div id="view-login-driver" class="view" style="justify-content: center;">
+      <div class="card" style="text-align: center; padding: 24px;">
+        <div style="font-size: 3rem; color: var(--secondary); margin-bottom: 10px;"><i class="fa-solid fa-id-badge"></i></div>
+        <h3>Portal Driver GoPir</h3>
+        <p style="font-size: 0.85rem; color: var(--gray); margin-bottom: 20px;">Silakan masuk menggunakan Nomor Telepon terdaftar atau daftarkan unit baru Anda.</p>
         
-        if (this.currentRole === 'driver' && this.currentUser && this.orders.length > oldOrdersCount) {
-          const latestOrder = this.orders[this.orders.length - 1];
-          if (latestOrder.driverId === this.currentUser.id) {
-            this.playBeep('order');
-            this.showToast(`🔔 Tugas Baru Masuk: #${latestOrder.id}`);
-            this.showBrowserNotification("Tugas Baru GoPir", `Pesanan #${latestOrder.id} telah dialokasikan kepada Anda.`);
-          }
-        }
+        <div class="form-group" style="text-align: left;">
+          <label>Nomor Telepon Driver</label>
+          <input type="tel" id="login-driver-phone" class="form-control" placeholder="08xxxxxxxxxx">
+        </div>
+        <button class="btn btn-secondary" onclick="window.app.loginDriver()">Masuk Dashboard Driver</button>
+        <button class="btn btn-outline" onclick="window.app.showView('view-driver-register')" style="margin-top: 10px;">Daftar Akun Driver Baru</button>
+        <button class="btn btn-outline" onclick="window.app.showView('view-splash')" style="margin-top: 10px;">Kembali ke Menu Utama</button>
+      </div>
+    </div>
 
-        this.refreshActiveViews();
-      });
+    <!-- 5. PENDAFTARAN DRIVER -->
+    <div id="view-driver-register" class="view">
+      <div class="card">
+        <h3>Pendaftaran Driver GoPir</h3>
+        <p style="font-size:0.85rem;color:var(--gray);margin:8px 0 14px">Lengkapi data diri, basis pangkalan awal, serta unggah foto pendukung.</p>
+        <form onsubmit="window.app.registerDriver(event)">
+          <div class="form-group">
+            <label>Nama Lengkap Driver</label>
+            <input type="text" id="reg-driver-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Nomor Telepon</label>
+            <input type="tel" id="reg-driver-phone" class="form-control" required>
+          </div>
 
-      // 2. Sync Drivers
-      onValue(ref(database, 'drivers'), (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-          this.seedInitialDrivers();
-        } else {
-          this.drivers = Object.values(data);
-          if (this.currentRole === 'driver' && this.currentUser) {
-            const updatedMe = this.drivers.find(d => d.id === this.currentUser.id);
-            if (updatedMe) {
-              this.currentUser = updatedMe;
-              const locEl = document.getElementById('d-current-location');
-              if (locEl) {
-                locEl.innerText = `📍 Posisi Pangkalan Anda Saat Ini: ${this.currentUser.currentLocation} (Antre ke Arah: ${this.currentUser.queueDirection})`;
-              }
-            }
-          }
-        }
-        this.refreshActiveViews();
-      });
+          <div class="form-group">
+            <label>Pilih Rute Trayek Tersedia (PP)</label>
+            <select id="reg-driver-route-line" class="form-control" onchange="window.app.onRegRouteLineChange()" required>
+              <!-- Dinamis dimuat dari database rute -->
+            </select>
+          </div>
 
-      // 3. Sync Passengers
-      onValue(ref(database, 'passengers'), (snapshot) => {
-        const data = snapshot.val();
-        this.passengers = data ? Object.values(data) : [{ phone: '08123456789', name: 'Budi Penumpang' }];
-        this.registeredPassengers = this.passengers;
-      });
-    },
+          <div class="form-group">
+            <label>Basis Pangkalan / Pool Standby Awal</label>
+            <select id="reg-driver-base" class="form-control" required>
+              <!-- Dinamis berdasarkan rute yang dipilih -->
+            </select>
+          </div>
 
-    seedInitialDrivers() {
-      const defaultDrivers = [
-        { 
-          id: 'd1', 
-          name: 'Budi Driver Tobelo', 
-          phone: '08213456789', 
-          model: 'Avanza', 
-          plate: 'DG 1234 AA', 
-          routeLine: 'Tobelo', 
-          currentLocation: 'Malifut', 
-          queueDirection: 'Malifut - Tobelo', 
-          queueNo: 1, 
-          status: 'diterima',
-          isOnline: true, 
-          lat: 0.9325,
-          lng: 127.7651,
-          photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', 
-          carPhotoUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=300'
-        },
-        { 
-          id: 'd2', 
-          name: 'Samsul Driver Sofifi', 
-          phone: '08213456791', 
-          model: 'Calya', 
-          plate: 'DG 9012 CC', 
-          routeLine: 'Sofifi', 
-          currentLocation: 'Sofifi', 
-          queueDirection: 'Sofifi - Malifut', 
-          queueNo: 1, 
-          status: 'diterima',
-          isOnline: true, 
-          lat: 0.7289,
-          lng: 127.5381,
-          photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150', 
-          carPhotoUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=300'
-        }
-      ];
-      defaultDrivers.forEach(d => {
-        set(ref(database, 'drivers/' + d.id), d);
-      });
-    },
+          <div class="form-group">
+            <label>Model Kendaraan</label>
+            <input type="text" id="reg-driver-model" class="form-control" placeholder="Contoh: Avanza" required>
+          </div>
+          <div class="form-group">
+            <label>Plat Nomor</label>
+            <input type="text" id="reg-driver-plate" class="form-control" placeholder="DG 1234 XX" required>
+          </div>
 
-    refreshActiveViews() {
-      const activeView = document.querySelector('.view.active');
-      if (!activeView) return;
-      if (activeView.id === 'view-p-bases') this.renderPassengerHomeAvailability();
-      if (activeView.id === 'view-p-book-car') this.renderPassengerQueuePreview();
-      if (activeView.id === 'view-p-orders') this.renderPassengerOrders();
-      if (activeView.id === 'view-p-history') this.renderPassengerHistory();
-      if (activeView.id === 'view-d-dashboard' && this.currentUser) this.renderDriverOrders();
-      if (activeView.id === 'view-d-history' && this.currentUser) this.renderDriverHistory();
-      if (activeView.id === 'view-a-dashboard') this.renderAdminDashboard();
-    },
-
-    playBeep(type = 'success') {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        
-        if (type === 'success') {
-          osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-          osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1);
-          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.3);
-        } else if (type === 'order') {
-          osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.15);
-          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.4);
-        }
-      } catch (e) {
-        console.log('Audio error:', e);
-      }
-    },
-
-    showView(viewId) {
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.getElementById(viewId).classList.add('active');
-
-      if(viewId === 'view-p-profile' && this.currentUser) {
-        document.getElementById('prof-name').value = this.currentUser.name || '';
-        document.getElementById('prof-phone').value = this.currentUser.phone || '';
-      }
-
-      if(viewId === 'view-admin-settings') {
-        document.getElementById('set-admin-user').value = this.adminUsername;
-        document.getElementById('set-admin-pass').value = '';
-        document.getElementById('set-admin-pass-confirm').value = '';
-      }
-
-      if(viewId === 'view-p-bases') {
-        this.renderPassengerHomeAvailability();
-      }
-
-      if(viewId === 'view-p-book-car') {
-        this.renderPassengerQueuePreview();
-      }
-
-      if(viewId === 'view-p-orders') {
-        this.renderPassengerOrders();
-      }
-
-      if(viewId === 'view-p-history') {
-        this.renderPassengerHistory();
-      }
-
-      if(viewId === 'view-d-history' && this.currentUser) {
-        this.renderDriverHistory();
-      }
-
-      if(viewId === 'view-d-dashboard' && this.currentUser) {
-        document.getElementById('d-welcome').innerText = `Dashboard Driver: ${this.currentUser.name}`;
-        document.getElementById('d-vehicle-info').innerText = `${this.currentUser.model} (${this.currentUser.plate}) - Jalur: Malifut - ${this.currentUser.routeLine}`;
-        document.getElementById('d-current-location').innerText = `📍 Posisi Pangkalan Anda Saat Ini: ${this.currentUser.currentLocation} (Antre ke Arah: ${this.currentUser.queueDirection})`;
-        this.renderDriverOrders();
-      }
-
-      if(viewId === 'view-a-dashboard') {
-        this.renderAdminDashboard();
-      }
-    },
-
-    previewImage(event, targetImgId) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById(targetImgId).src = e.target.result;
-        }
-        reader.readAsDataURL(file);
-      }
-    },
-
-    onDirectionChange() {
-      this.renderPassengerQueuePreview();
-    },
-
-    formatWhatsAppNumber(phone) {
-      if (!phone) return '';
-      let cleaned = phone.replace(/\D/g, '');
-      if (cleaned.startsWith('0')) {
-        cleaned = '62' + cleaned.slice(1);
-      }
-      return cleaned;
-    },
-
-    getRealtimeQueueForDirection(direction) {
-      const onlineDrivers = this.drivers
-        .filter(d => d.isOnline && d.status === 'diterima' && d.queueDirection === direction)
-        .sort((a, b) => a.queueNo - b.queueNo);
-
-      let queueResult = [];
-
-      onlineDrivers.forEach(d => {
-        const activeCarOrdersD = this.orders.filter(o => 
-          o.driverId === d.id && 
-          o.direction === direction && 
-          o.type === 'Mobil' &&
-          o.status !== 'selesai' && 
-          o.status !== 'dibatalkan'
-        );
-        let filled = 0;
-        activeCarOrdersD.forEach(o => filled += (o.passengers || 1));
-        if(filled > 4) filled = 4;
-
-        queueResult.push({
-          driver: d,
-          filledSeats: filled,
-          isFull: filled >= 4
-        });
-      });
-
-      let activeQueue = queueResult.filter(q => !q.isFull);
-      let fullQueue = queueResult.filter(q => q.isFull);
-
-      return [...activeQueue, ...fullQueue];
-    },
-
-    /* FITUR PEMERIKSAAN PANGKALAN: Malifut, Sofifi, Tobelo */
-    renderPassengerHomeAvailability() {
-      const container = document.getElementById('p-driver-availability-list');
-      const approvedDrivers = this.drivers.filter(d => d.status === 'diterima');
-
-      const pangkalanList = ['Malifut', 'Sofifi', 'Tobelo'];
-      let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
-
-      pangkalanList.forEach(pangkalanName => {
-        const driversInThisBase = approvedDrivers.filter(d => d.currentLocation === pangkalanName);
-
-        html += `
-          <div style="background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
-              <strong style="font-size:0.85rem; color:var(--primary-dark);">🚩 Pangkalan ${pangkalanName}</strong>
-              <span style="font-size:0.72rem; color:var(--gray); font-weight:600;">${driversInThisBase.length} Driver Terdaftar</span>
+          <div class="form-group">
+            <label>Foto Wajah Driver</label>
+            <input type="file" id="reg-driver-photo" class="form-control" accept="image/*" onchange="window.app.previewImage(event, 'preview-photo')" required>
+            <div class="preview-img-box">
+              <img id="preview-photo" src="https://via.placeholder.com/150?text=Belum+Ada+Foto+Wajah" alt="Foto Wajah">
             </div>
-        `;
+          </div>
 
-        if (driversInThisBase.length === 0) {
-          html += `<div style="font-size:0.78rem; color:var(--gray); font-style:italic; padding:4px 0;">Belum ada driver di pangkalan ${pangkalanName}.</div>`;
-        } else {
-          html += '<div style="display:flex; flex-direction:column; gap:6px;">';
-          driversInThisBase.forEach(d => {
-            const isOnlineBadge = d.isOnline 
-              ? '<span style="color:var(--success); font-weight:bold;">● ONLINE</span>' 
-              : '<span style="color:var(--danger); font-weight:bold;">● OFFLINE</span>';
+          <div class="form-group">
+            <label>Foto Mobil Tampak Depan</label>
+            <input type="file" id="reg-driver-car-photo" class="form-control" accept="image/*" onchange="window.app.previewImage(event, 'preview-car-photo')" required>
+            <div class="preview-img-box">
+              <img id="preview-car-photo" src="https://via.placeholder.com/300?text=Belum+Ada+Foto+Mobil" alt="Foto Mobil">
+            </div>
+          </div>
 
-            let seatLabel = '-';
-            let badgeColor = 'var(--gray)';
-            if (d.isOnline) {
-              const driverOrders = this.orders.filter(o => 
-                o.driverId === d.id && 
-                o.type === 'Mobil' &&
-                o.status !== 'selesai' && 
-                o.status !== 'dibatalkan'
-              );
-              let filledSeats = 0;
-              driverOrders.forEach(o => filledSeats += (o.passengers || 1));
-              if(filledSeats > 4) filledSeats = 4;
+          <div class="checkbox-box">
+            <input type="checkbox" id="reg-agreement" required>
+            <label for="reg-agreement" style="cursor:pointer; display:inline; font-weight:normal; color:var(--dark);">
+              <b>Pernyataan Persetujuan Driver:</b>
+              <ul style="margin-left: 12px; margin-top: 2px;">
+                <li>Unit yang didaftarkan adalah unit yang <b>laik jalan</b>.</li>
+                <li>Segala bentuk insiden di jalan raya merupakan tanggung jawab pribadi.</li>
+              </ul>
+            </label>
+          </div>
 
-              badgeColor = filledSeats >= 4 ? 'var(--success)' : 'var(--warning)';
-              seatLabel = filledSeats >= 4 ? 'FULL (4/4)' : `${filledSeats}/4 Kursi`;
-            }
+          <button class="btn btn-secondary">Daftar Sekarang</button>
+          <button type="button" class="btn btn-outline" onclick="window.app.showView('view-login-driver')">Kembali</button>
+        </form>
+      </div>
+    </div>
 
-            html += `
-              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:6px 8px; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                  <div style="font-size:0.82rem; font-weight:600; color:var(--dark);">${d.name} ${isOnlineBadge}</div>
-                  <div style="font-size:0.73rem; color:var(--gray);">🚗 ${d.model} (${d.plate}) | Arah: ${d.queueDirection || '-'}</div>
-                </div>
-                ${d.isOnline ? `<div style="text-align:right;"><span style="display:inline-block; background:${badgeColor}; color:white; font-size:0.65rem; font-weight:700; padding:2px 6px; border-radius:8px;">${seatLabel}</span></div>` : '<span style="font-size:0.7rem; color:var(--gray);">Istirahat</span>'}
-              </div>
+    <!-- 6. DASHBOARD UTAMA DRIVER -->
+    <div id="view-driver-dashboard" class="view">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 id="driver-welcome-name">Dashboard Driver</h3>
+        <button class="btn btn-outline" style="width: auto; padding: 4px 10px; font-size: 0.75rem;" onclick="window.app.logoutDriver()">Keluar</button>
+      </div>
+
+      <div class="card" style="background: #e3f2fd; border-color: #90caf9;">
+        <h4 style="font-size:0.95rem; margin-bottom:4px;">Status Kehadiran Pool</h4>
+        <p id="driver-status-text" style="font-size:0.85rem; color:var(--gray); margin-bottom:8px;">Status: Offline</p>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-success" id="btn-driver-online" onclick="window.app.toggleDriverOnline(true)">Masuk Antrean Pool</button>
+          <button class="btn btn-danger" id="btn-driver-offline" onclick="window.app.toggleDriverOnline(false)" style="display:none;">Keluar Pool</button>
+        </div>
+      </div>
+
+      <div class="card" id="driver-queue-card" style="display:none;">
+        <h3>Posisi Antrean Anda</h3>
+        <div id="driver-queue-info" style="font-size:0.9rem; font-weight:600; color:var(--primary); margin-bottom:8px;"></div>
+      </div>
+
+      <div class="card" id="driver-incoming-order" style="display:none;">
+        <h3 style="color:var(--primary);">Orderan Masuk!</h3>
+        <div id="driver-order-desc" style="font-size: 0.85rem; margin-bottom: 10px;"></div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-success" onclick="window.app.acceptOrder()">Terima</button>
+          <button class="btn btn-danger" onclick="window.app.rejectOrder()">Tolak</button>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item active" onclick="window.app.showView('view-driver-dashboard')">
+          <i class="fa-solid fa-gauge"></i><span>Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="window.app.showView('view-driver-chat')">
+          <i class="fa-solid fa-comments"></i><span>Chat Pangkalan</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. CHAT PANGKALAN DRIVER -->
+    <div id="view-driver-chat" class="view">
+      <h2>Chat Grup Pangkalan</h2>
+      <div class="card" style="flex: 1; display: flex; flex-direction: column; height: 350px; padding: 10px;">
+        <div id="chat-messages" style="flex: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 8px; margin-bottom: 8px; font-size: 0.85rem; background: #fafafa;"></div>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="chat-input" class="form-control" placeholder="Tulis pesan..." style="margin: 0;">
+          <button class="btn btn-secondary" style="width: auto; margin: 0; padding: 0 16px;" onclick="window.app.sendChatMessage()">Kirim</button>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item" onclick="window.app.showView('view-driver-dashboard')">
+          <i class="fa-solid fa-gauge"></i><span>Dashboard</span>
+        </div>
+        <div class="nav-item active" onclick="window.app.showView('view-driver-chat')">
+          <i class="fa-solid fa-comments"></i><span>Chat Pangkalan</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. PANEL ADMIN PUSAT (BERBASIS MENU KLIK) -->
+    <div id="view-admin-dashboard" class="view">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2>Panel Admin Pusat</h2>
+        <button class="btn btn-outline" style="width: auto; padding: 4px 10px; font-size: 0.75rem;" onclick="window.app.showView('view-splash')">Keluar</button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--gray); margin-bottom: 12px;">Pilih menu di bawah ini untuk mengelola data operasional sistem.</p>
+
+      <!-- Grid Menu Pilihan Admin (Ditambah Menu Tambah Rute) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+        <button class="btn btn-primary" style="margin-top:0; flex-direction:column; padding: 12px; font-size:0.8rem;" onclick="window.app.switchAdminTab('drivers')">
+          <i class="fa-solid fa-id-card-clip" style="font-size: 1.3rem;"></i> Menu Driver
+        </button>
+        <button class="btn btn-secondary" style="margin-top:0; flex-direction:column; padding: 12px; font-size:0.8rem;" onclick="window.app.switchAdminTab('orders')">
+          <i class="fa-solid fa-receipt" style="font-size: 1.3rem;"></i> Menu Pesanan
+        </button>
+        <button class="btn btn-success" style="margin-top:0; flex-direction:column; padding: 12px; font-size:0.8rem;" onclick="window.app.switchAdminTab('pools')">
+          <i class="fa-solid fa-signs-post" style="font-size: 1.3rem;"></i> Kelola Antrean Pool
+        </button>
+        <button class="btn btn-warning" style="margin-top:0; flex-direction:column; padding: 12px; font-size:0.8rem; background:var(--warning); color:#fff;" onclick="window.app.switchAdminTab('addRoute')">
+          <i class="fa-solid fa-route" style="font-size: 1.3rem;"></i> Tambah Rute Baru
+        </button>
+      </div>
+
+      <!-- Konten Dinamis Berdasarkan Menu yang Diklik -->
+      <div id="admin-content-area" class="card" style="display:none;">
+        <div id="admin-dynamic-content"></div>
+      </div>
+
+      <button class="btn btn-outline" onclick="window.app.showView('view-splash')" style="margin-top: 10px;">Kembali ke Menu Utama</button>
+    </div>
+
+  </div>
+
+  <!-- Firebase SDK Modular -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, update, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-CONTOH-KEY-ANDA",
+      authDomain: "gopir-app.firebaseapp.com",
+      databaseURL: "https://gopir-app-default-rtdb.firebaseio.com",
+      projectId: "gopir-app",
+      storageBucket: "gopir-app.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abcde"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    class GoPirApp {
+      constructor() {
+        this.currentDriver = null;
+        this.currentOrder = null;
+        this.selectedAdminOrderId = null;
+        this.routesList = []; // Menyimpan daftar rute sinkron global
+        
+        this.initGlobalSyncRoutes();
+        this.initListeners();
+        this.checkSavedSession();
+      }
+
+      // Sinkronisasi data rute secara real-time ke seluruh elemen aplikasi (penumpang & driver)
+      initGlobalSyncRoutes() {
+        onValue(ref(database, 'routes'), snapshot => {
+          this.routesList = [];
+          if (snapshot.exists()) {
+            snapshot.forEach(child => {
+              this.routesList.push(child.val());
+            });
+          } else {
+            // Default awal jika database rute kosong
+            const defaultRoutes = [
+              { id: 'r1', cityA: 'Malifut', cityB: 'Tobelo', label: 'Malifut - Tobelo' },
+              { id: 'r2', cityA: 'Malifut', cityB: 'Sofifi', label: 'Malifut - Sofifi' }
+            ];
+            defaultRoutes.forEach(r => set(ref(database, 'routes/' + r.id), r));
+            this.routesList = defaultRoutes;
+          }
+          this.populateRouteDropdowns();
+        });
+      }
+
+      // Memperbarui pilihan rute di form Penumpang dan Pendaftaran Driver secara otomatis
+      populateRouteDropdowns() {
+        // 1. Dropdown Form Pemesanan Penumpang
+        const orderRouteSelect = document.getElementById('order-route');
+        if (orderRouteSelect) {
+          orderRouteSelect.innerHTML = '';
+          this.routesList.forEach(r => {
+            orderRouteSelect.innerHTML += `
+              <option value="${r.cityA} - ${r.cityB}">${r.cityA} ⇄ ${r.cityB}</option>
+              <option value="${r.cityB} - ${r.cityA}">${r.cityB} ⇄ ${r.cityA}</option>
             `;
           });
-          html += '</div>';
         }
 
-        html += `</div>`;
-      });
-
-      html += '</div>';
-      container.innerHTML = html;
-    },
-
-    renderPassengerQueuePreview() {
-      const directionSelect = document.getElementById('car-direction');
-      const currentDirection = directionSelect ? directionSelect.value : 'Malifut - Tobelo';
-      
-      document.getElementById('queue-title-direction').innerText = `🚗 Status Kursi & Antrean Arah (${currentDirection.replace(' - ', ' ➔ ')}):`;
-
-      const realtimeQueue = this.getRealtimeQueueForDirection(currentDirection);
-      const container = document.getElementById('passenger-queue-preview');
-      
-      if (realtimeQueue.length === 0) {
-        container.innerHTML = `<span style="color:var(--danger)">Belum ada driver yang mangkat/online untuk arah ${currentDirection}.</span>`;
-        return;
+        // 2. Dropdown Form Pendaftaran Driver
+        const regRouteSelect = document.getElementById('reg-driver-route-line');
+        if (regRouteSelect) {
+          regRouteSelect.innerHTML = '';
+          this.routesList.forEach(r => {
+            regRouteSelect.innerHTML += `<option value="${r.cityA}-${r.cityB}">${r.cityA} ⇄ ${r.cityB}</option>`;
+          });
+          this.onRegRouteLineChange(); // Panggil untuk sesuaikan pool basis
+        }
       }
 
-      let html = '<ul style="padding-left: 14px; margin: 0; font-size:0.78rem; line-height:1.5;">';
-      realtimeQueue.forEach((q, index) => {
-        const isMainQueue = index === 0 && !q.isFull;
-        const statusLabel = isMainQueue 
-          ? ' <b style="color:var(--primary);">(UTAMA - 1)</b>' 
-          : (q.isFull ? ' <span style="color:var(--success); font-weight:bold;">(FULL)</span>' : ` (Antrean ke-${index + 1})`);
-        
-        html += `<li><b>${q.driver.name}</b> (${q.driver.model})${statusLabel} — Terisi: <b>${q.filledSeats}/4 Kursi</b></li>`;
-      });
-      html += '</ul>';
-      container.innerHTML = html;
-    },
-
-    showLogin(role) {
-      this.currentRole = role;
-      if(role === 'passenger') this.showView('view-login-passenger');
-      else if(role === 'driver') this.showView('view-login-driver');
-      else if(role === 'admin') {
-        document.getElementById('a-user').value = this.adminUsername;
-        document.getElementById('a-pass').value = '';
-        this.showView('view-login-admin');
-      }
-    },
-
-    loginPassenger(e) {
-      e.preventDefault();
-      this.requestNotificationPermission();
-      const phone = document.getElementById('p-phone').value.trim();
-      
-      let existingPassenger = this.registeredPassengers.find(p => p.phone === phone);
-
-      if (existingPassenger) {
-        this.currentUser = existingPassenger;
-      } else {
-        const newPassenger = { phone: phone, name: 'Penumpang ' + phone };
-        set(ref(database, 'passengers/' + phone.replace(/\D/g,'')), newPassenger);
-        this.currentUser = newPassenger;
+      checkSavedSession() {
+        const savedDriverId = localStorage.getItem('gopir_driver_id');
+        if (savedDriverId) {
+          get(ref(database, 'drivers/' + savedDriverId)).then(snapshot => {
+            if (snapshot.exists()) {
+              this.currentDriver = snapshot.val();
+              document.getElementById('driver-welcome-name').innerText = `Halo, Driver ${this.currentDriver.name}`;
+              this.updateDriverUIState();
+            }
+          });
+        }
       }
 
-      document.getElementById('p-welcome').innerHTML = `Halo, ${this.currentUser.name}!<br><span style="font-size:0.75rem; font-weight:normal; opacity:0.9;">No. TLP: ${this.currentUser.phone}</span>`;
-      
-      document.getElementById('logout-btn').style.display = 'block';
-      document.getElementById('nav-passenger').style.display = 'flex';
-      this.playBeep('success');
-      this.showToast(`Selamat datang, ${this.currentUser.name}`);
-      this.showView('view-p-home');
-    },
+      showView(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        window.scrollTo(0, 0);
 
-    loginDriver(e) {
-      e.preventDefault();
-      this.requestNotificationPermission();
-      const phone = document.getElementById('d-phone').value;
-      const found = this.drivers.find(d => d.phone === phone);
-      
-      if(!found) {
-        alert('Nomor telepon driver tidak ditemukan. Silakan daftar terlebih dahulu.');
-        return;
-      }
-      if(found.status === 'menunggu') {
-        alert('Akun driver Anda masih menunggu verifikasi dari Admin.');
-        return;
-      }
-      if(found.status === 'ditolak') {
-        alert('Mohon maaf, pendaftaran driver Anda ditolak.');
-        return;
+        if (viewId === 'view-customer-pool-status') this.loadPoolStatusRealtime();
+        if (viewId === 'view-admin-dashboard') {
+          document.getElementById('admin-content-area').style.display = 'none';
+        }
+        if (viewId === 'view-driver-chat') this.loadChatMessages();
       }
 
-      this.currentUser = found;
-      document.getElementById('logout-btn').style.display = 'block';
-      document.getElementById('nav-driver').style.display = 'flex';
-      this.playBeep('success');
-      this.showToast(`Login Driver Berhasil: ${found.name}`);
-      this.showView('view-d-dashboard');
-      this.renderDriverOrders();
-    },
-
-    loginAdmin(e) {
-      e.preventDefault();
-      const userInput = document.getElementById('a-user').value.trim();
-      const passInput = document.getElementById('a-pass').value;
-
-      if(userInput !== this.adminUsername || passInput !== this.adminPassword) {
-        alert('Username atau Password Admin salah!');
-        return;
+      showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
       }
 
-      document.getElementById('logout-btn').style.display = 'block';
-      document.getElementById('nav-admin').style.display = 'flex';
-      this.playBeep('success');
-      this.showToast('Login Admin Berhasil');
-      this.showView('view-a-dashboard');
-    },
-
-    updateAdminCredentials(e) {
-      e.preventDefault();
-      const newUser = document.getElementById('set-admin-user').value.trim();
-      const newPass = document.getElementById('set-admin-pass').value;
-      const confirmPass = document.getElementById('set-admin-pass-confirm').value;
-
-      if (newPass !== confirmPass) {
-        alert('Password baru dan konfirmasi password tidak cocok!');
-        return;
+      previewImage(event, previewId) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            document.getElementById(previewId).src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
       }
 
-      this.adminUsername = newUser;
-      this.adminPassword = newPass;
+      onRegRouteLineChange() {
+        const routeLineVal = document.getElementById('reg-driver-route-line').value;
+        const baseSelect = document.getElementById('reg-driver-base');
+        if (!baseSelect) return;
 
-      set(ref(database, 'settings/admin'), {
-        username: newUser,
-        password: newPass
-      }).then(() => {
-        this.playBeep('success');
-        this.showToast('Kredensial Admin berhasil diperbarui permanen!');
-        this.showView('view-a-dashboard');
-      }).catch((error) => {
-        this.showToast('Gagal menyimpan kredensial: ' + error.message, true);
-      });
-    },
-
-    logout() {
-      this.currentUser = null;
-      this.currentRole = null;
-      document.getElementById('logout-btn').style.display = 'none';
-      document.querySelectorAll('.nav-bar').forEach(n => n.style.display = 'none');
-      this.showView('view-landing');
-    },
-
-    openDriverRegistration() {
-      this.showView('view-driver-register');
-    },
-
-    registerDriver(e) {
-      e.preventDefault();
-      const name = document.getElementById('reg-driver-name').value;
-      const phone = document.getElementById('reg-driver-phone').value;
-      const baseCity = document.getElementById('reg-driver-base').value;
-      const routeLine = document.getElementById('reg-driver-route-line').value;
-      const model = document.getElementById('reg-driver-model').value;
-      const plate = document.getElementById('reg-driver-plate').value;
-      const isAgreed = document.getElementById('reg-agreement').checked;
-
-      if (!isAgreed) {
-        alert('Anda harus menyetujui pernyataan kelayakan unit.');
-        return;
+        baseSelect.innerHTML = '';
+        if (routeLineVal) {
+          const parts = routeLineVal.split('-');
+          if (parts.length === 2) {
+            const cityA = parts[0];
+            const cityB = parts[1];
+            baseSelect.innerHTML = `
+              <option value="${cityA}">Pangkalan ${cityA}</option>
+              <option value="${cityB}">Pangkalan ${cityB}</option>
+            `;
+          }
+        }
       }
 
-      const photoInput = document.getElementById('reg-driver-photo').files[0];
-      const carPhotoInput = document.getElementById('reg-driver-car-photo').files[0];
+      registerDriver(e) {
+        e.preventDefault();
+        const name = document.getElementById('reg-driver-name').value;
+        const phone = document.getElementById('reg-driver-phone').value;
+        const routeLineChoice = document.getElementById('reg-driver-route-line').value;
+        const baseCity = document.getElementById('reg-driver-base').value;
+        const model = document.getElementById('reg-driver-model').value;
+        const plate = document.getElementById('reg-driver-plate').value;
+        const isAgreed = document.getElementById('reg-agreement').checked;
 
-      const driverId = 'd_' + Date.now().toString().slice(-4);
-      const newDriverData = {
-        id: driverId,
-        name,
-        phone,
-        model,
-        plate,
-        routeLine,
-        currentLocation: baseCity,
-        queueDirection: `${baseCity} - ${routeLine}`,
-        queueNo: 0,
-        status: 'menunggu',
-        isOnline: false,
-        lat: 0.9325,
-        lng: 127.7651,
-        photoUrl: photoInput ? URL.createObjectURL(photoInput) : 'https://via.placeholder.com/150',
-        carPhotoUrl: carPhotoInput ? URL.createObjectURL(carPhotoInput) : 'https://via.placeholder.com/300'
-      };
-
-      set(ref(database, 'drivers/' + driverId), newDriverData);
-      this.playBeep('success');
-      this.showToast('Pendaftaran Driver terkirim!');
-      this.showView('view-login-driver');
-    },
-
-    renderAdminDashboard() {
-      document.getElementById('stat-total-orders').innerText = this.orders.length;
-      const activeOrdersList = this.orders.filter(o => o.status !== 'selesai' && o.status !== 'dibatalkan');
-      document.getElementById('stat-active-orders').innerText = activeOrdersList.length;
-      
-      const approvedDrivers = this.drivers.filter(d => d.status === 'diterima');
-      const pendingDrivers = this.drivers.filter(d => d.status === 'menunggu');
-
-      document.getElementById('stat-drivers').innerText = approvedDrivers.length;
-      document.getElementById('stat-pending-drivers').innerText = pendingDrivers.length;
-
-      const directions = ['Malifut - Tobelo', 'Tobelo - Malifut', 'Malifut - Sofifi', 'Sofifi - Malifut'];
-      let trayekHtml = '<div class="grid-2">';
-      directions.forEach(dir => {
-        const activeD = approvedDrivers.filter(d => d.isOnline && d.queueDirection === dir);
-        trayekHtml += `
-          <div class="card" style="margin:0; background:#f8fafc; padding:10px;">
-            <h5 style="color:var(--primary); font-size:0.8rem;">Arah: ${dir}</h5>
-            <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">
-              Driver Pool: <b>${activeD.length} Unit</b>
-            </p>
-          </div>
-        `;
-      });
-      trayekHtml += '</div>';
-      document.getElementById('a-trayek-summary-container').innerHTML = trayekHtml;
-
-      let activeOrdersHtml = '';
-      if (activeOrdersList.length === 0) {
-        activeOrdersHtml = '<div class="empty-box">Tidak ada pesanan aktif saat ini.</div>';
-      } else {
-        activeOrdersList.forEach(o => {
-          let statusBadgeText = o.status.toUpperCase();
-          if(o.status === 'menunggu') statusBadgeText = 'MENUNGGU KURSI FULL';
-          
-          activeOrdersHtml += `
-            <div class="card" style="margin-bottom:8px; background:#f8fafc; padding:10px;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong style="font-size:0.85rem;">${o.id} - ${o.type} ${o.passengers ? `(${o.passengers} Kursi)` : ''}</strong>
-                <span class="badge badge-${o.status}" style="font-size:0.7rem;">${statusBadgeText}</span>
-              </div>
-              <p style="font-size:0.8rem; color:var(--gray); margin-top:4px;"><b>Pemesan:</b> ${o.passengerName} (${o.passengerPhone || '-'})</p>
-              <p style="font-size:0.78rem; color:var(--gray); margin-top:2px;">${o.origin} ➔ ${o.destination}</p>
-              <button class="btn btn-danger" style="margin-top:6px; padding:5px; font-size:0.78rem;" onclick="window.app.adminCancelOrder('${o.id}')">❌ Batalkan Pesanan Ini</button>
-            </div>
-          `;
-        });
-      }
-      document.getElementById('a-active-orders-container').innerHTML = activeOrdersHtml;
-
-      let pendingHtml = '';
-      if (pendingDrivers.length === 0) {
-        pendingHtml = '<div class="empty-box">Tidak ada pendaftaran driver baru.</div>';
-      } else {
-        pendingDrivers.forEach(d => {
-          pendingHtml += `
-            <div class="card" style="margin-bottom:10px; background:#fffbeb; border-color:#fcd34d; padding:10px;">
-              <strong style="font-size:0.9rem;">${d.name}</strong> (${d.model} - ${d.plate})<br>
-              <span style="font-size:0.8rem; color:var(--gray);">Basis: ${d.currentLocation} | Jalur: Malifut - ${d.routeLine}</span><br>
-              <div style="display:flex; gap:6px; margin-top:8px;">
-                <button class="btn btn-outline" style="flex:1; margin:0; padding:5px; font-size:0.8rem;" onclick="window.app.openAdminDriverDetail('${d.id}')">Periksa</button>
-                <button class="btn btn-primary" style="flex:1; margin:0; padding:5px; font-size:0.8rem;" onclick="window.app.verifyDriver('${d.id}', 'diterima')">Terima</button>
-                <button class="btn btn-danger" style="flex:1; margin:0; padding:5px; font-size:0.8rem;" onclick="window.app.verifyDriver('${d.id}', 'ditolak')">Tolak</button>
-              </div>
-            </div>
-          `;
-        });
-      }
-      document.getElementById('a-pending-driver-container').innerHTML = pendingHtml;
-
-      let activeHtml = '';
-      if (approvedDrivers.length === 0) {
-        activeHtml = '<div class="empty-box">Belum ada driver aktif yang disetujui.</div>';
-      } else {
-        approvedDrivers.forEach(d => {
-          activeHtml += `
-            <div class="card" style="margin-bottom:8px; background:#f8fafc; padding:10px; display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <strong style="font-size:0.85rem;">${d.name}</strong> (${d.model})<br>
-                <span style="font-size:0.75rem; color:var(--gray);">Posisi: <b>${d.currentLocation}</b> | Antre: ${d.queueDirection} (#${d.queueNo})</span>
-              </div>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-outline" style="width:auto; margin:0; padding:5px 8px; font-size:0.75rem;" onclick="window.app.openAdminDriverDetail('${d.id}')">Detail</button>
-                <button class="btn btn-danger" style="width:auto; margin:0; padding:5px 8px; font-size:0.75rem;" onclick="window.app.deleteDriver('${d.id}')">Hapus</button>
-              </div>
-            </div>
-          `;
-        });
-      }
-      document.getElementById('a-driver-list-container').innerHTML = activeHtml;
-    },
-
-    adminCancelOrder(orderId) {
-      if (confirm(`Admin: Yakin ingin membatalkan pesanan #${orderId}?`)) {
-        const order = this.orders.find(o => o.id === orderId);
-        if (!order) return;
-        
-        order.status = 'dibatalkan';
-        if (!order.messages) order.messages = [];
-        order.messages.push({
-          sender: 'Admin',
-          text: 'Pesanan dibatalkan oleh Admin sistem.',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
-
-        set(ref(database, 'orders/' + orderId), order).then(() => {
-          this.playBeep('success');
-          this.showToast(`Pesanan #${orderId} dibatalkan oleh Admin.`);
-          this.renderAdminDashboard();
-        }).catch((error) => {
-          this.showToast('Gagal membatalkan pesanan: ' + error.message, true);
-        });
-      }
-    },
-
-    verifyDriver(driverId, actionStatus) {
-      const d = this.drivers.find(x => x.id === driverId);
-      if (!d) return;
-
-      d.status = actionStatus;
-      if (actionStatus === 'diterima') {
-        const sameDirDrivers = this.drivers.filter(x => x.status === 'diterima' && x.queueDirection === d.queueDirection);
-        d.queueNo = sameDirDrivers.length;
-        d.isOnline = true;
-        this.showToast(`Driver ${d.name} diterima.`);
-      } else {
-        this.showToast(`Pendaftaran ditolak.`);
-      }
-      set(ref(database, 'drivers/' + d.id), d);
-      this.renderAdminDashboard();
-    },
-
-    deleteDriver(driverId) {
-      const driver = this.drivers.find(d => d.id === driverId);
-      if (!driver) return;
-
-      const enteredPassword = prompt(`Konfirmasi Keamanan Admin\n\nMasukkan Password Admin untuk menghapus driver "${driver.name}":`);
-      if (enteredPassword === null) return;
-      if (enteredPassword !== this.adminPassword) {
-        alert('Password Admin SALAH!');
-        return;
-      }
-
-      if (confirm(`Yakin ingin menghapus driver "${driver.name}" secara permanen?`)) {
-        remove(ref(database, 'drivers/' + driverId));
-        this.playBeep('success');
-        this.showToast('Driver dihapus.');
-        this.renderAdminDashboard();
-      }
-    },
-
-    openAdminDriverDetail(driverId) {
-      const d = this.drivers.find(x => x.id === driverId);
-      if (!d) return;
-
-      let html = `
-        <h3>Detail Driver & Posisi</h3>
-        <div class="grid-2" style="margin:10px 0;">
-          <div class="preview-img-box"><img src="${d.photoUrl}" alt="Wajah"></div>
-          <div class="preview-img-box"><img src="${d.carPhotoUrl}" alt="Mobil"></div>
-        </div>
-        <div class="form-group"><label>Nama</label><input class="form-control" value="${d.name}" readonly></div>
-        <div class="form-group"><label>No HP</label><input class="form-control" value="${d.phone}" readonly></div>
-        <div class="form-group"><label>Posisi Pool Saat Ini</label><input class="form-control" value="${d.currentLocation}" readonly></div>
-        <div class="form-group"><label>Arah Antrean Saat Ini</label><input class="form-control" value="${d.queueDirection} (No. #${d.queueNo})" readonly></div>
-        
-        <button class="btn btn-danger" style="margin-top: 10px;" onclick="window.app.deleteDriver('${d.id}')">🗑️ Hapus Driver Ini</button>
-      `;
-      document.getElementById('admin-driver-detail-content').innerHTML = html;
-      this.showView('view-admin-driver-detail');
-    },
-
-    updateProfile(e) {
-      e.preventDefault();
-      const newName = document.getElementById('prof-name').value;
-      if(this.currentUser) {
-        this.currentUser.name = newName;
-        set(ref(database, 'passengers/' + this.currentUser.phone.replace(/\D/g,'')), this.currentUser);
-        document.getElementById('p-welcome').innerHTML = `Halo, ${this.currentUser.name}!<br><span style="font-size:0.75rem; font-weight:normal; opacity:0.9;">No. TLP: ${this.currentUser.phone}</span>`;
-        this.showToast('Profil diperbarui!');
-        this.showView('view-p-home');
-      }
-    },
-
-    bookCarWithQueue(e) {
-      e.preventDefault();
-      const direction = document.getElementById('car-direction').value;
-      const originDetail = document.getElementById('car-origin').value;
-      const requestedPassengers = parseInt(document.getElementById('car-passengers').value) || 1;
-
-      let routeParts = direction.split(' - ');
-      let originCity = routeParts[0];
-      let destCity = routeParts[1];
-
-      let realtimeQueue = this.getRealtimeQueueForDirection(direction);
-
-      if (realtimeQueue.length === 0) {
-        alert(`Maaf, tidak ada driver yang antre/siap untuk arah ${direction}.`);
-        return;
-      }
-
-      let remainingPassengers = requestedPassengers;
-      let queueIndex = 0;
-      let updates = {};
-
-      while (remainingPassengers > 0 && queueIndex < realtimeQueue.length) {
-        let currentQueueItem = realtimeQueue[queueIndex];
-        let assignedDriver = currentQueueItem.driver;
-
-        let availableSeatsInCar = 4 - currentQueueItem.filledSeats;
-        if (availableSeatsInCar <= 0) {
-          queueIndex++;
-          continue;
+        if (!isAgreed) {
+          alert('Anda harus menyetujui pernyataan kelayakan unit.');
+          return;
         }
 
-        let passengersToThisCar = Math.min(remainingPassengers, availableSeatsInCar);
-        let newTotalInCar = currentQueueItem.filledSeats + passengersToThisCar;
+        const parts = routeLineChoice.split('-');
+        let targetDest = (baseCity === parts[0]) ? parts[1] : parts[0];
+        let calculatedQueueDirection = `${baseCity} - ${targetDest}`;
 
-        const orderId = 'ORD-' + Date.now().toString().slice(-4) + '-' + (queueIndex + 1);
-        const newOrder = {
-          id: orderId,
-          type: 'Mobil',
-          direction: direction,
-          originCity: originCity,
-          destinationCity: destCity,
-          origin: `${originDetail} (${originCity})`,
-          destination: destCity,
-          passengers: passengersToThisCar,
-          driverId: assignedDriver.id,
-          passengerPhone: this.currentUser ? this.currentUser.phone : '',
-          passengerName: this.currentUser ? this.currentUser.name : 'Tamu',
+        const photoInput = document.getElementById('reg-driver-photo').files[0];
+        const carPhotoInput = document.getElementById('reg-driver-car-photo').files[0];
+
+        const driverId = 'd_' + Date.now().toString().slice(-4);
+        const newDriverData = {
+          id: driverId,
+          name,
+          phone,
+          model,
+          plate,
+          routeLine: routeLineChoice,
+          currentLocation: baseCity,
+          queueDirection: calculatedQueueDirection,
+          queueNo: 0,
+          joinedQueueAt: 0,
           status: 'menunggu',
-          createdAt: new Date().toLocaleTimeString(),
-          messages: [
-            { sender: 'System', text: `Pesanan dialokasikan ke driver ${assignedDriver.name}. Kursi terisi: ${newTotalInCar}/4.`, time: new Date().toLocaleTimeString() }
-          ]
+          isOnline: false,
+          photoUrl: photoInput ? URL.createObjectURL(photoInput) : 'https://via.placeholder.com/150',
+          carPhotoUrl: carPhotoInput ? URL.createObjectURL(carPhotoInput) : 'https://via.placeholder.com/300'
         };
 
-        updates['orders/' + orderId] = newOrder;
-        remainingPassengers -= passengersToThisCar;
-        queueIndex++;
+        set(ref(database, 'drivers/' + driverId), newDriverData);
+        this.showToast('Pendaftaran Driver Berhasil!');
+        this.showView('view-login-driver');
       }
 
-      if (remainingPassengers > 0) {
-        alert(`Sebagian kursi tercatat, namun sisa ${remainingPassengers} penumpang belum mendapat armada.`);
-      }
-
-      update(ref(database), updates).then(() => {
-        this.playBeep('success');
-        this.showToast('Booking kursi berhasil!');
-        this.showView('view-p-orders');
-        this.renderPassengerOrders();
-      }).catch((error) => {
-        this.showToast('Gagal memproses booking: ' + error.message, true);
-      });
-    },
-
-    submitPackageBooking(e) {
-      e.preventDefault();
-      const senderName = document.getElementById('pkg-sender-name').value;
-      const senderPhone = document.getElementById('pkg-sender-phone').value;
-      const origin = document.getElementById('pkg-origin').value;
-      const receiverName = document.getElementById('pkg-receiver-name').value;
-      const receiverPhone = document.getElementById('pkg-receiver-phone').value;
-      const destination = document.getElementById('pkg-destination').value;
-      const pkgDesc = document.getElementById('pkg-desc').value;
-      
-      let direction = `${origin} - ${destination}`;
-      let onlineDrivers = this.getRealtimeQueueForDirection(direction);
-
-      if (onlineDrivers.length === 0) {
-        alert(`Maaf, tidak ada driver siap untuk rute pengiriman ${direction}.`);
-        return;
-      }
-      const topDriver = onlineDrivers[0].driver;
-
-      const orderId = 'PKG-' + Date.now().toString().slice(-4);
-      const newOrder = {
-        id: orderId,
-        type: 'Paket',
-        direction: direction,
-        originCity: origin,
-        destinationCity: destination,
-        origin,
-        destination,
-        driverId: topDriver.id,
-        passengerPhone: senderPhone,
-        passengerName: senderName,
-        senderName: senderName,
-        senderPhone: senderPhone,
-        receiverName: receiverName,
-        receiverPhone: receiverPhone,
-        pkgDesc: pkgDesc,
-        status: 'menuju',
-        createdAt: new Date().toLocaleTimeString(),
-        messages: [
-          { sender: 'System', text: `Paket dialokasikan ke driver ${topDriver.name}.`, time: new Date().toLocaleTimeString() }
-        ]
-      };
-      set(ref(database, 'orders/' + orderId), newOrder);
-      this.playBeep('success');
-      this.showToast('Paket berhasil dikirim!');
-      this.showView('view-p-home');
-    },
-
-    confirmCancelOrder(orderId) {
-      if (confirm("Yakin ingin membatalkan pesanan?")) {
-        const order = this.orders.find(o => o.id === orderId);
-        if (!order) return;
-        order.status = 'dibatalkan';
-        set(ref(database, 'orders/' + orderId), order);
-        this.playBeep('success');
-        this.showToast('Pesanan dibatalkan.');
-        this.renderPassengerOrders();
-      }
-    },
-
-    renderPassengerOrders() {
-      let html = '';
-      const myPhone = this.currentUser ? this.currentUser.phone : null;
-      
-      const myOrders = this.orders.filter(o => 
-        (o.passengerPhone === myPhone || o.senderPhone === myPhone) && 
-        o.status !== 'selesai' && 
-        o.status !== 'dibatalkan'
-      );
-
-      if(myOrders.length === 0) {
-        html = '<div class="empty-box">Tidak ada pesanan aktif saat ini.</div>';
-      } else {
-        myOrders.forEach(o => {
-          let statusBadgeText = o.status.toUpperCase();
-          if(o.status === 'menunggu') statusBadgeText = 'MENUNGGU KURSI FULL';
-          
-          let cancelBtnHtml = o.status === 'menunggu' ? `
-            <button class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:0.8rem;" onclick="event.stopPropagation(); window.app.confirmCancelOrder('${o.id}')">❌ Batalkan Pesanan</button>
-          ` : '';
-
-          html += `
-            <div class="card" onclick="window.app.openOrderDetail('${o.id}')" style="cursor:pointer">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong style="font-size:0.9rem;">${o.id} - ${o.type} ${o.passengers ? `(${o.passengers} Kursi)` : ''}</strong>
-                <span class="badge badge-${o.status}">${statusBadgeText}</span>
-              </div>
-              <p style="font-size:0.85rem; color:var(--gray); margin-top:4px">${o.origin} ➔ ${o.destination}</p>
-              ${cancelBtnHtml}
-            </div>
-          `;
-        });
-      }
-      document.getElementById('p-orders-list').innerHTML = html;
-    },
-
-    renderPassengerHistory() {
-      let html = '';
-      const myPhone = this.currentUser ? this.currentUser.phone : null;
-      
-      const historyOrders = this.orders.filter(o => 
-        (o.passengerPhone === myPhone || o.senderPhone === myPhone) && 
-        (o.status === 'selesai' || o.status === 'dibatalkan')
-      );
-
-      if(historyOrders.length === 0) {
-        html = '<div class="empty-box">Belum ada riwayat pesanan yang selesai.</div>';
-      } else {
-        historyOrders.forEach(o => {
-          html += `
-            <div class="card" style="background:#f8fafc;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong style="font-size:0.9rem;">${o.id} - ${o.type}</strong>
-                <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
-              </div>
-              <p style="font-size:0.85rem; color:var(--gray); margin-top:4px">${o.origin} ➔ ${o.destination}</p>
-              <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">Waktu: ${o.createdAt || '-'}</p>
-              <button class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:0.8rem;" onclick="window.app.deleteOrder('${o.id}')">🗑️ Hapus dari Riwayat</button>
-            </div>
-          `;
-        });
-      }
-      document.getElementById('p-history-list').innerHTML = html;
-    },
-
-    renderDriverHistory() {
-      let html = '';
-      const myDriverId = this.currentUser ? this.currentUser.id : null;
-      
-      const historyOrders = this.orders.filter(o => 
-        o.driverId === myDriverId && 
-        (o.status === 'selesai' || o.status === 'dibatalkan')
-      );
-
-      if(historyOrders.length === 0) {
-        html = '<div class="empty-box">Belum ada riwayat tugas pesanan yang selesai.</div>';
-      } else {
-        historyOrders.forEach(o => {
-          let earningsInfo = o.type === 'Mobil' && o.passengers ? `<p style="font-size:0.78rem; color:var(--primary); font-weight:600; margin-top:2px;">Kursi Terangkut: ${o.passengers}</p>` : '';
-          html += `
-            <div class="card" style="background:#f8fafc;">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong style="font-size:0.9rem;">${o.id} - ${o.type}</strong>
-                <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
-              </div>
-              <p style="font-size:0.85rem; color:var(--gray); margin-top:4px">${o.origin} ➔ ${o.destination}</p>
-              <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">Waktu Selesai/Tercatat: ${o.createdAt || '-'}</p>
-              ${earningsInfo}
-              <button class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:0.8rem;" onclick="window.app.deleteDriverHistoryOrder('${o.id}')">🗑️ Hapus dari Riwayat</button>
-            </div>
-          `;
-        });
-      }
-      document.getElementById('d-history-list').innerHTML = html;
-    },
-
-    deleteOrder(orderId) {
-      if (confirm("Yakin ingin menghapus riwayat pesanan ini secara permanen?")) {
-        remove(ref(database, 'orders/' + orderId)).then(() => {
-          this.playBeep('success');
-          this.showToast('Riwayat pesanan berhasil dihapus.');
-          this.renderPassengerHistory();
-        }).catch((error) => {
-          this.showToast('Gagal menghapus: ' + error.message, true);
-        });
-      }
-    },
-
-    deleteDriverHistoryOrder(orderId) {
-      if (confirm("Yakin ingin menghapus riwayat tugas ini dari daftar Anda?")) {
-        remove(ref(database, 'orders/' + orderId)).then(() => {
-          this.playBeep('success');
-          this.showToast('Riwayat tugas berhasil dihapus.');
-          this.renderDriverHistory();
-        }).catch((error) => {
-          this.showToast('Gagal menghapus: ' + error.message, true);
-        });
-      }
-    },
-
-    openOrderDetail(orderId) {
-      const o = this.orders.find(x => x.id === orderId);
-      if(!o) return;
-
-      let statusDisplay = o.status.toUpperCase();
-      if(o.status === 'menunggu') statusDisplay = 'MENUNGGU KURSI FULL';
-
-      const assignedDriver = this.drivers.find(d => d.id === o.driverId);
-
-      let topInfoSection = '';
-      if (this.currentRole === 'driver') {
-        if (o.type === 'Paket') {
-          const senderPhoneClean = this.formatWhatsAppNumber(o.senderPhone || o.passengerPhone);
-          const receiverPhoneClean = this.formatWhatsAppNumber(o.receiverPhone);
-          const waTextSender = encodeURIComponent(`Halo Kak ${o.senderName || o.passengerName}, saya driver GoPir untuk jemput paket #${o.id}.`);
-          const waTextReceiver = encodeURIComponent(`Halo Kak ${o.receiverName}, saya driver GoPir mengantar paket #${o.id}.`);
-          
-          topInfoSection = `
-            <div class="card" style="background:#f8fafc; border:1px solid #cbd5e1; margin-bottom:10px; padding:10px;">
-              <h4 style="color:var(--dark); font-size:0.9rem; margin-bottom:6px;">📦 KONTAK PAKET</h4>
-              <div style="font-size:0.85rem; margin-bottom:3px;"><b>Isi:</b> ${o.pkgDesc || '-'}</div>
-              <div style="font-size:0.85rem; margin-bottom:6px;"><b>Pengirim:</b> ${o.senderName} (${o.senderPhone})</div>
-              <a href="https://wa.me/${senderPhoneClean}?text=${waTextSender}" target="_blank" class="btn-wa" style="margin-bottom:6px;">💬 Chat Pengirim via WA</a>
-              <div style="font-size:0.85rem; margin-bottom:3px; margin-top:6px;"><b>Penerima:</b> ${o.receiverName} (${o.receiverPhone})</div>
-              <a href="https://wa.me/${receiverPhoneClean}?text=${waTextReceiver}" target="_blank" class="btn-wa">💬 Chat Penerima via WA</a>
-            </div>
-          `;
-        } else {
-          const passengerPhoneClean = this.formatWhatsAppNumber(o.passengerPhone);
-          const waTextPassenger = encodeURIComponent(`Halo Kak ${o.passengerName}, saya driver GoPir penjemputan pesanan #${o.id}.`);
-          
-          topInfoSection = `
-            <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0; margin-bottom:10px; padding:10px;">
-              <h4 style="color:var(--primary); font-size:0.9rem; margin-bottom:4px;">👤 KONTAK PENUMPANG</h4>
-              <p style="font-size:0.85rem; margin-bottom:3px;"><b>Nama:</b> ${o.passengerName} (${o.passengerPhone})</p>
-              <p style="font-size:0.85rem; margin-bottom:8px;"><b>Titik Jemput:</b> ${o.origin}</p>
-              <a href="https://wa.me/${passengerPhoneClean}?text=${waTextPassenger}" target="_blank" class="btn-wa">💬 Chat Penumpang via WA</a>
-            </div>
-          `;
-        }
-      } else {
-        if (assignedDriver) {
-          const driverPhoneClean = this.formatWhatsAppNumber(assignedDriver.phone);
-          const waTextDriver = encodeURIComponent(`Halo Kak ${assignedDriver.name}, terkait pesanan #${o.id}.`);
-          
-          topInfoSection = `
-            <div class="card" style="background:#f0fdf4; border:1px solid #bbf7d0; margin-bottom:10px; padding:10px;">
-              <h4 style="color:var(--primary); font-size:0.9rem; margin-bottom:4px;">🚗 INFORMASI DRIVER</h4>
-              <p style="font-size:0.85rem; margin-bottom:3px;"><b>Driver:</b> ${assignedDriver.name} (${assignedDriver.phone})</p>
-              <p style="font-size:0.85rem; margin-bottom:8px;"><b>Mobil:</b> ${assignedDriver.model} (${assignedDriver.plate})</p>
-              <a href="https://wa.me/${driverPhoneClean}?text=${waTextDriver}" target="_blank" class="btn-wa">💬 Chat Driver via WA</a>
-            </div>
-          `;
-        }
-      }
-
-      let chatHtml = '';
-      if(o.messages && o.messages.length > 0) {
-        o.messages.forEach(m => {
-          const isMe = m.sender === (this.currentRole === 'driver' ? assignedDriver?.name : o.passengerName);
-          chatHtml += `<div class="chat-bubble ${isMe ? 'me' : 'other'}">
-            <b style="font-size:0.7rem; display:block; opacity:0.85; margin-bottom:1px;">${m.sender} (${m.time})</b>
-            ${m.text}
-          </div>`;
-        });
-      } else {
-        chatHtml = '<div style="text-align:center; color:var(--gray); font-size:0.8rem;">Belum ada pesan.</div>';
-      }
-
-      let driverActionButtons = '';
-      if (this.currentRole === 'driver') {
-        let nextStatusText = '';
-        let targetStatus = '';
-        let btnClass = 'btn-primary';
-
-        if (o.status === 'menunggu') {
-          targetStatus = 'menuju';
-          nextStatusText = '👉 Lanjut: Berangkat';
-        } else if (o.status === 'menuju') {
-          targetStatus = 'sampai';
-          nextStatusText = '👉 Lanjut: Sampai';
-          btnClass = 'btn-secondary';
-        } else if (o.status === 'sampai') {
-          targetStatus = 'selesai';
-          nextStatusText = '✅ Selesaikan Tugas';
-          btnClass = 'btn-warning';
+      loginDriver() {
+        const phone = document.getElementById('login-driver-phone').value;
+        if (!phone) {
+          alert('Masukkan nomor telepon.');
+          return;
         }
 
-        if (targetStatus) {
-          driverActionButtons = `
-            <div class="card" style="background:#f8fafc; border:1.5px dashed var(--primary); padding:10px; margin-top:12px;">
-              <h4 style="font-size:0.85rem; margin-bottom:6px; color:var(--primary);">Status Progress Tugas:</h4>
-              <button class="btn ${btnClass}" onclick="window.app.updateOrderStatus('${o.id}', '${targetStatus}')">${nextStatusText}</button>
-            </div>
-          `;
-        } else if (o.status === 'selesai') {
-          driverActionButtons = `
-            <div class="card" style="background:#f0fdf4; border:1px solid var(--success); padding:10px; margin-top:12px; text-align:center;">
-              <strong style="color:var(--success); font-size:0.85rem;">Tugas Ini Telah Selesai ✅</strong>
-            </div>
-          `;
-        }
-      }
+        get(ref(database, 'drivers')).then(snapshot => {
+          if (snapshot.exists()) {
+            let found = null;
+            snapshot.forEach(child => {
+              if (child.val().phone === phone) found = child.val();
+            });
 
-      let html = `
-        <div class="card" style="background: #f8fafc; border: 1px solid var(--primary); text-align: center; padding: 10px 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <span style="font-size: 0.7rem; color: var(--gray); text-transform: uppercase; font-weight: 600;">Status #${o.id}</span>
-            <span class="badge badge-${o.status}" style="font-size: 0.75rem; padding: 3px 10px; border-radius: 12px;">${statusDisplay}</span>
-          </div>
-          <p style="font-size: 0.82rem; color: var(--dark); font-weight: 600; text-align: left; margin-top: 2px;">📍 ${o.origin} ➔ ${o.destination}</p>
-        </div>
-
-        ${topInfoSection}
-
-        <div class="card" style="padding:10px; margin-bottom:12px;">
-          <h4 style="font-size:0.9rem; margin-bottom:6px;">🗺️ Peta Lokasi Driver (Live GPS)</h4>
-          <div id="map-${o.id}" class="map-preview-box" onclick="window.app.expandMap('${o.id}')"></div>
-          ${this.currentRole === 'driver' ? '<button class="btn btn-secondary" style="margin-top:8px; padding:6px;" onclick="window.app.updateMyGPSLocation(\''+o.id+'\')">📍 Perbarui Posisi GPS Saya</button>' : ''}
-        </div>
-
-        <div class="chat-container">
-          <div style="font-size:0.8rem; font-weight:700; color:var(--gray); margin-bottom:4px;">💬 Chat Koordinasi:</div>
-          <div class="chat-messages">${chatHtml}</div>
-          <form onsubmit="window.app.sendChatMessage(event, '${o.id}')" class="chat-input-row">
-            <input type="text" id="chat-input-text" class="form-control" placeholder="Ketik pesan..." style="font-size:0.85rem; padding:6px 10px;" required>
-            <button type="submit" class="btn btn-primary" style="margin:0; padding:6px 12px; font-size:0.85rem; width:auto;">Kirim</button>
-          </form>
-        </div>
-        ${driverActionButtons}
-      `;
-      document.getElementById('order-detail-content').innerHTML = html;
-      this.showView('view-order-detail');
-
-      setTimeout(() => {
-        let lat = assignedDriver && assignedDriver.lat ? assignedDriver.lat : 0.9325;
-        let lng = assignedDriver && assignedDriver.lng ? assignedDriver.lng : 127.7651;
-        this.initMap(`map-${o.id}`, lat, lng, assignedDriver ? assignedDriver.name : 'Driver', 11);
-      }, 200);
-    },
-
-    initMap(containerId, lat, lng, driverName, zoomLevel = 11) {
-      if (document.getElementById(containerId)) {
-        if (window[containerId + '_map']) {
-          window[containerId + '_map'].remove();
-        }
-
-        const map = L.map(containerId).setView([lat, lng], zoomLevel);
-        window[containerId + '_map'] = map;
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '© OpenStreetMap'
-        }).addTo(map);
-
-        L.marker([lat, lng]).addTo(map)
-          .bindPopup(`<b>${driverName || 'Driver'}</b><br>Posisi Armada GoPir`)
-          .openPopup();
-      }
-    },
-
-    expandMap(orderId) {
-      const o = this.orders.find(x => x.id === orderId);
-      if(!o) return;
-      const assignedDriver = this.drivers.find(d => d.id === o.driverId);
-
-      let lat = assignedDriver && assignedDriver.lat ? assignedDriver.lat : 0.9325;
-      let lng = assignedDriver && assignedDriver.lng ? assignedDriver.lng : 127.7651;
-      let driverName = assignedDriver ? assignedDriver.name : 'Driver';
-
-      document.getElementById('map-modal').style.display = 'flex';
-
-      setTimeout(() => {
-        this.initMap('modal-map-container', lat, lng, driverName, 14);
-      }, 100);
-    },
-
-    closeMapModal() {
-      document.getElementById('map-modal').style.display = 'none';
-      if (window['modal-map-container_map']) {
-        window['modal-map-container_map'].remove();
-      }
-    },
-
-    updateMyGPSLocation(orderId) {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-
-          if (this.currentUser && this.currentRole === 'driver') {
-            this.currentUser.lat = lat;
-            this.currentUser.lng = lng;
-            set(ref(database, 'drivers/' + this.currentUser.id), this.currentUser);
-            this.showToast('Koordinat GPS berhasil diperbarui!');
-            this.openOrderDetail(orderId);
-          }
-        }, (error) => {
-          this.showToast('Gagal mengambil GPS: ' + error.message, true);
-        });
-      } else {
-        this.showToast('Browser Anda tidak mendukung Geolocation', true);
-      }
-    },
-
-    sendChatMessage(e, orderId) {
-      e.preventDefault();
-      const inputEl = document.getElementById('chat-input-text');
-      const text = inputEl.value.trim();
-      if(!text) return;
-
-      const o = this.orders.find(x => x.id === orderId);
-      if(!o) return;
-
-      let senderName = this.currentRole === 'driver' ? this.currentUser.name : o.passengerName;
-      if(!o.messages) o.messages = [];
-      o.messages.push({
-        sender: senderName,
-        text: text,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-
-      set(ref(database, 'orders/' + orderId), o);
-      inputEl.value = '';
-      this.playBeep('success');
-      this.openOrderDetail(orderId);
-    },
-
-    updateOrderStatus(orderId, newStatus) {
-      const o = this.orders.find(x => x.id === orderId);
-      if(o) {
-        o.status = newStatus;
-        if(!o.messages) o.messages = [];
-        o.messages.push({
-          sender: 'System',
-          text: `Status diperbarui: ${newStatus.toUpperCase()}`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
-
-        let updates = {};
-        updates['orders/' + orderId] = o;
-
-        if (newStatus === 'selesai' && this.currentUser && this.currentRole === 'driver') {
-          const destinationCity = o.destinationCity || o.destination;
-          
-          if (destinationCity) {
-            this.currentUser.currentLocation = destinationCity;
-            
-            let routeLine = this.currentUser.routeLine || 'Tobelo';
-            if (destinationCity === 'Malifut') {
-              this.currentUser.queueDirection = `Malifut - ${routeLine}`;
+            if (found) {
+              this.currentDriver = found;
+              localStorage.setItem('gopir_driver_id', found.id);
+              document.getElementById('driver-welcome-name').innerText = `Halo, Driver ${found.name}`;
+              this.updateDriverUIState();
+              this.showView('view-driver-dashboard');
+              this.showToast('Berhasil Masuk Driver');
             } else {
-              this.currentUser.queueDirection = `${destinationCity} - Malifut`;
+              alert('Nomor telepon tidak ditemukan. Silakan daftar terlebih dahulu.');
+            }
+          } else {
+            alert('Belum ada data driver terdaftar.');
+          }
+        });
+      }
+
+      logoutDriver() {
+        localStorage.removeItem('gopir_driver_id');
+        this.currentDriver = null;
+        this.showView('view-login-driver');
+      }
+
+      updateDriverUIState() {
+        if (!this.currentDriver) return;
+        const onlineBtn = document.getElementById('btn-driver-online');
+        const offlineBtn = document.getElementById('btn-driver-offline');
+        const statusText = document.getElementById('driver-status-text');
+        const queueCard = document.getElementById('driver-queue-card');
+        const queueInfo = document.getElementById('driver-queue-info');
+
+        if (this.currentDriver.isOnline) {
+          onlineBtn.style.display = 'none';
+          offlineBtn.style.display = 'block';
+          statusText.innerText = `Status: Online di Pangkalan (${this.currentDriver.queueDirection})`;
+          queueCard.style.display = 'block';
+          
+          get(ref(database, 'drivers')).then(snapshot => {
+            if (snapshot.exists()) {
+              let queueList = [];
+              snapshot.forEach(child => {
+                let d = child.val();
+                if (d.isOnline && d.queueDirection === this.currentDriver.queueDirection) {
+                  queueList.push(d);
+                }
+              });
+              queueList.sort((a, b) => a.joinedQueueAt - b.joinedQueueAt);
+              let myIndex = queueList.findIndex(d => d.id === this.currentDriver.id) + 1;
+              queueInfo.innerText = `Nomor Antrean Anda: #${myIndex} (Dari total ${queueList.length} driver di pool)`;
+            }
+          });
+        } else {
+          onlineBtn.style.display = 'block';
+          offlineBtn.style.display = 'none';
+          statusText.innerText = 'Status: Offline';
+          queueCard.style.display = 'none';
+        }
+      }
+
+      toggleDriverOnline(isOnline) {
+        if (!this.currentDriver) return;
+        this.currentDriver.isOnline = isOnline;
+        this.currentDriver.joinedQueueAt = isOnline ? Date.now() : 0;
+
+        update(ref(database, 'drivers/' + this.currentDriver.id), {
+          isOnline: this.currentDriver.isOnline,
+          joinedQueueAt: this.currentDriver.joinedQueueAt
+        }).then(() => {
+          this.updateDriverUIState();
+          this.showToast(isOnline ? 'Anda masuk antrean pool' : 'Anda keluar pool');
+        });
+      }
+
+      createOrder(e) {
+        e.preventDefault();
+        const type = document.getElementById('order-type').value;
+        const route = document.getElementById('order-route').value;
+        const name = document.getElementById('order-name').value;
+        const phone = document.getElementById('order-phone').value;
+        const notes = document.getElementById('order-notes').value;
+
+        const orderId = 'ord_' + Date.now().toString().slice(-4);
+        const orderData = { 
+          id: orderId, 
+          type, 
+          route, 
+          name, 
+          phone, 
+          notes, 
+          status: 'mencari', 
+          assignedDriverId: '',
+          createdAt: new Date().toLocaleString()
+        };
+
+        set(ref(database, 'orders/' + orderId), orderData);
+        this.currentOrder = orderData;
+        
+        document.getElementById('customer-active-order-box').style.display = 'block';
+        document.getElementById('customer-order-details').innerHTML = `<b>Jenis:</b> ${type}<br><b>Rute:</b> ${route}<br><b>Status:</b> Mencari Driver Terdekat...`;
+        this.showToast('Pesanan berhasil dibuat!');
+      }
+
+      cancelCustomerOrder() {
+        if (this.currentOrder) {
+          remove(ref(database, 'orders/' + this.currentOrder.id));
+          this.currentOrder = null;
+          document.getElementById('customer-active-order-box').style.display = 'none';
+          this.showToast('Pesanan dibatalkan');
+        }
+      }
+
+      loadPoolStatusRealtime() {
+        const container = document.getElementById('pool-list-container');
+        onValue(ref(database, 'drivers'), snapshot => {
+          container.innerHTML = '';
+          if (snapshot.exists()) {
+            let pools = {};
+            snapshot.forEach(child => {
+              let d = child.val();
+              if (d.isOnline) {
+                if (!pools[d.queueDirection]) pools[d.queueDirection] = [];
+                pools[d.queueDirection].push(d);
+              }
+            });
+
+            if (Object.keys(pools).length === 0) {
+              container.innerHTML = `<p style="font-size:0.85rem;color:var(--gray);text-align:center;">Belum ada driver yang online di pangkalan.</p>`;
+              return;
             }
 
-            const sameDirDrivers = this.drivers.filter(x => x.status === 'diterima' && x.queueDirection === this.currentUser.queueDirection);
-            this.currentUser.queueNo = sameDirDrivers.length + 1;
-
-            updates['drivers/' + this.currentUser.id] = this.currentUser;
-            this.showToast(`Tugas selesai! Pool Anda pindah ke ${destinationCity}.`);
-          }
-        }
-
-        update(ref(database), updates).then(() => {
-          this.playBeep('success');
-          if (newStatus !== 'selesai') {
-            this.showToast('Status pesanan diperbarui');
-            this.showBrowserNotification("Status Diperbarui", `Pesanan #${o.id} sekarang berstatus ${newStatus.toUpperCase()}`);
-          }
-          this.openOrderDetail(orderId);
-        }).catch((error) => {
-          this.showToast('Gagal memperbarui status: ' + error.message, true);
-        });
-      }
-    },
-
-    updateBatchOrderStatus(newStatus) {
-      const myDriverId = this.currentUser ? this.currentUser.id : null;
-      if (!myDriverId) return;
-
-      const assignedOrders = this.orders.filter(o => 
-        o.driverId === myDriverId && 
-        o.status !== 'selesai' && 
-        o.status !== 'dibatalkan'
-      );
-
-      if (assignedOrders.length === 0) {
-        this.showToast('Tidak ada tugas aktif untuk diperbarui.', true);
-        return;
-      }
-
-      const targetDestination = assignedOrders[0].destinationCity || assignedOrders[0].destination;
-
-      let updates = {};
-      assignedOrders.forEach(o => {
-        o.status = newStatus;
-        if(!o.messages) o.messages = [];
-        o.messages.push({
-          sender: 'System',
-          text: `Status diperbarui massal oleh Driver: ${newStatus.toUpperCase()}`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
-        updates['orders/' + o.id] = o;
-      });
-
-      if (newStatus === 'selesai' && this.currentUser) {
-        if (targetDestination) {
-          this.currentUser.currentLocation = targetDestination;
-          let routeLine = this.currentUser.routeLine || 'Tobelo';
-          
-          if (targetDestination === 'Malifut') {
-            this.currentUser.queueDirection = `Malifut - ${routeLine}`;
+            for (let [direction, drivers] of Object.entries(pools)) {
+              drivers.sort((a, b) => a.joinedQueueAt - b.joinedQueueAt);
+              let driverListHtml = drivers.map((d, index) => `<li style="margin-left:16px; font-size:0.85rem;"><b>No #${index + 1}</b> - ${d.name} (${d.model} - ${d.plate})</li>`).join('');
+              container.innerHTML += `
+                <div class="card">
+                  <h3 style="font-size:1rem; color:var(--secondary);"><i class="fa-solid fa-location-dot"></i> Trayek: ${direction}</h3>
+                  <ul style="margin-top:4px;">${driverListHtml}</ul>
+                </div>
+              `;
+            }
           } else {
-            this.currentUser.queueDirection = `${targetDestination} - Malifut`;
+            container.innerHTML = `<p style="font-size:0.85rem;color:var(--gray);text-align:center;">Belum ada data driver.</p>`;
           }
+        });
+      }
 
-          const sameDirDrivers = this.drivers.filter(x => x.status === 'diterima' && x.queueDirection === this.currentUser.queueDirection);
-          this.currentUser.queueNo = sameDirDrivers.length + 1;
+      // SISTEM MENU ADMIN BERDASARKAN KLIK
+      switchAdminTab(tabName) {
+        const containerArea = document.getElementById('admin-content-area');
+        const dynamicContent = document.getElementById('admin-dynamic-content');
+        containerArea.style.display = 'block';
+        dynamicContent.innerHTML = '<p style="text-align:center; color:var(--gray); font-size:0.85rem;">Memuat data...</p>';
 
-          updates['drivers/' + this.currentUser.id] = this.currentUser;
+        if (tabName === 'drivers') {
+          get(ref(database, 'drivers')).then(snapshot => {
+            dynamicContent.innerHTML = '<h3 style="color:var(--primary); font-size:1rem;"><i class="fa-solid fa-id-card-clip"></i> Daftar Driver</h3>';
+            if (snapshot.exists()) {
+              let groupedDrivers = {};
+              snapshot.forEach(child => {
+                let d = child.val();
+                let routeKey = d.queueDirection || 'Lainnya';
+                if (!groupedDrivers[routeKey]) groupedDrivers[routeKey] = [];
+                groupedDrivers[routeKey].push(d);
+              });
+
+              for (let [route, drivers] of Object.entries(groupedDrivers)) {
+                let driverRows = drivers.map(d => `
+                  <div style="padding: 6px 0; border-bottom: 1px dashed var(--border); display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                      <b>${d.name}</b> (${d.phone})<br>
+                      <span style="font-size:0.75rem; color:var(--gray);">Model: ${d.model} | Plat: ${d.plate}</span>
+                    </div>
+                    <span style="font-size:0.7rem; padding: 2px 6px; border-radius:4px; background: ${d.isOnline ? '#e8f5e9' : '#ffebee'}; color: ${d.isOnline ? 'var(--success)' : 'var(--danger)'};">
+                      ${d.isOnline ? 'Online' : 'Offline'}
+                    </span>
+                  </div>
+                `).join('');
+
+                dynamicContent.innerHTML += `
+                  <div style="margin-bottom: 12px; background: #fafafa; border: 1px solid var(--border); border-radius: 8px; padding: 10px;">
+                    <h4 style="font-size: 0.85rem; color: var(--secondary); margin-bottom: 6px;">Trayek: ${route} (${drivers.length} Driver)</h4>
+                    ${driverRows}
+                  </div>
+                `;
+              }
+            } else {
+              dynamicContent.innerHTML += '<p style="font-size:0.85rem;color:var(--gray);text-align:center;">Belum ada driver terdaftar.</p>';
+            }
+          });
+        } 
+        else if (tabName === 'orders') {
+          onValue(ref(database, 'orders'), snapshot => {
+            dynamicContent.innerHTML = '<h3 style="color:var(--secondary); font-size:1rem;"><i class="fa-solid fa-receipt"></i> Riwayat Pesanan Masuk</h3><p style="font-size:0.75rem; color:var(--gray); margin-bottom:8px;">Ketuk riwayat pesanan untuk melihat detail & opsi hapus.</p>';
+            if (snapshot.exists()) {
+              let orderRows = '';
+              snapshot.forEach(child => {
+                let ord = child.val();
+                orderRows += `
+                  <div onclick="window.app.openAdminModal('${ord.id}')" style="padding: 8px; margin-bottom: 6px; background: #fafafa; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
+                    <div style="display:flex; justify-content:space-between;">
+                      <b>${ord.name}</b>
+                      <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">${ord.status.toUpperCase()}</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--gray);">Rute: ${ord.route} | Jenis: ${ord.type}</div>
+                  </div>
+                `;
+              });
+              dynamicContent.innerHTML += `<div style="max-height: 250px; overflow-y: auto;">${orderRows}</div>`;
+            } else {
+              dynamicContent.innerHTML += '<p style="font-size:0.85rem; color:var(--gray); text-align:center;">Belum ada riwayat pesanan.</p>';
+            }
+          }, { onlyOnce: true });
+        } 
+        else if (tabName === 'pools') {
+          dynamicContent.innerHTML = `
+            <h3 style="color:var(--success); font-size:1rem;"><i class="fa-solid fa-signs-post"></i> Manajemen Antrean Pool</h3>
+            <p style="font-size:0.8rem; color:var(--gray); margin-bottom: 10px;">Gunakan tombol di bawah untuk mereset seluruh antrean driver yang sedang aktif di pool.</p>
+            <button class="btn btn-danger" onclick="window.app.adminResetQueues()">Reset Semua Nomor Antrean Pool</button>
+          `;
+        }
+        else if (tabName === 'addRoute') {
+          dynamicContent.innerHTML = `
+            <h3 style="color:var(--warning); font-size:1rem;"><i class="fa-solid fa-route"></i> Tambah Trayek Rute Baru</h3>
+            <p style="font-size:0.75rem; color:var(--gray); margin-bottom: 10px;">Masukkan kota asal dan kota tujuan baru. Rute akan langsung tersinkronisasi ke form penumpang dan driver.</p>
+            <form onsubmit="window.app.adminAddNewRoute(event)">
+              <div class="form-group">
+                <label>Kota Asal (Pool 1)</label>
+                <input type="text" id="admin-city-a" class="form-control" placeholder="Contoh: Manado" required>
+              </div>
+              <div class="form-group">
+                <label>Kota Tujuan (Pool 2)</label>
+                <input type="text" id="admin-city-b" class="form-control" placeholder="Contoh: Bitung" required>
+              </div>
+              <button class="btn btn-warning" style="color:#fff;">Simpan & Sinkronkan Rute</button>
+            </form>
+          `;
         }
       }
 
-      update(ref(database), updates).then(() => {
-        this.playBeep('success');
-        if (newStatus === 'selesai') {
-          this.showToast(`Semua tugas selesai! Anda kini berpindah pol ke ${targetDestination}.`);
-        } else {
-          this.showToast(`Semua status tugas diubah ke: ${newStatus.toUpperCase()}`);
-        }
-        this.showBrowserNotification("Status Diperbarui", `Semua tugas Anda sekarang berstatus ${newStatus.toUpperCase()}`);
-        this.renderDriverOrders();
-      }).catch((error) => {
-        this.showToast('Gagal memperbarui status: ' + error.message, true);
-      });
-    },
+      adminAddNewRoute(e) {
+        e.preventDefault();
+        const cityA = document.getElementById('admin-city-a').value.trim();
+        const cityB = document.getElementById('admin-city-b').value.trim();
 
-    backFromDetail() {
-      if(this.currentRole === 'driver') this.showView('view-d-dashboard');
-      else this.showView('view-p-orders');
-    },
+        if (!cityA || !cityB) return;
 
-    toggleDriverOnline() {
-      const btn = document.getElementById('d-toggle-btn');
-      const txt = document.getElementById('d-status-text');
-      if(btn.innerText.includes('ONLINE')) {
-        btn.innerText = 'Go OFFLINE';
-        btn.className = 'btn btn-danger';
-        txt.innerText = 'ONLINE';
-        txt.style.color = 'var(--success)';
-        if(this.currentUser) {
-          this.currentUser.isOnline = true;
-          set(ref(database, 'drivers/' + this.currentUser.id), this.currentUser);
-        }
-        this.playBeep('order');
-        this.renderDriverOrders();
-      } else {
-        btn.innerText = 'Go ONLINE';
-        btn.className = 'btn btn-primary';
-        txt.innerText = 'OFFLINE';
-        txt.style.color = 'var(--danger)';
-        if(this.currentUser) {
-          this.currentUser.isOnline = false;
-          set(ref(database, 'drivers/' + this.currentUser.id), this.currentUser);
-        }
-        document.getElementById('d-orders-list').innerHTML = '<div class="empty-box">Anda sedang offline.</div>';
-      }
-    },
+        const routeId = 'r_' + Date.now().toString().slice(-4);
+        const newRouteData = {
+          id: routeId,
+          cityA: cityA,
+          cityB: cityB,
+          label: `${cityA} - ${cityB}`
+        };
 
-    renderDriverOrders() {
-      let html = '';
-      const myDriverId = this.currentUser ? this.currentUser.id : null;
-      
-      const assignedOrders = this.orders.filter(o => 
-        o.driverId === myDriverId && 
-        o.status !== 'selesai' && 
-        o.status !== 'dibatalkan'
-      );
-
-      if(assignedOrders.length === 0) {
-        html = '<div class="empty-box">Belum ada tugas pesanan aktif.</div>';
-        document.getElementById('d-orders-list').innerHTML = html;
-        return;
+        set(ref(database, 'routes/' + routeId), newRouteData).then(() => {
+          this.showToast('Rute baru berhasil ditambahkan dan disinkronkan!');
+          this.switchAdminTab('drivers'); // Beralih tampilan admin setelah selesai
+        });
       }
 
-      let totalPassengerSeats = 0;
-      assignedOrders.forEach(o => {
-        if (o.type === 'Mobil' && o.passengers) {
-          totalPassengerSeats += parseInt(o.passengers);
+      openAdminModal(orderId) {
+        this.selectedAdminOrderId = orderId;
+        get(ref(database, 'orders/' + orderId)).then(snapshot => {
+          if (snapshot.exists()) {
+            let ord = snapshot.val();
+            let modalBody = document.getElementById('admin-modal-body');
+            modalBody.innerHTML = `
+              <b>ID Pesanan:</b> ${ord.id}<br>
+              <b>Nama Pemesan:</b> ${ord.name}<br>
+              <b>Nomor WhatsApp:</b> ${ord.phone}<br>
+              <b>Layanan:</b> ${ord.type}<br>
+              <b>Rute Tujuan:</b> ${ord.route}<br>
+              <b>Catatan:</b> ${ord.notes || '-'}<br>
+              <b>Status:</b> ${ord.status}<br>
+              <b>Waktu Pesan:</b> ${ord.createdAt || 'Tidak tercatat'}
+            `;
+            document.getElementById('admin-order-modal').classList.add('active');
+          }
+        });
+      }
+
+      closeAdminModal() {
+        document.getElementById('admin-order-modal').classList.remove('active');
+        this.selectedAdminOrderId = null;
+      }
+
+      adminDeleteOrder() {
+        if (this.selectedAdminOrderId) {
+          remove(ref(database, 'orders/' + this.selectedAdminOrderId)).then(() => {
+            this.showToast('Riwayat pesanan berhasil dihapus.');
+            this.closeAdminModal();
+            this.switchAdminTab('orders');
+          });
         }
-      });
-
-      let sampleStatus = assignedOrders[0].status;
-      let nextStatusText = '';
-      let targetStatus = '';
-      let btnColor = 'btn-primary';
-
-      if (sampleStatus === 'menunggu') {
-        targetStatus = 'menuju';
-        nextStatusText = '👉 Lanjut Semua: Berangkat';
-      } else if (sampleStatus === 'menuju') {
-        targetStatus = 'sampai';
-        nextStatusText = '👉 Lanjut Semua: Sampai';
-        btnColor = 'btn-secondary';
-      } else if (sampleStatus === 'sampai') {
-        targetStatus = 'selesai';
-        nextStatusText = '✅ Selesaikan Semua Tugas';
-        btnColor = 'btn-warning';
       }
 
-      assignedOrders.forEach(o => {
-        let packageBadge = o.type === 'Paket' ? ` | <b>Penerima:</b> ${o.receiverName} (${o.receiverPhone})` : '';
-        
-        html += `
-          <div class="card" style="border-left: 4px solid var(--primary); padding:10px; margin-bottom: 8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')">
-              <strong style="font-size:0.9rem;">${o.id} - ${o.type} ${o.passengers ? `(${o.passengers} Kursi)` : ''}</strong>
-              <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
-            </div>
-            <p style="font-size:0.85rem; margin-top:4px; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')"><b>Pemesan:</b> ${o.passengerName}${packageBadge}</p>
-            <p style="font-size:0.80rem; color:var(--gray); margin-top:2px; cursor:pointer;" onclick="window.app.openOrderDetail('${o.id}')">${o.origin} ➔ ${o.destination}</p>
-          </div>
-        `;
-      });
-
-      const isFull = totalPassengerSeats >= 4;
-
-      if (targetStatus && (isFull || sampleStatus !== 'menunggu')) {
-        let infoKuorum = sampleStatus === 'menunggu' ? `<p style="font-size:0.75rem; color:var(--success); margin-bottom:4px; font-weight:600;">✓ Kuota Kursi Penumpang Penuh (${totalPassengerSeats}/4)</p>` : '';
-        html += `
-          <div class="card" style="background:#f8fafc; border:1.5px dashed var(--primary); padding:12px; margin-top:12px; text-align:center;">
-            ${infoKuorum}
-            <p style="font-size:0.8rem; color:var(--gray); margin-bottom:6px;">Aksi Cepat untuk Seluruh Penumpang/Paket di atas:</p>
-            <button class="btn ${btnColor}" style="margin:0; padding:10px; font-size:0.9rem;" onclick="window.app.updateBatchOrderStatus('${targetStatus}')">${nextStatusText}</button>
-          </div>
-        `;
-      } else if (sampleStatus === 'menunggu' && !isFull) {
-        html += `
-          <div class="card" style="background:#fffbeb; border:1.5px dashed var(--warning); padding:10px; margin-top:12px; text-align:center;">
-            <p style="font-size:0.80rem; color:var(--warning); font-weight:600;">⏳ Menunggu Kursi Penumpang Full (${totalPassengerSeats}/4 Kursi)</p>
-            <p style="font-size:0.75rem; color:var(--gray); margin-top:2px;">Paket tidak mengurangi jatah kursi penumpang. Tombol jalan aktif saat kursi penumpang 4/4.</p>
-          </div>
-        `;
+      adminResetQueues() {
+        if (confirm('Yakin ingin mereset seluruh antrean driver?')) {
+          get(ref(database, 'drivers')).then(snapshot => {
+            if (snapshot.exists()) {
+              snapshot.forEach(child => {
+                update(ref(database, 'drivers/' + child.val().id), { isOnline: false, joinedQueueAt: 0 });
+              });
+              this.showToast('Semua antrean berhasil di-reset.');
+              this.switchAdminTab('pools');
+            }
+          });
+        }
       }
 
-      document.getElementById('d-orders-list').innerHTML = html;
+      sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const senderName = this.currentDriver ? this.currentDriver.name : 'Admin/Tamu';
+        push(ref(database, 'chats'), {
+          sender: senderName,
+          text: text,
+          timestamp: Date.now()
+        }).then(() => {
+          input.value = '';
+        });
+      }
+
+      loadChatMessages() {
+        const chatBox = document.getElementById('chat-messages');
+        onValue(ref(database, 'chats'), snapshot => {
+          chatBox.innerHTML = '';
+          if (snapshot.exists()) {
+            snapshot.forEach(child => {
+              let c = child.val();
+              chatBox.innerHTML += `<div><b>${c.sender}:</b> ${c.text}</div>`;
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
+          }
+        });
+      }
+
+      initListeners() {
+        onValue(ref(database, 'orders'), snapshot => {
+          if (snapshot.exists() && this.currentDriver && this.currentDriver.isOnline) {
+            snapshot.forEach(child => {
+              let ord = child.val();
+              if (ord.status === 'mencari') {
+                get(ref(database, 'drivers')).then(driverSnap => {
+                  if (driverSnap.exists()) {
+                    let queueList = [];
+                    driverSnap.forEach(dChild => {
+                      let d = dChild.val();
+                      if (d.isOnline && d.queueDirection === ord.route) {
+                        queueList.push(d);
+                      }
+                    });
+                    queueList.sort((a, b) => a.joinedQueueAt - b.joinedQueueAt);
+
+                    if (queueList.length > 0 && queueList[0].id === this.currentDriver.id) {
+                      this.currentOrder = ord;
+                      document.getElementById('driver-incoming-order').style.display = 'block';
+                      document.getElementById('driver-order-desc').innerHTML = `<b>Layanan:</b> ${ord.type}<br><b>Rute:</b> ${ord.route}<br><b>Pemesan:</b> ${ord.name} (${ord.phone})<br><b>Catatan:</b> ${ord.notes}`;
+                    }
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+
+      acceptOrder() {
+        if (this.currentOrder) {
+          update(ref(database, 'orders/' + this.currentOrder.id), { status: 'diterima', assignedDriverId: this.currentDriver.id });
+          document.getElementById('driver-incoming-order').style.display = 'none';
+          this.showToast('Orderan berhasil diambil! Silakan hubungi penumpang.');
+        }
+      }
+
+      rejectOrder() {
+        document.getElementById('driver-incoming-order').style.display = 'none';
+        this.currentOrder = null;
+        this.showToast('Orderan dilewati.');
+      }
     }
-  };
 
-  window.app = GoPirApp;
-  window.onload = () => GoPirApp.init();
-</script>
-
+    window.app = new GoPirApp();
+  </script>
 </body>
 </html>
