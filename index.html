@@ -785,7 +785,7 @@
     </header>
 
     <main>
-        <!-- LANDING PAGE -->
+        <!-- HALAMAN 1: LANDING PAGE -->
         <div id="landingView" class="page-view active">
             <h1 class="hero-title">Pilih Akses Masuk</h1>
             <p class="hero-subtitle">Silakan pilih peran Anda untuk melanjutkan</p>
@@ -834,7 +834,7 @@
             </div>
         </div>
 
-        <!-- DASHBOARD PEMAIN -->
+        <!-- HALAMAN 2: DASHBOARD PEMAIN -->
         <div id="pemainDashboardView" class="page-view">
             <h1 class="hero-title">Dashboard Pemain</h1>
             <p class="hero-subtitle">Selamat datang, Pemain Catur!</p>
@@ -847,7 +847,7 @@
                 <div class="menu-card" onclick="openAnalisaEngineView();">
                     <div class="menu-icon"><i class="fa-solid fa-microchip"></i></div>
                     <h3>Analisa Engine</h3>
-                    <p>Latihan & tanding vs AI Catur</p>
+                    <p>Tanding vs Stockfish AI</p>
                 </div>
                 <div class="menu-card" onclick="alert('Membuka Menu: ELO Rating')">
                     <div class="menu-icon"><i class="fa-solid fa-trophy"></i></div>
@@ -876,24 +876,42 @@
             </button>
         </div>
 
-        <!-- PROFIL PEMAIN -->
+        <!-- HALAMAN PEMAIN 2.1: PROFIL PEMAIN VIEW -->
         <div id="profilPemainFullView" class="page-view">
             <h1 class="hero-title"><i class="fa-solid fa-id-card"></i> Profil Pemain</h1>
             <p class="hero-subtitle">Informasi akun terdaftar Anda</p>
 
             <div class="form-card-box">
                 <div class="profile-avatar-box">
-                    <div class="avatar-circle"><i class="fa-solid fa-chess-pawn"></i></div>
+                    <div class="avatar-circle">
+                        <i class="fa-solid fa-chess-pawn"></i>
+                    </div>
                     <div class="avatar-info">
                         <h2 id="profNama">Nama Pemain</h2>
                         <p id="profHp">08xxxxxxxxxx</p>
                     </div>
                 </div>
-                <div class="detail-row"><span>Nama Lengkap:</span><span id="profDetailNama"><b>-</b></span></div>
-                <div class="detail-row"><span>Nomor HP:</span><span id="profDetailHp">-</span></div>
-                <div class="detail-row"><span>Kota Asal:</span><span id="profDetailKota">-</span></div>
-                <div class="detail-row"><span>ELO Rating:</span><span><b id="profDetailElo" style="color: var(--accent-gold);">0</b></span></div>
-                <div class="detail-row"><span>Status Akun:</span><span style="color: #34d399; font-weight: 600;">Terverifikasi</span></div>
+
+                <div class="detail-row">
+                    <span>Nama Lengkap:</span>
+                    <span id="profDetailNama"><b>-</b></span>
+                </div>
+                <div class="detail-row">
+                    <span>Nomor HP:</span>
+                    <span id="profDetailHp">-</span>
+                </div>
+                <div class="detail-row">
+                    <span>Kota Asal:</span>
+                    <span id="profDetailKota">-</span>
+                </div>
+                <div class="detail-row">
+                    <span>ELO Rating:</span>
+                    <span><b id="profDetailElo" style="color: var(--accent-gold);">0</b></span>
+                </div>
+                <div class="detail-row">
+                    <span>Status Akun:</span>
+                    <span id="profDetailStatus" style="color: #34d399; font-weight: 600;">Terverifikasi</span>
+                </div>
             </div>
 
             <button class="btn btn-outline" style="width: 100%; margin-top: 10px; padding: 8px;" onclick="switchView('pemainDashboardView')">
@@ -901,17 +919,19 @@
             </button>
         </div>
 
-        <!-- PERTANDINGAN PEMAIN -->
+        <!-- HALAMAN PEMAIN 2.2: PERTANDINGAN PEMAIN VIEW -->
         <div id="pertandinganPemainFullView" class="page-view">
             <h1 class="hero-title"><i class="fa-solid fa-calendar-days"></i> Pertandingan</h1>
             <p class="hero-subtitle">Pilih pertandingan untuk melihat menu aksi</p>
+
             <div id="listPertandinganPemain" class="player-list"></div>
+
             <button class="btn btn-outline" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="switchView('pemainDashboardView')">
                 <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard Pemain
             </button>
         </div>
 
-        <!-- ARENA PAPAN CATUR BERTANDING -->
+        <!-- HALAMAN PEMAIN 2.3: ARENA PAPAN CATUR BERTANDING -->
         <div id="papanCaturFullView" class="page-view">
             <h1 class="hero-title" id="arenaMatchTitle"><i class="fa-solid fa-chess-board"></i> Arena Pertandingan</h1>
             <p class="hero-subtitle" id="arenaMatchSubtitle">Meja Pertandingan Resmi</p>
@@ -940,21 +960,21 @@
             </button>
         </div>
 
-        <!-- PAPAN ANALISA ENGINE MASTER VS AI -->
+        <!-- HALAMAN PEMAIN 2.4: PAPAN CATUR ANALISA ENGINE STOCKFISH (DEPTH 10-15) -->
         <div id="analisaEngineFullView" class="page-view">
             <h1 class="hero-title"><i class="fa-solid fa-microchip"></i> Papan Analisa Engine</h1>
-            <p class="hero-subtitle">Master vs AI Catur Cerdas</p>
+            <p class="hero-subtitle">Master vs Stockfish AI Engine (Depth 10+)</p>
 
             <div class="match-arena-box">
                 <div class="engine-controls-card">
                     <div class="engine-row">
                         <div style="flex: 1;" class="input-group">
-                            <label><i class="fa-solid fa-brain"></i> Tingkat Level AI</label>
+                            <label><i class="fa-solid fa-brain"></i> Tingkat Kedalaman (Depth)</label>
                             <select id="selectEngineSkill" onchange="changeEngineSkillLevel(this.value)">
-                                <option value="1">Level 1 (Pemula - Cepat)</option>
-                                <option value="2">Level 2 (Klub - Menengah)</option>
-                                <option value="3" selected>Level 3 (Master - Pintar)</option>
-                                <option value="4">Level 4 (Grandmaster - Sulit)</option>
+                                <option value="6">Level 6 (Klub - Kedalaman 6)</option>
+                                <option value="10" selected>Level 10 (Master - Kedalaman 10)</option>
+                                <option value="12">Level 12 (Grandmaster - Kedalaman 12)</option>
+                                <option value="15">Level 15 (Super GM - Kedalaman 15)</option>
                             </select>
                         </div>
                         <div style="flex: 1;" class="input-group">
@@ -984,7 +1004,7 @@
                 <div id="chessboardAnalisa" class="chessboard-grid"></div>
 
                 <div class="info-badge-box" id="analisaEngineStatus" style="width: 100%; text-align: center; margin-top: 5px;">
-                    <i class="fa-solid fa-robot"></i> AI Catur Siap Melangkah
+                    <i class="fa-solid fa-robot"></i> Stockfish AI Siap Bertanding
                 </div>
             </div>
 
@@ -993,7 +1013,7 @@
             </button>
         </div>
 
-        <!-- DASHBOARD WASIT -->
+        <!-- HALAMAN 3: DASHBOARD WASIT -->
         <div id="wasitDashboardView" class="page-view">
             <h1 class="hero-title">Dashboard Wasit</h1>
             <p class="hero-subtitle">Selamat datang, Arbitrer / Wasit!</p>
@@ -1009,75 +1029,140 @@
                     <h3>Pertandingan</h3>
                     <p>Meja & jadwal pengawasan</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Statistik Pemain')"><div class="menu-icon"><i class="fa-solid fa-chart-column"></i></div><h3>Statistik Pemain</h3><p>Pantau catatan pemain</p></div>
-                <div class="menu-card" onclick="alert('Membuka Menu: ELO Rating Pemain')"><div class="menu-icon"><i class="fa-solid fa-ranking-star"></i></div><h3>ELO Pemain</h3><p>Poin & peringkat peserta</p></div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Daftar Pemain')"><div class="menu-icon"><i class="fa-solid fa-address-book"></i></div><h3>Daftar Pemain</h3><p>List terdaftar di event</p></div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Lisensi Wasit')"><div class="menu-icon"><i class="fa-solid fa-id-card"></i></div><h3>Lisensi</h3><p>Status Sertifikat/Lisensi</p></div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Persetujuan PERCASI')"><div class="menu-icon"><i class="fa-solid fa-stamp"></i></div><h3>Persetujuan PERCASI</h3><p>Verifikasi & SK Resmi</p></div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Aturan Wasit')"><div class="menu-icon"><i class="fa-solid fa-book-bookmark"></i></div><h3>Aturan Wasit</h3><p>Buku pedoman & regulasi</p></div>
+                <div class="menu-card" onclick="alert('Membuka Menu: Statistik Pemain')">
+                    <div class="menu-icon"><i class="fa-solid fa-chart-column"></i></div>
+                    <h3>Statistik Pemain</h3>
+                    <p>Pantau catatan pemain</p>
+                </div>
+                <div class="menu-card" onclick="alert('Membuka Menu: ELO Rating Pemain')">
+                    <div class="menu-icon"><i class="fa-solid fa-ranking-star"></i></div>
+                    <h3>ELO Pemain</h3>
+                    <p>Poin & peringkat peserta</p>
+                </div>
+                <div class="menu-card" onclick="alert('Membuka Menu: Daftar Pemain')">
+                    <div class="menu-icon"><i class="fa-solid fa-address-book"></i></div>
+                    <h3>Daftar Pemain</h3>
+                    <p>List terdaftar di event</p>
+                </div>
+                <div class="menu-card" onclick="alert('Membuka Menu: Lisensi Wasit')">
+                    <div class="menu-icon"><i class="fa-solid fa-id-card"></i></div>
+                    <h3>Lisensi</h3>
+                    <p>Status Sertifikat/Lisensi</p>
+                </div>
+                <div class="menu-card" onclick="alert('Membuka Menu: Persetujuan PERCASI')">
+                    <div class="menu-icon"><i class="fa-solid fa-stamp"></i></div>
+                    <h3>Persetujuan PERCASI</h3>
+                    <p>Verifikasi & SK Resmi</p>
+                </div>
+                <div class="menu-card" onclick="alert('Membuka Menu: Aturan Wasit')">
+                    <div class="menu-icon"><i class="fa-solid fa-book-bookmark"></i></div>
+                    <h3>Aturan Wasit</h3>
+                    <p>Buku pedoman & regulasi</p>
+                </div>
             </div>
             <button class="btn btn-danger" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="logoutView('wasitDashboardView')">
                 <i class="fa-solid fa-right-from-bracket"></i> Keluar Dashboard
             </button>
         </div>
 
-        <!-- PERTANDINGAN WASIT -->
+        <!-- HALAMAN WASIT 3.1: PERTANDINGAN WASIT VIEW -->
         <div id="pertandinganWasitFullView" class="page-view">
             <h1 class="hero-title"><i class="fa-solid fa-clipboard-user"></i> Kelola Pertandingan</h1>
             <p class="hero-subtitle">Pilih pertandingan untuk mengelola babak & meja</p>
+
             <div id="listPertandinganWasit" class="player-list"></div>
+
             <button class="btn btn-outline" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="switchView('wasitDashboardView')">
                 <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard Wasit
             </button>
         </div>
 
-        <!-- DASHBOARD ADMIN -->
+        <!-- HALAMAN 4: DASHBOARD ADMIN -->
         <div id="dashboardView" class="page-view">
             <h1 class="hero-title">Dashboard Admin</h1>
             <p class="hero-subtitle">Selamat datang kembali, Admin!</p>
             <div class="dashboard-grid">
-                <div class="menu-card" onclick="switchView('kelolaPemainFullView'); openKelolaPemainView();"><div class="menu-icon"><i class="fa-solid fa-users"></i></div><h3>Pemain</h3><p>Kelola akun pemain</p></div>
-                <div class="menu-card" onclick="switchView('kelolaWasitFullView'); openKelolaWasitView();"><div class="menu-icon"><i class="fa-solid fa-user-check"></i></div><h3>Wasit</h3><p>Verifikasi & lisensi wasit</p></div>
-                <div class="menu-card" onclick="alert('Membuka Statistik Pemain')"><div class="menu-icon"><i class="fa-solid fa-chart-line"></i></div><h3>Statistik</h3><p>Grafik & rekapan aktivitas</p></div>
-                <div class="menu-card" onclick="alert('Membuka ELO Rating')"><div class="menu-icon"><i class="fa-solid fa-trophy"></i></div><h3>ELO Rating</h3><p>Peringkat & poin pemain</p></div>
-                <div class="menu-card" onclick="switchView('buatEventFullView')"><div class="menu-icon"><i class="fa-solid fa-calendar-plus"></i></div><h3>Buat Pertandingan</h3><p>Atur turnamen & laga baru</p></div>
-                <div class="menu-card" onclick="alert('Membuka Riwayat Pertandingan')"><div class="menu-icon"><i class="fa-solid fa-clock-rotate-left"></i></div><h3>Riwayat Pertandingan</h3><p>Arsip & hasil laga selesai</p></div>
+                <div class="menu-card" onclick="switchView('kelolaPemainFullView'); openKelolaPemainView();">
+                    <div class="menu-icon"><i class="fa-solid fa-users"></i></div>
+                    <h3>Pemain</h3>
+                    <p>Kelola akun pemain</p>
+                </div>
+                <div class="menu-card" onclick="switchView('kelolaWasitFullView'); openKelolaWasitView();">
+                    <div class="menu-icon"><i class="fa-solid fa-user-check"></i></div>
+                    <h3>Wasit</h3>
+                    <p>Verifikasi & lisensi wasit</p>
+                </div>
+                <div class="menu-card" onclick="alert('Membuka Statistik Pemain')">
+                    <div class="menu-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <h3>Statistik</h3>
+                    <p>Grafik & rekapan aktivitas</p>
+                </div>
+                <div class="menu-card" onclick="alert('Membuka ELO Rating')">
+                    <div class="menu-icon"><i class="fa-solid fa-trophy"></i></div>
+                    <h3>ELO Rating</h3>
+                    <p>Peringkat & poin pemain</p>
+                </div>
+                <div class="menu-card" onclick="switchView('buatEventFullView')">
+                    <div class="menu-icon"><i class="fa-solid fa-calendar-plus"></i></div>
+                    <h3>Buat Pertandingan</h3>
+                    <p>Atur turnamen & laga baru</p>
+                </div>
+                <div class="menu-card" onclick="alert('Membuka Riwayat Pertandingan')">
+                    <div class="menu-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <h3>Riwayat Pertandingan</h3>
+                    <p>Arsip & hasil laga selesai</p>
+                </div>
             </div>
             <button class="btn btn-danger" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="logoutView('dashboardView')">
                 <i class="fa-solid fa-right-from-bracket"></i> Keluar Dashboard
             </button>
         </div>
 
-        <!-- KELOLA PEMAIN -->
+        <!-- HALAMAN 5: KELOLA PEMAIN VIEW -->
         <div id="kelolaPemainFullView" class="page-view">
             <h1 class="hero-title"><i class="fa-solid fa-users"></i> Kelola Pemain</h1>
             <p class="hero-subtitle">Verifikasi & daftar seluruh pemain</p>
-            <div class="section-title-sub"><i class="fa-solid fa-clock-rotate-left"></i> Menunggu Persetujuan</div>
+
+            <div class="section-title-sub">
+                <i class="fa-solid fa-clock-rotate-left"></i> Menunggu Persetujuan
+            </div>
             <div id="listPendingPemain" class="player-list"></div>
-            <div class="section-title-sub"><i class="fa-solid fa-user-check"></i> Pemain Terverifikasi</div>
+
+            <div class="section-title-sub">
+                <i class="fa-solid fa-user-check"></i> Pemain Terverifikasi
+            </div>
             <div id="listApprovedPemain" class="player-list"></div>
+
             <button class="btn btn-outline" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="switchView('dashboardView')">
                 <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard Admin
             </button>
         </div>
 
-        <!-- KELOLA WASIT -->
+        <!-- HALAMAN 6: KELOLA WASIT VIEW -->
         <div id="kelolaWasitFullView" class="page-view">
             <h1 class="hero-title"><i class="fa-solid fa-user-check"></i> Kelola Wasit</h1>
             <p class="hero-subtitle">Verifikasi lisensi & daftar wasit</p>
-            <div class="section-title-sub"><i class="fa-solid fa-clock-rotate-left"></i> Menunggu Persetujuan</div>
+
+            <div class="section-title-sub">
+                <i class="fa-solid fa-clock-rotate-left"></i> Menunggu Persetujuan
+            </div>
             <div id="listPendingWasit" class="player-list"></div>
-            <div class="section-title-sub"><i class="fa-solid fa-user-tie"></i> Wasit Terverifikasi</div>
+
+            <div class="section-title-sub">
+                <i class="fa-solid fa-user-tie"></i> Wasit Terverifikasi
+            </div>
             <div id="listApprovedWasit" class="player-list"></div>
+
             <button class="btn btn-outline" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="switchView('dashboardView')">
                 <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard Admin
             </button>
         </div>
 
-        <!-- BUAT PERTANDINGAN -->
+        <!-- HALAMAN 7: BUAT PERTANDINGAN VIEW -->
         <div id="buatEventFullView" class="page-view">
             <h1 class="hero-title"><i class="fa-solid fa-calendar-plus"></i> Buat Pertandingan</h1>
             <p class="hero-subtitle">Isi formulir untuk membuat pertandingan baru</p>
+
             <div class="form-card-box">
                 <form id="formBuatEventView" onsubmit="handleCreateEvent(event)">
                     <div class="input-group">
@@ -1097,19 +1182,29 @@
                     </button>
                 </form>
             </div>
+
             <button class="btn btn-outline" style="width: 100%; padding: 8px;" onclick="switchView('dashboardView')">
                 <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard Admin
             </button>
         </div>
     </main>
 
-    <!-- MODALS -->
+    <!-- MODALS / POP-UP FORM -->
     <div class="modal-overlay" id="loginPemainModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-chess-pawn"></i> Login Pemain</h3><button class="close-btn" onclick="closeModal('loginPemainModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-chess-pawn"></i> Login Pemain</h3>
+                <button class="close-btn" onclick="closeModal('loginPemainModal')">&times;</button>
+            </div>
             <form onsubmit="handlePemainLogin(event)">
-                <div class="input-group"><label>Nomor HP</label><input type="tel" id="pemainHp" placeholder="081344444444" required autocomplete="off"></div>
-                <div class="input-group"><label>Password</label><input type="password" id="pemainPass" placeholder="12345" required></div>
+                <div class="input-group">
+                    <label>Nomor HP</label>
+                    <input type="tel" id="pemainHp" placeholder="081344444444" required autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="pemainPass" placeholder="12345" required>
+                </div>
                 <div class="error-msg" id="pemainErrorMsg">No HP atau Password salah / belum disetujui Admin!</div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px;">Masuk Pemain</button>
             </form>
@@ -1118,12 +1213,27 @@
 
     <div class="modal-overlay" id="regPemainModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-user-plus"></i> Daftar Pemain</h3><button class="close-btn" onclick="closeModal('regPemainModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-plus"></i> Daftar Pemain</h3>
+                <button class="close-btn" onclick="closeModal('regPemainModal')">&times;</button>
+            </div>
             <form onsubmit="handleRegisterPemain(event)">
-                <div class="input-group"><label>Nomor HP</label><input type="tel" id="regPemainHp" placeholder="08xxxxxxxxxx" required></div>
-                <div class="input-group"><label>Nama Lengkap</label><input type="text" id="regPemainNama" placeholder="Masukkan nama" required></div>
-                <div class="input-group"><label>Kota</label><input type="text" id="regPemainKota" placeholder="Asal kota" required></div>
-                <div class="input-group"><label>Password</label><input type="password" id="regPemainPass" placeholder="Buat password" required></div>
+                <div class="input-group">
+                    <label>Nomor HP</label>
+                    <input type="tel" id="regPemainHp" placeholder="08xxxxxxxxxx" required>
+                </div>
+                <div class="input-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="regPemainNama" placeholder="Masukkan nama" required>
+                </div>
+                <div class="input-group">
+                    <label>Kota</label>
+                    <input type="text" id="regPemainKota" placeholder="Asal kota" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="regPemainPass" placeholder="Buat password" required>
+                </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px;">Daftar Pemain</button>
             </form>
         </div>
@@ -1131,10 +1241,19 @@
 
     <div class="modal-overlay" id="loginWasitModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-clipboard-check"></i> Login Wasit</h3><button class="close-btn" onclick="closeModal('loginWasitModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clipboard-check"></i> Login Wasit</h3>
+                <button class="close-btn" onclick="closeModal('loginWasitModal')">&times;</button>
+            </div>
             <form onsubmit="handleWasitLogin(event)">
-                <div class="input-group"><label>Nomor HP</label><input type="tel" id="wasitHp" placeholder="081355555555" required autocomplete="off"></div>
-                <div class="input-group"><label>Password</label><input type="password" id="wasitPass" placeholder="12345" required></div>
+                <div class="input-group">
+                    <label>Nomor HP</label>
+                    <input type="tel" id="wasitHp" placeholder="081355555555" required autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="wasitPass" placeholder="12345" required>
+                </div>
                 <div class="error-msg" id="wasitErrorMsg">No HP atau Password salah / belum disetujui Admin!</div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px;">Masuk Wasit</button>
             </form>
@@ -1143,13 +1262,31 @@
 
     <div class="modal-overlay" id="regWasitModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-id-card"></i> Daftar Wasit</h3><button class="close-btn" onclick="closeModal('regWasitModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-id-card"></i> Daftar Wasit</h3>
+                <button class="close-btn" onclick="closeModal('regWasitModal')">&times;</button>
+            </div>
             <form onsubmit="handleRegisterWasit(event)">
-                <div class="input-group"><label>Nomor HP</label><input type="tel" id="regWasitHp" placeholder="08xxxxxxxxxx" required></div>
-                <div class="input-group"><label>Nama Lengkap & Gelar</label><input type="text" id="regWasitNama" placeholder="Contoh: Arb. Joko, MN" required></div>
-                <div class="input-group"><label>Kota</label><input type="text" id="regWasitKota" placeholder="Asal kota" required></div>
-                <div class="input-group"><label>Password</label><input type="password" id="regWasitPass" placeholder="Buat password" required></div>
-                <div class="input-group"><label>Foto Lisensi Wasit</label><input type="file" id="regWasitFile" class="input-file" accept="image/*" required></div>
+                <div class="input-group">
+                    <label>Nomor HP</label>
+                    <input type="tel" id="regWasitHp" placeholder="08xxxxxxxxxx" required>
+                </div>
+                <div class="input-group">
+                    <label>Nama Lengkap & Gelar</label>
+                    <input type="text" id="regWasitNama" placeholder="Contoh: Arb. Joko, MN" required>
+                </div>
+                <div class="input-group">
+                    <label>Kota</label>
+                    <input type="text" id="regWasitKota" placeholder="Asal kota" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="regWasitPass" placeholder="Buat password" required>
+                </div>
+                <div class="input-group">
+                    <label>Foto Lisensi Wasit</label>
+                    <input type="file" id="regWasitFile" class="input-file" accept="image/*" required>
+                </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px;">Daftar Wasit</button>
             </form>
         </div>
@@ -1157,10 +1294,19 @@
 
     <div class="modal-overlay" id="adminModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-user-shield"></i> Login Admin</h3><button class="close-btn" onclick="closeModal('adminModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-shield"></i> Login Admin</h3>
+                <button class="close-btn" onclick="closeModal('adminModal')">&times;</button>
+            </div>
             <form onsubmit="handleAdminLogin(event)">
-                <div class="input-group"><label>Username</label><input type="text" id="username" placeholder="user" required autocomplete="off"></div>
-                <div class="input-group"><label>Password</label><input type="password" id="password" placeholder="12345" required></div>
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="user" required autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="12345" required>
+                </div>
                 <div class="error-msg" id="errorMsg">Username atau Password salah!</div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px;">Masuk Admin</button>
             </form>
@@ -1169,114 +1315,214 @@
 
     <div class="modal-overlay" id="detailPemainModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-id-card"></i> Detail Pemain</h3><button class="close-btn" onclick="closeModal('detailPemainModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-id-card"></i> Detail Pemain</h3>
+                <button class="close-btn" onclick="closeModal('detailPemainModal')">&times;</button>
+            </div>
             <div id="detailPemainContent"></div>
-            <button class="btn btn-danger" id="btnHapusPemain" style="width: 100%; margin-top: 12px; padding: 8px;"><i class="fa-solid fa-trash"></i> Hapus Pemain</button>
+            <button class="btn btn-danger" id="btnHapusPemain" style="width: 100%; margin-top: 12px; padding: 8px;">
+                <i class="fa-solid fa-trash"></i> Hapus Pemain
+            </button>
         </div>
     </div>
 
     <div class="modal-overlay" id="detailWasitModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-id-card"></i> Detail Wasit</h3><button class="close-btn" onclick="closeModal('detailWasitModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-id-card"></i> Detail Wasit</h3>
+                <button class="close-btn" onclick="closeModal('detailWasitModal')">&times;</button>
+            </div>
             <div id="detailWasitContent"></div>
-            <button class="btn btn-danger" id="btnHapusWasit" style="width: 100%; margin-top: 12px; padding: 8px;"><i class="fa-solid fa-trash"></i> Hapus Wasit</button>
+            <button class="btn btn-danger" id="btnHapusWasit" style="width: 100%; margin-top: 12px; padding: 8px;">
+                <i class="fa-solid fa-trash"></i> Hapus Wasit
+            </button>
         </div>
     </div>
 
     <div class="modal-overlay" id="pemainMatchSubmenuModal">
         <div class="modal-box">
-            <div class="modal-header"><h3 id="pemainMatchSubmenuTitle"><i class="fa-solid fa-trophy"></i> Menu Pertandingan</h3><button class="close-btn" onclick="closeModal('pemainMatchSubmenuModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3 id="pemainMatchSubmenuTitle"><i class="fa-solid fa-trophy"></i> Menu Pertandingan</h3>
+                <button class="close-btn" onclick="closeModal('pemainMatchSubmenuModal')">&times;</button>
+            </div>
             <div class="submenu-grid">
-                <button class="submenu-btn" id="btnDaftarPertandinganIni" onclick="handleDaftarKePertandingan()"><i class="fa-solid fa-list-check" style="color: var(--accent-gold);"></i> Daftar pertandingan ini</button>
-                <button class="submenu-btn" onclick="openMejaPemainModal()"><i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> Masuk meja</button>
-                <button class="submenu-btn" onclick="alert('Membuka: Hasil sementara')"><i class="fa-solid fa-square-poll-vertical" style="color: var(--accent-gold);"></i> Hasil sementara</button>
-                <button class="submenu-btn" onclick="alert('Membuka: Hasil akhir')"><i class="fa-solid fa-award" style="color: var(--accent-gold);"></i> Hasil akhir</button>
+                <button class="submenu-btn" id="btnDaftarPertandinganIni" onclick="handleDaftarKePertandingan()">
+                    <i class="fa-solid fa-list-check" style="color: var(--accent-gold);"></i> Daftar pertandingan ini
+                </button>
+                <button class="submenu-btn" onclick="openMejaPemainModal()">
+                    <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> Masuk meja
+                </button>
+                <button class="submenu-btn" onclick="alert('Membuka: Hasil sementara')">
+                    <i class="fa-solid fa-square-poll-vertical" style="color: var(--accent-gold);"></i> Hasil sementara
+                </button>
+                <button class="submenu-btn" onclick="alert('Membuka: Hasil akhir')">
+                    <i class="fa-solid fa-award" style="color: var(--accent-gold);"></i> Hasil akhir
+                </button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="mejaPemainModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-chess-board"></i> Detail Meja Pertandingan</h3><button class="close-btn" onclick="closeModal('mejaPemainModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-chess-board"></i> Detail Meja Pertandingan</h3>
+                <button class="close-btn" onclick="closeModal('mejaPemainModal')">&times;</button>
+            </div>
             <div id="mejaPemainContent"></div>
         </div>
     </div>
 
     <div class="modal-overlay" id="wasitMatchSubmenuModal">
         <div class="modal-box">
-            <div class="modal-header"><h3 id="wasitMatchSubmenuTitle"><i class="fa-solid fa-clipboard-user"></i> Kelola Pertandingan</h3><button class="close-btn" onclick="closeModal('wasitMatchSubmenuModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3 id="wasitMatchSubmenuTitle"><i class="fa-solid fa-clipboard-user"></i> Kelola Pertandingan</h3>
+                <button class="close-btn" onclick="closeModal('wasitMatchSubmenuModal')">&times;</button>
+            </div>
             <div class="submenu-grid">
-                <button class="submenu-btn" onclick="openDaftarPesertaWasitModal()"><i class="fa-solid fa-users" style="color: var(--accent-gold);"></i> Daftar peserta</button>
-                <button class="submenu-btn" onclick="openPairingWasitModal()"><i class="fa-solid fa-sitemap" style="color: var(--accent-gold);"></i> Pairing</button>
-                <button class="submenu-btn" onclick="openAturBabakModal()"><i class="fa-solid fa-sliders" style="color: var(--accent-gold);"></i> Atur babak</button>
-                <button class="submenu-btn" onclick="openAturWaktuModal()"><i class="fa-solid fa-stopwatch" style="color: var(--accent-gold);"></i> Atur waktu</button>
-                <button class="submenu-btn" onclick="alert('Membuka: Hasil babak')"><i class="fa-solid fa-square-check" style="color: var(--accent-gold);"></i> Hasil babak</button>
-                <button class="submenu-btn" onclick="alert('Membuka: Kirim hasil babak')"><i class="fa-solid fa-paper-plane" style="color: var(--accent-gold);"></i> Kirim hasil babak</button>
-                <button class="submenu-btn" onclick="alert('Membuka: Kirim hasil akhir')"><i class="fa-solid fa-flag-checkered" style="color: var(--accent-gold);"></i> Kirim hasil akhir</button>
+                <button class="submenu-btn" onclick="openDaftarPesertaWasitModal()">
+                    <i class="fa-solid fa-users" style="color: var(--accent-gold);"></i> Daftar peserta
+                </button>
+                <button class="submenu-btn" onclick="openPairingWasitModal()">
+                    <i class="fa-solid fa-sitemap" style="color: var(--accent-gold);"></i> Pairing
+                </button>
+                <button class="submenu-btn" onclick="openAturBabakModal()">
+                    <i class="fa-solid fa-sliders" style="color: var(--accent-gold);"></i> Atur babak
+                </button>
+                <button class="submenu-btn" onclick="openAturWaktuModal()">
+                    <i class="fa-solid fa-stopwatch" style="color: var(--accent-gold);"></i> Atur waktu
+                </button>
+                <button class="submenu-btn" onclick="alert('Membuka: Hasil babak')">
+                    <i class="fa-solid fa-square-check" style="color: var(--accent-gold);"></i> Hasil babak
+                </button>
+                <button class="submenu-btn" onclick="alert('Membuka: Kirim hasil babak')">
+                    <i class="fa-solid fa-paper-plane" style="color: var(--accent-gold);"></i> Kirim hasil babak
+                </button>
+                <button class="submenu-btn" onclick="alert('Membuka: Kirim hasil akhir')">
+                    <i class="fa-solid fa-flag-checkered" style="color: var(--accent-gold);"></i> Kirim hasil akhir
+                </button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="aturWaktuWasitModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-stopwatch"></i> Atur Waktu Pertandingan</h3><button class="close-btn" onclick="closeModal('aturWaktuWasitModal')">&times;</button></div>
-            <div class="info-badge-box" id="infoWaktuSaatIni">Waktu Pertandingan Saat Ini: <b>10 Menit</b></div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-stopwatch"></i> Atur Waktu Pertandingan</h3>
+                <button class="close-btn" onclick="closeModal('aturWaktuWasitModal')">&times;</button>
+            </div>
+            <div class="info-badge-box" id="infoWaktuSaatIni">
+                Waktu Pertandingan Saat Ini: <b>10 Menit</b>
+            </div>
+
             <div class="submenu-grid" style="gap: 6px;">
-                <button class="submenu-btn" onclick="setMatchTime(5)"><i class="fa-solid fa-bolt" style="color: var(--accent-gold);"></i> 5 Menit (Blitz)</button>
-                <button class="submenu-btn" onclick="setMatchTime(10)"><i class="fa-solid fa-clock" style="color: var(--accent-gold);"></i> 10 Menit (Standar)</button>
-                <button class="submenu-btn" onclick="setMatchTime(15)"><i class="fa-solid fa-stopwatch-20" style="color: var(--accent-gold);"></i> 15 Menit (Rapid)</button>
-                <button class="submenu-btn" onclick="setMatchTime(30)"><i class="fa-solid fa-hourglass-half" style="color: var(--accent-gold);"></i> 30 Menit (Klasik)</button>
+                <button class="submenu-btn" onclick="setMatchTime(5)">
+                    <i class="fa-solid fa-bolt" style="color: var(--accent-gold);"></i> 5 Menit (Catur Cepat / Blitz)
+                </button>
+                <button class="submenu-btn" onclick="setMatchTime(10)">
+                    <i class="fa-solid fa-clock" style="color: var(--accent-gold);"></i> 10 Menit (Standar)
+                </button>
+                <button class="submenu-btn" onclick="setMatchTime(15)">
+                    <i class="fa-solid fa-stopwatch-20" style="color: var(--accent-gold);"></i> 15 Menit (Rapid)
+                </button>
+                <button class="submenu-btn" onclick="setMatchTime(30)">
+                    <i class="fa-solid fa-hourglass-half" style="color: var(--accent-gold);"></i> 30 Menit (Klasik Cepat)
+                </button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="daftarPesertaWasitModal">
         <div class="modal-box">
-            <div class="modal-header"><h3 id="daftarPesertaTitle"><i class="fa-solid fa-users"></i> Daftar Peserta</h3><button class="close-btn" onclick="closeModal('daftarPesertaWasitModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3 id="daftarPesertaTitle"><i class="fa-solid fa-users"></i> Daftar Peserta</h3>
+                <button class="close-btn" onclick="closeModal('daftarPesertaWasitModal')">&times;</button>
+            </div>
             <div id="listPesertaWasitContent" class="player-list" style="margin-top: 10px;"></div>
         </div>
     </div>
 
     <div class="modal-overlay" id="aturBabakWasitModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-sliders"></i> Atur Babak</h3><button class="close-btn" onclick="closeModal('aturBabakWasitModal')">&times;</button></div>
-            <div class="info-badge-box" id="infoBabakPeserta">Jumlah Peserta: 0 Orang</div>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-sliders"></i> Atur Babak</h3>
+                <button class="close-btn" onclick="closeModal('aturBabakWasitModal')">&times;</button>
+            </div>
+            <div class="info-badge-box" id="infoBabakPeserta">
+                Jumlah Peserta: 0 Orang
+            </div>
             <form onsubmit="handleTambahBabak(event)">
                 <div class="input-group">
                     <label>Pilih / Masukkan Jumlah Babak</label>
                     <select id="selectBabakPreset" onchange="onSelectBabakPresetChange(this)">
                         <option value="auto">Rekomendasi Otomatis</option>
-                        <option value="3">3 Babak</option>
-                        <option value="5">5 Babak</option>
-                        <option value="7">7 Babak</option>
-                        <option value="custom">Input Kustom...</option>
+                        <option value="3">3 Babak (Sangat Cepat)</option>
+                        <option value="5">5 Babak (Standar Komunitas)</option>
+                        <option value="7">7 Babak (Turnamen Resmi)</option>
+                        <option value="custom">Input Kustom Babak...</option>
                     </select>
                 </div>
-                <div class="input-group" id="groupCustomBabak" style="display: none;"><label>Jumlah Kustom</label><input type="number" id="inputCustomBabak" min="1" max="20" placeholder="6"></div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px; margin-top: 5px;"><i class="fa-solid fa-plus-circle"></i> Simpan Babak</button>
+                <div class="input-group" id="groupCustomBabak" style="display: none;">
+                    <label>Jumlah Babak Kustom</label>
+                    <input type="number" id="inputCustomBabak" min="1" max="20" placeholder="Contoh: 6">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px; margin-top: 5px;">
+                    <i class="fa-solid fa-plus-circle"></i> Simpan Babak
+                </button>
             </form>
-            <div class="section-title-sub" style="margin-top: 15px;"><i class="fa-solid fa-list-ol"></i> Babak Aktif</div>
+
+            <div class="section-title-sub" style="margin-top: 15px;">
+                <i class="fa-solid fa-list-ol"></i> Babak Pertandingan Aktif
+            </div>
             <div id="listBabakAktif" class="player-list"></div>
         </div>
     </div>
 
     <div class="modal-overlay" id="pairingWasitModal">
         <div class="modal-box">
-            <div class="modal-header"><h3><i class="fa-solid fa-sitemap"></i> Pairing & Kontrol Timer</h3><button class="close-btn" onclick="closeModal('pairingWasitModal')">&times;</button></div>
-            <div class="input-group"><label>Pilih Babak untuk Pairing</label><select id="selectBabakPairing" onchange="renderPairingMejaInfo()"></select></div>
-            <div class="info-badge-box" id="infoPairingStatus">Pilih babak di atas.</div>
-            <div id="actionGeneratePairing" style="margin-bottom: 12px; display: none;"><button class="btn btn-primary" style="width: 100%; padding: 8px;" onclick="generatePairingSistem()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Pairing Otomatis</button></div>
-            <div id="wasitGlobalTimerControls" style="display: none; margin-bottom: 12px; display: flex; gap: 6px;">
-                <button class="btn btn-success" style="flex: 1; padding: 8px;" onclick="startAllTimersWasit()"><i class="fa-solid fa-play"></i> Start All</button>
-                <button class="btn btn-danger" style="flex: 1; padding: 8px;" onclick="stopAllTimersWasit()"><i class="fa-solid fa-pause"></i> Pause All</button>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-sitemap"></i> Pairing & Kontrol Timer</h3>
+                <button class="close-btn" onclick="closeModal('pairingWasitModal')">&times;</button>
             </div>
-            <div class="section-title-sub"><i class="fa-solid fa-chess-board"></i> Meja & Kontrol Waktu</div>
+            
+            <div class="input-group">
+                <label>Pilih Babak untuk Pairing</label>
+                <select id="selectBabakPairing" onchange="renderPairingMejaInfo()"></select>
+            </div>
+
+            <div class="info-badge-box" id="infoPairingStatus">
+                Pilih babak di atas untuk melihat susunan meja dan mengontrol timer.
+            </div>
+
+            <div id="actionGeneratePairing" style="margin-bottom: 12px; display: none;">
+                <button class="btn btn-primary" style="width: 100%; padding: 8px;" onclick="generatePairingSistem()">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Pairing Otomatis
+                </button>
+            </div>
+
+            <div id="wasitGlobalTimerControls" style="display: none; margin-bottom: 12px; display: flex; gap: 6px;">
+                <button class="btn btn-success" style="flex: 1; padding: 8px;" onclick="startAllTimersWasit()">
+                    <i class="fa-solid fa-play"></i> Start Timer All
+                </button>
+                <button class="btn btn-danger" style="flex: 1; padding: 8px;" onclick="stopAllTimersWasit()">
+                    <i class="fa-solid fa-pause"></i> Pause Timer All
+                </button>
+            </div>
+
+            <div class="section-title-sub">
+                <i class="fa-solid fa-chess-board"></i> Meja & Kontrol Waktu / Penalti
+            </div>
+
             <div id="listMejaPairing" style="max-height: 260px; overflow-y: auto;"></div>
-            <button class="btn btn-primary" id="btnSimpanSkorBabak" style="width: 100%; margin-top: 10px; padding: 8px; display: none;" onclick="simpanHasilSkorBabak()"><i class="fa-solid fa-floppy-disk"></i> Simpan Skor Babak Ini</button>
+
+            <button class="btn btn-primary" id="btnSimpanSkorBabak" style="width: 100%; margin-top: 10px; padding: 8px; display: none;" onclick="simpanHasilSkorBabak()">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan Hasil Skor Babak Ini
+            </button>
         </div>
     </div>
 
-    <footer><p>&copy; 2026 Asr.Catur Online</p></footer>
+    <footer>
+        <p>&copy; 2026 Asr.Catur Online</p>
+    </footer>
 
     <!-- FIREBASE SDK -->
     <script type="module">
@@ -1292,7 +1538,9 @@
             messagingSenderId: "213809630129",
             appId: "1:213809630129:web:544ff0f19e442652250b90"
         };
-        initializeApp(firebaseConfig);
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
     </script>
 
     <script>
@@ -1301,17 +1549,19 @@
         let activeMejaNo = JSON.parse(localStorage.getItem('asr_active_meja')) || null;
         let activeBabakKe = JSON.parse(localStorage.getItem('asr_active_babak')) || null;
 
+        // CHESS ENGINE MATCH STATE
         let chessEngine = new Chess();
         let selectedSquareSquareNotation = null;
         let validMovesForSelectedSquare = [];
         let timerIntervalPemain = null;
 
-        // ANALISA ENGINE CERDAS (BUILT-IN MINIMAX AI)
+        // ANALISA ENGINE STOCKFISH (BLOB WORKER API)
         let chessEngineAnalisa = new Chess();
         let selectedSquareAnalisa = null;
         let validMovesAnalisa = [];
-        let masterPlayerColor = 'w'; 
-        let aiSearchDepth = 3;
+        let masterPlayerColor = 'w';
+        let stockfishDepthLevel = 10;
+        let stockfishWorker = null;
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -1328,8 +1578,16 @@
             'k': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png'
         };
 
-        let daftarPemain = JSON.parse(localStorage.getItem('asr_data_pemain')) || [];
-        let daftarWasit = JSON.parse(localStorage.getItem('asr_data_wasit')) || [];
+        let daftarPemain = JSON.parse(localStorage.getItem('asr_data_pemain')) || [
+            { id: 1, hp: "081344444444", pass: "12345", nama: "Budi Santoso", kota: "Jakarta", elo: 0, status: "approved" },
+            { id: 2, hp: "081299998888", pass: "12345", nama: "Ahmad Catur", kota: "Bandung", elo: 0, status: "pending" }
+        ];
+
+        let daftarWasit = JSON.parse(localStorage.getItem('asr_data_wasit')) || [
+            { id: 1, hp: "081355555555", pass: "12345", nama: "Arb. Joko, MN", kota: "Surabaya", status: "approved" },
+            { id: 2, hp: "081988887777", pass: "12345", nama: "Arb. Siti, SN", kota: "Semarang", status: "pending" }
+        ];
+
         let daftarEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
         let globalWasitInterval = null;
 
@@ -1352,6 +1610,7 @@
 
             checkNotifDots();
             startGlobalWasitTimerTick();
+            initStockfishBlobWorker();
 
             if(lastView === 'analisaEngineFullView') {
                 openAnalisaEngineView();
@@ -1363,114 +1622,98 @@
         function switchView(viewId, saveState = true) {
             document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
-            if(saveState) localStorage.setItem('asr_current_view', viewId);
-        }
-
-        // --- CORE AI MINIMAX & EVALUASI POSISI CATUR ---
-        const pieceValues = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 };
-
-        function evaluateBoard(board) {
-            let totalEvaluation = 0;
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const piece = board[r][c];
-                    if (piece) {
-                        const val = pieceValues[piece.type];
-                        totalEvaluation += (piece.color === 'w') ? val : -val;
-                    }
-                }
-            }
-            return totalEvaluation;
-        }
-
-        function minimax(game, depth, alpha, beta, isMaximizingPlayer) {
-            if (depth === 0 || game.game_over()) {
-                return evaluateBoard(game.board());
-            }
-
-            const possibleMoves = game.moves({ verbose: true });
-
-            if (isMaximizingPlayer) {
-                let maxEval = -99999;
-                for (let i = 0; i < possibleMoves.length; i++) {
-                    game.move(possibleMoves[i]);
-                    let evaluation = minimax(game, depth - 1, alpha, beta, false);
-                    game.undo();
-                    maxEval = Math.max(maxEval, evaluation);
-                    alpha = Math.max(alpha, evaluation);
-                    if (beta <= alpha) break;
-                }
-                return maxEval;
-            } else {
-                let minEval = 99999;
-                for (let i = 0; i < possibleMoves.length; i++) {
-                    game.move(possibleMoves[i]);
-                    let evaluation = minimax(game, depth - 1, alpha, beta, true);
-                    game.undo();
-                    minEval = Math.min(minEval, evaluation);
-                    beta = Math.min(beta, evaluation);
-                    if (beta <= alpha) break;
-                }
-                return minEval;
+            if(saveState) {
+                localStorage.setItem('asr_current_view', viewId);
             }
         }
 
-        function triggerAiBestMove() {
-            if (chessEngineAnalisa.game_over()) return;
+        // --- STOCKFISH BLOB WORKER ENGINE (DEPTH 10-15) ---
+        function initStockfishBlobWorker() {
+            if (stockfishWorker) return;
+            const stockfishCdnUrl = "https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js";
 
-            const statusEl = document.getElementById('analisaEngineStatus');
-            if(statusEl) statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> AI Catur sedang berpikir...`;
+            fetch(stockfishCdnUrl)
+                .then(res => res.text())
+                .then(scriptText => {
+                    const blob = new Blob([scriptText], { type: 'application/javascript' });
+                    const blobUrl = URL.createObjectURL(blob);
+                    stockfishWorker = new Worker(blobUrl);
 
-            setTimeout(() => {
-                const possibleMoves = chessEngineAnalisa.moves({ verbose: true });
-                if (possibleMoves.length === 0) return;
+                    stockfishWorker.onmessage = function(event) {
+                        const message = event.data;
 
-                let bestMove = possibleMoves[0];
-                let bestValue = (chessEngineAnalisa.turn() === 'w') ? -99999 : 99999;
-                let isMaximizing = (chessEngineAnalisa.turn() === 'b');
-
-                // Acak langkah awal untuk variasi permainan
-                possibleMoves.sort(() => Math.random() - 0.5);
-
-                for (let i = 0; i < possibleMoves.length; i++) {
-                    const move = possibleMoves[i];
-                    chessEngineAnalisa.move(move);
-                    let value = minimax(chessEngineAnalisa, aiSearchDepth - 1, -100000, 100000, !isMaximizing);
-                    chessEngineAnalisa.undo();
-
-                    if (isMaximizing) {
-                        if (value > bestValue) {
-                            bestValue = value;
-                            bestMove = move;
+                        if (message.includes("score cp") || message.includes("score mate")) {
+                            parseStockfishScore(message);
                         }
-                    } else {
-                        if (value < bestValue) {
-                            bestValue = value;
-                            bestMove = move;
-                        }
-                    }
-                }
 
-                chessEngineAnalisa.move(bestMove);
-                renderChessboardAnalisa();
-                updateAnalisaEngineStatusInfo();
-                updateEvaluationBar();
-            }, 200);
+                        if (message.startsWith("bestmove")) {
+                            const moveStr = message.split(" ")[1];
+                            if (moveStr && moveStr !== "(none)") {
+                                const fromSq = moveStr.substring(0, 2);
+                                const toSq = moveStr.substring(2, 4);
+                                const promo = moveStr.length > 4 ? moveStr.substring(4, 5) : 'q';
+
+                                chessEngineAnalisa.move({
+                                    from: fromSq,
+                                    to: toSq,
+                                    promotion: promo
+                                });
+
+                                renderChessboardAnalisa();
+                                updateAnalisaEngineStatusInfo();
+                            }
+                        }
+                    };
+
+                    stockfishWorker.postMessage("uci");
+                    stockfishWorker.postMessage("ucinewgame");
+                })
+                .catch(err => {
+                    console.warn("Stockfish Blob Worker gagal dimuat:", err);
+                });
         }
 
-        function updateEvaluationBar() {
-            const board = chessEngineAnalisa.board();
-            let evalScore = evaluateBoard(board) / 10; // Normalisasi ke poin
-            
+        function parseStockfishScore(msg) {
+            let cpVal = 0;
+            if(msg.includes("score cp")) {
+                const parts = msg.split("score cp ");
+                if(parts.length > 1) {
+                    cpVal = parseInt(parts[1].split(" ")[0]);
+                }
+            } else if(msg.includes("score mate")) {
+                const parts = msg.split("score mate ");
+                if(parts.length > 1) {
+                    const mateIn = parseInt(parts[1].split(" ")[0]);
+                    cpVal = mateIn > 0 ? 1000 : -1000;
+                }
+            }
+
+            let evalPoint = (cpVal / 100).toFixed(2);
+            if(chessEngineAnalisa.turn() === 'b') {
+                evalPoint = (-evalPoint).toFixed(2);
+            }
+
             const fillBar = document.getElementById('evalBarFill');
             const fillText = document.getElementById('evalText');
-
-            let percent = 50 + (evalScore * 4);
+            
+            let percent = 50 + (parseFloat(evalPoint) * 5);
             if (percent > 98) percent = 98;
             if (percent < 2) percent = 2;
 
             if(fillBar) fillBar.style.width = `${percent}%`;
-            if(fillText) fillText.innerText = `Eval: ${evalScore > 0 ? '+' + evalScore.toFixed(1) : evalScore.toFixed(1)}`;
+            if(fillText) fillText.innerText = `Eval: ${evalPoint > 0 ? '+' + evalPoint : evalPoint}`;
+        }
+
+        function askStockfishToMove() {
+            if (!stockfishWorker) return;
+            const fen = chessEngineAnalisa.fen();
+            stockfishWorker.postMessage(`position fen ${fen}`);
+            stockfishWorker.postMessage(`go depth ${stockfishDepthLevel}`);
+
+            const statusEl = document.getElementById('analisaEngineStatus');
+            if(statusEl) {
+                statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Stockfish Engine Berpikir... (Depth: ${stockfishDepthLevel})`;
+            }
         }
 
         function openAnalisaEngineView() {
@@ -1479,7 +1722,7 @@
         }
 
         function changeEngineSkillLevel(val) {
-            aiSearchDepth = parseInt(val) || 3;
+            stockfishDepthLevel = parseInt(val) || 10;
         }
 
         function changeMasterPlayerColor(color) {
@@ -1492,23 +1735,26 @@
             selectedSquareAnalisa = null;
             validMovesAnalisa = [];
 
+            const fillBar = document.getElementById('evalBarFill');
+            const fillText = document.getElementById('evalText');
+            if(fillBar) fillBar.style.width = '50%';
+            if(fillText) fillText.innerText = 'Eval: 0.0';
+
             renderChessboardAnalisa();
             updateAnalisaEngineStatusInfo();
-            updateEvaluationBar();
 
             if (chessEngineAnalisa.turn() !== masterPlayerColor) {
-                triggerAiBestMove();
+                setTimeout(() => { askStockfishToMove(); }, 400);
             }
         }
 
         function undoEngineGameMove() {
-            chessEngineAnalisa.undo();
-            chessEngineAnalisa.undo();
+            chessEngineAnalisa.undo(); 
+            chessEngineAnalisa.undo(); 
             selectedSquareAnalisa = null;
             validMovesAnalisa = [];
             renderChessboardAnalisa();
             updateAnalisaEngineStatusInfo();
-            updateEvaluationBar();
         }
 
         function renderChessboardAnalisa() {
@@ -1530,8 +1776,13 @@
                     squareEl.className = `square ${isLight ? 'light' : 'dark'}`;
                     squareEl.dataset.square = squareNotation;
 
-                    if (selectedSquareAnalisa === squareNotation) squareEl.classList.add('selected');
-                    if (validMovesAnalisa.some(m => m.to === squareNotation)) squareEl.classList.add('valid-move');
+                    if (selectedSquareAnalisa === squareNotation) {
+                        squareEl.classList.add('selected');
+                    }
+
+                    if (validMovesAnalisa.some(m => m.to === squareNotation)) {
+                        squareEl.classList.add('valid-move');
+                    }
 
                     const piece = boardArray[rowIdx][colIdx];
                     if (piece) {
@@ -1540,6 +1791,7 @@
                             const img = document.createElement('img');
                             img.src = pieceImages[pieceKey];
                             img.className = 'chess-piece-img';
+                            img.alt = pieceKey;
                             squareEl.appendChild(img);
                         }
 
@@ -1581,16 +1833,19 @@
                         }
                     }
 
-                    chessEngineAnalisa.move({ from: selectedSquareAnalisa, to: squareNotation, promotion: promotionChoice });
+                    chessEngineAnalisa.move({
+                        from: selectedSquareAnalisa,
+                        to: squareNotation,
+                        promotion: promotionChoice
+                    });
 
                     selectedSquareAnalisa = null;
                     validMovesAnalisa = [];
                     renderChessboardAnalisa();
                     updateAnalisaEngineStatusInfo();
-                    updateEvaluationBar();
 
                     if (!chessEngineAnalisa.game_over()) {
-                        triggerAiBestMove();
+                        setTimeout(() => { askStockfishToMove(); }, 300);
                     }
                 } else {
                     const piece = chessEngineAnalisa.get(squareNotation);
@@ -1608,7 +1863,7 @@
 
         function updateAnalisaEngineStatusInfo() {
             const statusEl = document.getElementById('analisaEngineStatus');
-            const turnText = chessEngineAnalisa.turn() === masterPlayerColor ? 'Master (Anda)' : 'AI Catur';
+            const turnText = chessEngineAnalisa.turn() === masterPlayerColor ? 'Master (Anda)' : 'Stockfish AI';
 
             if (chessEngineAnalisa.in_checkmate()) {
                 const winner = chessEngineAnalisa.turn() === 'w' ? 'Hitam' : 'Putih';
@@ -1626,37 +1881,61 @@
             }
         }
 
-        // --- SISTEM UMUM & WASIT ---
+        // --- SISTEM PENILAIAN & TIMER WASIT ---
         function startGlobalWasitTimerTick() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
             globalWasitInterval = setInterval(() => {
                 let updated = false;
                 daftarEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
+
                 daftarEvent.forEach(ev => {
                     if(ev.babakList) {
                         ev.babakList.forEach(b => {
-                            if(b.status === 'Berjalan' && b.isTimerRunning && b.pairing) {
-                                b.pairing.forEach(m => {
-                                    if(!m.isBye && !m.isFinished) {
-                                        if(m.timePutih > 0) m.timePutih--; else m.isFinished = true;
-                                        if(m.timeHitam > 0) m.timeHitam--; else m.isFinished = true;
-                                    }
-                                });
+                            if(b.status === 'Berjalan' && b.isTimerRunning) {
+                                if(b.pairing) {
+                                    b.pairing.forEach(m => {
+                                        if(!m.isBye && !m.isFinished) {
+                                            if(m.timePutih > 0) m.timePutih--;
+                                            else m.isFinished = true;
+
+                                            if(m.timeHitam > 0) m.timeHitam--;
+                                            else m.isFinished = true;
+                                        }
+                                    });
+                                }
                                 updated = true;
                             }
                         });
                     }
                 });
-                if(updated) localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+
+                if(updated) {
+                    localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+                    if(document.getElementById('pairingWasitModal').classList.contains('active')) {
+                        renderPairingMejaInfo();
+                    }
+                }
             }, 1000);
         }
 
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            if(id === 'adminModal') document.getElementById('errorMsg').style.display = 'none';
+            if(id === 'loginPemainModal') document.getElementById('pemainErrorMsg').style.display = 'none';
+            if(id === 'loginWasitModal') document.getElementById('wasitErrorMsg').style.display = 'none';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
         function checkNotifDots() {
             const hasUnread = JSON.parse(localStorage.getItem('asr_unread_match')) ?? false;
-            const dot = document.getElementById('dotPemainPertandingan');
-            if(dot) dot.style.display = hasUnread ? 'block' : 'none';
+            const dotPemain = document.getElementById('dotPemainPertandingan');
+            const dotWasit = document.getElementById('dotWasitPertandingan');
+
+            if(dotPemain) dotPemain.style.display = hasUnread ? 'block' : 'none';
+            if(dotWasit) dotWasit.style.display = hasUnread ? 'block' : 'none';
         }
 
         function handleRegisterPemain(event) {
@@ -1665,9 +1944,16 @@
             const nama = document.getElementById('regPemainNama').value;
             const kota = document.getElementById('regPemainKota').value;
             const pass = document.getElementById('regPemainPass').value;
+
+            if(daftarPemain.find(p => p.hp === hp)) {
+                alert("Nomor HP ini sudah terdaftar!");
+                return;
+            }
+
             daftarPemain.push({ id: Date.now(), hp, pass, nama, kota, elo: 0, status: "pending" });
             localStorage.setItem('asr_data_pemain', JSON.stringify(daftarPemain));
-            alert("Pendaftaran Berhasil! Menunggu persetujuan Admin.");
+
+            alert("Pendaftaran Pemain berhasil! Menunggu persetujuan Admin.");
             closeModal('regPemainModal');
             event.target.reset();
         }
@@ -1677,21 +1963,28 @@
             const hp = document.getElementById('pemainHp').value;
             const pass = document.getElementById('pemainPass').value;
             const pemain = daftarPemain.find(p => p.hp === hp && p.pass === pass && p.status === 'approved');
+
             if (pemain) {
                 activeUserPemain = pemain;
                 localStorage.setItem('asr_active_pemain', JSON.stringify(pemain));
                 localStorage.setItem('asr_active_role', 'pemain');
+
                 closeModal('loginPemainModal');
                 switchView('pemainDashboardView');
+                
                 document.getElementById('roleBadge').style.display = 'inline-flex';
                 document.getElementById('roleBadge').innerHTML = '<i class="fa-solid fa-chess-pawn"></i> <span>Pemain</span>';
+                document.getElementById('pemainHp').value = '';
+                document.getElementById('pemainPass').value = '';
+                checkNotifDots();
             } else {
                 document.getElementById('pemainErrorMsg').style.display = 'block';
             }
         }
 
         function openProfilPemainView() {
-            if (!activeUserPemain) activeUserPemain = daftarPemain[0] || { nama: 'Tamu', hp: '-', kota: '-', elo: 0 };
+            if (!activeUserPemain) activeUserPemain = daftarPemain[0];
+
             document.getElementById('profNama').innerText = activeUserPemain.nama;
             document.getElementById('profHp').innerText = activeUserPemain.hp;
             document.getElementById('profDetailNama').innerText = activeUserPemain.nama;
@@ -1701,19 +1994,24 @@
         }
 
         function openPertandinganPemainView() {
+            localStorage.setItem('asr_unread_match', JSON.stringify(false));
+            checkNotifDots();
+
             const container = document.getElementById('listPertandinganPemain');
             container.innerHTML = '';
+
             if (daftarEvent.length === 0) {
-                container.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted);">Belum ada pertandingan.</p>';
+                container.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted);">Belum ada pertandingan yang dibuat oleh Admin.</p>';
             } else {
                 daftarEvent.forEach(ev => {
+                    const durasi = ev.durasiWaktu || 10;
                     container.innerHTML += `
                         <div class="player-item" onclick="openPemainMatchSubmenu(${ev.id})">
                             <div class="player-info-left">
                                 <div class="player-name"><i class="fa-solid fa-chess-king" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
-                                <div class="player-city">${ev.tanggal} • Hadiah: ${ev.hadiah}</div>
+                                <div class="player-city">${ev.tanggal} • Hadiah: ${ev.hadiah} • ⏱️ ${durasi} Mnt</div>
                             </div>
-                            <span class="elo-tag">Buka</span>
+                            <span class="elo-tag">Buka Menu</span>
                         </div>`;
                 });
             }
@@ -1722,26 +2020,993 @@
         function openPemainMatchSubmenu(eventId) {
             selectedMatchId = eventId;
             localStorage.setItem('asr_selected_match', JSON.stringify(eventId));
+            const ev = daftarEvent.find(e => e.id === eventId);
+            if(!ev) return;
+
+            document.getElementById('pemainMatchSubmenuTitle').innerText = ev.nama;
+
+            const btnDaftar = document.getElementById('btnDaftarPertandinganIni');
+            const isRegistered = activeUserPemain && ev.peserta && ev.peserta.some(p => p.hp === activeUserPemain.hp);
+
+            if(isRegistered) {
+                btnDaftar.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #34d399;"></i> Sudah Terdaftar di Pertandingan Ini`;
+                btnDaftar.style.opacity = '0.8';
+            } else {
+                btnDaftar.innerHTML = `<i class="fa-solid fa-list-check" style="color: var(--accent-gold);"></i> Daftar pertandingan ini`;
+                btnDaftar.style.opacity = '1';
+            }
+
             openModal('pemainMatchSubmenuModal');
+        }
+
+        function handleDaftarKePertandingan() {
+            if (!activeUserPemain) {
+                alert("Silakan login pemain terlebih dahulu!");
+                return;
+            }
+
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            if(!ev.peserta) ev.peserta = [];
+
+            const isAlreadyIn = ev.peserta.some(p => p.hp === activeUserPemain.hp);
+            if(isAlreadyIn) {
+                alert("Anda sudah terdaftar dalam pertandingan ini!");
+                return;
+            }
+
+            ev.peserta.push({
+                id: activeUserPemain.id,
+                nama: activeUserPemain.nama,
+                hp: activeUserPemain.hp,
+                kota: activeUserPemain.kota,
+                elo: activeUserPemain.elo || 0,
+                poin: 0
+            });
+
+            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+
+            alert(`Berhasil! Nama Anda (${activeUserPemain.nama}) telah terdaftar di pertandingan '${ev.nama}'.`);
+            closeModal('pemainMatchSubmenuModal');
+        }
+
+        function openMejaPemainModal() {
+            closeModal('pemainMatchSubmenuModal');
+
+            if(!activeUserPemain) {
+                alert("Silakan login terlebih dahulu.");
+                return;
+            }
+
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const container = document.getElementById('mejaPemainContent');
+            container.innerHTML = '';
+
+            if(!ev || !ev.babakList || ev.babakList.length === 0) {
+                container.innerHTML = `
+                    <div class="info-badge-box" style="text-align: center;">
+                        <i class="fa-solid fa-circle-info"></i> Babak pertandingan belum diatur oleh Wasit.
+                    </div>`;
+                openModal('mejaPemainModal');
+                return;
+            }
+
+            let babakAktif = [...ev.babakList].reverse().find(b => b.pairing && b.pairing.length > 0);
+
+            if(!babakAktif) {
+                container.innerHTML = `
+                    <div class="info-badge-box" style="text-align: center;">
+                        <i class="fa-solid fa-clock"></i> Wasit belum melakukan pairing/pembagian meja untuk babak ini.
+                    </div>`;
+                openModal('mejaPemainModal');
+                return;
+            }
+
+            let mejaPemain = null;
+            let rolePemain = ''; 
+
+            babakAktif.pairing.forEach(m => {
+                if(m.pemainPutih && m.pemainPutih.hp === activeUserPemain.hp) {
+                    mejaPemain = m;
+                    rolePemain = 'Putih (⚪)';
+                } else if(m.pemainHitam && m.pemainHitam.hp === activeUserPemain.hp) {
+                    mejaPemain = m;
+                    rolePemain = 'Hitam (⚫)';
+                }
+            });
+
+            if(!mejaPemain) {
+                container.innerHTML = `
+                    <div class="info-badge-box" style="text-align: center;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Anda tidak terdaftar dalam pairing Babak ${babakAktif.babakKe}.
+                    </div>`;
+            } else if(mejaPemain.isBye) {
+                container.innerHTML = `
+                    <div class="meja-card-view">
+                        <div class="meja-number-title">BABAK ${babakAktif.babakKe}</div>
+                        <p style="font-size: 0.9rem; color: #34d399; font-weight: 700; margin-top: 10px;">
+                            <i class="fa-solid fa-gift"></i> ANDA MENDAPATKAN BYE (+1 POIN)
+                        </p>
+                    </div>`;
+            } else {
+                const lawan = rolePemain.includes('Putih') ? mejaPemain.pemainHitam : mejaPemain.pemainPutih;
+                const statusSkor = mejaPemain.skor === '0' ? 'Pertandingan Berjalan' : `Hasil Skor: ${mejaPemain.skor}`;
+                const durasi = ev.durasiWaktu || 10;
+
+                container.innerHTML = `
+                    <div class="meja-card-view">
+                        <div class="meja-number-title">BABAK ${babakAktif.babakKe} - MEJA ${mejaPemain.meja}</div>
+                        
+                        <div class="versus-box">
+                            <div class="player-box">
+                                <span class="piece-badge">${rolePemain.includes('Putih') ? '⚪' : '⚫'}</span>
+                                <span style="font-size: 0.85rem; font-weight: 700; color: #fff;">${activeUserPemain.nama}</span>
+                                <span style="font-size: 0.7rem; color: var(--accent-gold);">${rolePemain}</span>
+                            </div>
+                            <span style="font-size: 1rem; font-weight: 800; color: var(--accent-gold);">VS</span>
+                            <div class="player-box">
+                                <span class="piece-badge">${rolePemain.includes('Putih') ? '⚫' : '⚪'}</span>
+                                <span style="font-size: 0.85rem; font-weight: 700; color: #fff;">${lawan.nama}</span>
+                                <span style="font-size: 0.7rem; color: var(--text-muted);">${lawan.kota}</span>
+                            </div>
+                        </div>
+
+                        <div class="info-badge-box" style="margin-bottom: 12px; margin-top: 5px;">
+                            <i class="fa-solid fa-stopwatch"></i> Waktu: <b>${durasi} Menit</b><br>
+                            <i class="fa-solid fa-flag"></i> Status: <b>${statusSkor}</b>
+                        </div>
+
+                        <button class="btn btn-success" style="width: 100%; padding: 10px; font-size: 0.85rem;" onclick="masukKeArenaBertanding('${ev.nama}', ${babakAktif.babakKe}, ${mejaPemain.meja}, '${lawan.nama}')">
+                            <i class="fa-solid fa-chess-board"></i> Masuk Bertanding
+                        </button>
+                    </div>`;
+            }
+
+            openModal('mejaPemainModal');
+        }
+
+        function masukKeArenaBertanding(namaEvent, babakKe, noMeja, namaLawan) {
+            closeModal('mejaPemainModal');
+            switchView('papanCaturFullView');
+
+            activeMejaNo = noMeja;
+            activeBabakKe = babakKe;
+            localStorage.setItem('asr_active_meja', JSON.stringify(noMeja));
+            localStorage.setItem('asr_active_babak', JSON.stringify(babakKe));
+
+            document.getElementById('arenaMatchTitle').innerText = `Meja ${noMeja} - Babak ${babakKe}`;
+            document.getElementById('arenaMatchSubtitle').innerText = `${namaEvent} vs ${namaLawan}`;
+            document.getElementById('namaSayaClock').innerText = `${activeUserPemain ? activeUserPemain.nama : 'Pemain'}`;
+            document.getElementById('namaLawanClock').innerText = `${namaLawan}`;
+
+            resetMatchArenaPemain(noMeja, babakKe);
+        }
+
+        function resetMatchArenaPemain(noMeja, babakKe) {
+            chessEngine = new Chess(); 
+            selectedSquareSquareNotation = null;
+            validMovesForSelectedSquare = [];
+
+            renderChessboard();
+            updateChessGameStatusInfo();
+
+            if(timerIntervalPemain) clearInterval(timerIntervalPemain);
+
+            timerIntervalPemain = setInterval(() => {
+                const freshEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
+                const ev = freshEvent.find(e => e.id === selectedMatchId);
+                if(ev && ev.babakList) {
+                    const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
+                    if(babakObj && babakObj.pairing) {
+                        const meja = babakObj.pairing.find(m => m.meja === noMeja);
+                        if(meja) {
+                            document.getElementById('timerPutih').innerText = formatTime(meja.timePutih);
+                            document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam);
+                        }
+                    }
+                }
+            }, 300);
+        }
+
+        function renderChessboard() {
+            const boardEl = document.getElementById('chessboard');
+            boardEl.innerHTML = '';
+
+            const boardArray = chessEngine.board(); 
+            const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const squareEl = document.createElement('div');
+                    const isLight = (r + c) % 2 === 0;
+                    const squareNotation = files[c] + (8 - r);
+
+                    squareEl.className = `square ${isLight ? 'light' : 'dark'}`;
+                    squareEl.dataset.square = squareNotation;
+
+                    if (selectedSquareSquareNotation === squareNotation) {
+                        squareEl.classList.add('selected');
+                    }
+
+                    if (validMovesForSelectedSquare.some(m => m.to === squareNotation)) {
+                        squareEl.classList.add('valid-move');
+                    }
+
+                    const piece = boardArray[r][c];
+                    if (piece) {
+                        const pieceKey = piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase();
+                        if (pieceImages[pieceKey]) {
+                            const img = document.createElement('img');
+                            img.src = pieceImages[pieceKey];
+                            img.className = 'chess-piece-img';
+                            img.alt = pieceKey;
+                            squareEl.appendChild(img);
+                        }
+
+                        if (piece.type === 'k' && chessEngine.in_check() && piece.color === chessEngine.turn()) {
+                            squareEl.classList.add('in-check');
+                        }
+                    }
+
+                    squareEl.onclick = () => onSquareClick(squareNotation);
+                    boardEl.appendChild(squareEl);
+                }
+            }
+
+            updateTurnActiveBox();
+        }
+
+        function onSquareClick(squareNotation) {
+            if (chessEngine.game_over()) return;
+
+            if (selectedSquareSquareNotation === null) {
+                const piece = chessEngine.get(squareNotation);
+                if (piece && piece.color === chessEngine.turn()) {
+                    selectedSquareSquareNotation = squareNotation;
+                    validMovesForSelectedSquare = chessEngine.moves({ square: squareNotation, verbose: true });
+                    renderChessboard();
+                }
+            } else {
+                const isMoveValid = validMovesForSelectedSquare.some(m => m.to === squareNotation);
+
+                if (isMoveValid) {
+                    const selectedPiece = chessEngine.get(selectedSquareSquareNotation);
+                    let promotionChoice = 'q';
+
+                    if (selectedPiece && selectedPiece.type === 'p') {
+                        if ((selectedPiece.color === 'w' && squareNotation[1] === '8') || (selectedPiece.color === 'b' && squareNotation[1] === '1')) {
+                            const inputChoice = prompt("Promosi Pion! Pilih bidak: (q = Menteri, r = Benteng, b = Gajah, n = Kuda)", "q");
+                            if (['q', 'r', 'b', 'n'].includes(inputChoice ? inputChoice.toLowerCase() : '')) {
+                                promotionChoice = inputChoice.toLowerCase();
+                            }
+                        }
+                    }
+
+                    chessEngine.move({
+                        from: selectedSquareSquareNotation,
+                        to: squareNotation,
+                        promotion: promotionChoice
+                    });
+
+                    selectedSquareSquareNotation = null;
+                    validMovesForSelectedSquare = [];
+                    renderChessboard();
+                    updateChessGameStatusInfo();
+                } else {
+                    const piece = chessEngine.get(squareNotation);
+                    if (piece && piece.color === chessEngine.turn()) {
+                        selectedSquareSquareNotation = squareNotation;
+                        validMovesForSelectedSquare = chessEngine.moves({ square: squareNotation, verbose: true });
+                    } else {
+                        selectedSquareSquareNotation = null;
+                        validMovesForSelectedSquare = [];
+                    }
+                    renderChessboard();
+                }
+            }
+        }
+
+        function updateChessGameStatusInfo() {
+            const statusEl = document.getElementById('chessGameStatus');
+            const turnText = chessEngine.turn() === 'w' ? 'Putih' : 'Hitam';
+
+            if (chessEngine.in_checkmate()) {
+                const winner = chessEngine.turn() === 'w' ? 'Hitam' : 'Putih';
+                statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>SKAKMATI!</b> ${winner} Menang!`;
+                statusEl.style.color = '#10b981';
+            } else if (chessEngine.in_draw()) {
+                let alasan = 'Remis';
+                if (chessEngine.in_stalemate()) alasan = 'Remis (Stalemate / Pat)';
+                else if (chessEngine.in_threefold_repetition()) alasan = 'Remis (Pengulangan 3x)';
+                else if (chessEngine.insufficient_material()) alasan = 'Remis (Bidak Tidak Cukup)';
+                
+                statusEl.innerHTML = `<i class="fa-solid fa-handshake"></i> <b>${alasan}</b>`;
+                statusEl.style.color = 'var(--accent-gold)';
+            } else if (chessEngine.in_check()) {
+                statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> <b>SKAK!</b> Giliran ${turnText} Melangkah`;
+                statusEl.style.color = '#ef4444';
+            } else {
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> Giliran <b>${turnText}</b> Melangkah`;
+                statusEl.style.color = 'var(--accent-gold)';
+            }
+        }
+
+        function updateTurnActiveBox() {
+            const clockPutih = document.getElementById('clockPutihBox');
+            const clockHitam = document.getElementById('clockHitamBox');
+
+            if (chessEngine.turn() === 'w') {
+                clockPutih.classList.add('active-turn');
+                clockHitam.classList.remove('active-turn');
+            } else {
+                clockHitam.classList.add('active-turn');
+                clockPutih.classList.remove('active-turn');
+            }
+        }
+
+        function formatTime(seconds) {
+            if(seconds < 0 || isNaN(seconds)) seconds = 0;
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function handleRegisterWasit(event) {
+            event.preventDefault();
+            const hp = document.getElementById('regWasitHp').value;
+            const nama = document.getElementById('regWasitNama').value;
+            const kota = document.getElementById('regWasitKota').value;
+            const pass = document.getElementById('regWasitPass').value;
+
+            if(daftarWasit.find(w => w.hp === hp)) {
+                alert("Nomor HP ini sudah terdaftar!");
+                return;
+            }
+
+            daftarWasit.push({ id: Date.now(), hp, pass, nama, kota, status: "pending" });
+            localStorage.setItem('asr_data_wasit', JSON.stringify(daftarWasit));
+
+            alert("Pendaftaran Wasit Berhasil! Menunggu Verifikasi Lisensi oleh Admin.");
+            closeModal('regWasitModal');
+            event.target.reset();
+        }
+
+        function handleWasitLogin(event) {
+            event.preventDefault();
+            const hp = document.getElementById('wasitHp').value;
+            const pass = document.getElementById('wasitPass').value;
+            const wasit = daftarWasit.find(w => w.hp === hp && w.pass === pass && w.status === 'approved');
+
+            if (wasit) {
+                localStorage.setItem('asr_active_role', 'wasit');
+                closeModal('loginWasitModal');
+                switchView('wasitDashboardView');
+                
+                document.getElementById('roleBadge').style.display = 'inline-flex';
+                document.getElementById('roleBadge').innerHTML = '<i class="fa-solid fa-clipboard-check"></i> <span>Wasit</span>';
+                document.getElementById('wasitHp').value = '';
+                document.getElementById('wasitPass').value = '';
+                checkNotifDots();
+            } else {
+                document.getElementById('wasitErrorMsg').style.display = 'block';
+            }
+        }
+
+        function openPertandinganWasitView() {
+            localStorage.setItem('asr_unread_match', JSON.stringify(false));
+            checkNotifDots();
+
+            const container = document.getElementById('listPertandinganWasit');
+            container.innerHTML = '';
+
+            if (daftarEvent.length === 0) {
+                container.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted);">Belum ada pertandingan yang dibuat oleh Admin.</p>';
+            } else {
+                daftarEvent.forEach(ev => {
+                    const totalPeserta = ev.peserta ? ev.peserta.length : 0;
+                    const totalBabak = ev.totalBabak ? `${ev.totalBabak} Babak` : 'Belum diatur';
+                    const durasi = ev.durasiWaktu || 10;
+                    container.innerHTML += `
+                        <div class="player-item" onclick="openWasitMatchSubmenu(${ev.id})">
+                            <div class="player-info-left">
+                                <div class="player-name"><i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
+                                <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • ${totalBabak} • ⏱️ ${durasi} Mnt</div>
+                            </div>
+                            <span class="elo-tag">Kelola</span>
+                        </div>`;
+                });
+            }
+        }
+
+        function openWasitMatchSubmenu(eventId) {
+            selectedMatchId = eventId;
+            localStorage.setItem('asr_selected_match', JSON.stringify(eventId));
+            const ev = daftarEvent.find(e => e.id === eventId);
+            if(!ev) return;
+
+            document.getElementById('wasitMatchSubmenuTitle').innerText = ev.nama;
+            openModal('wasitMatchSubmenuModal');
+        }
+
+        function openAturWaktuModal() {
+            closeModal('wasitMatchSubmenuModal');
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            const durasi = ev.durasiWaktu || 10;
+            document.getElementById('infoWaktuSaatIni').innerHTML = `<i class="fa-solid fa-clock"></i> Waktu Pertandingan Saat Ini: <b>${durasi} Menit</b>`;
+            openModal('aturWaktuWasitModal');
+        }
+
+        function setMatchTime(menit) {
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            ev.durasiWaktu = menit;
+            const durasiDetik = menit * 60;
+
+            if(ev.babakList) {
+                ev.babakList.forEach(b => {
+                    if(b.pairing) {
+                        b.pairing.forEach(m => {
+                            m.timePutih = durasiDetik;
+                            m.timeHitam = durasiDetik;
+                        });
+                    }
+                });
+            }
+
+            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+
+            alert(`Berhasil mengatur durasi pertandingan '${ev.nama}' menjadi ${menit} Menit!`);
+            closeModal('aturWaktuWasitModal');
+        }
+
+        function openDaftarPesertaWasitModal() {
+            closeModal('wasitMatchSubmenuModal');
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            document.getElementById('daftarPesertaTitle').innerText = `Peserta: ${ev.nama}`;
+            const container = document.getElementById('listPesertaWasitContent');
+            container.innerHTML = '';
+
+            if (!ev.peserta || ev.peserta.length === 0) {
+                container.innerHTML = '<p style="font-size: 0.78rem; color: var(--text-muted); text-align: center;">Belum ada pemain yang mendaftar.</p>';
+            } else {
+                ev.peserta.forEach((p, idx) => {
+                    container.innerHTML += `
+                        <div class="player-item">
+                            <div class="player-info-left">
+                                <div class="player-name">${idx + 1}. ${p.nama}</div>
+                                <div class="player-city">${p.kota} • ${p.hp}</div>
+                            </div>
+                            <span class="elo-tag">Elo: ${p.elo || 0}</span>
+                        </div>`;
+                });
+            }
+
+            openModal('daftarPesertaWasitModal');
+        }
+
+        function openAturBabakModal() {
+            closeModal('wasitMatchSubmenuModal');
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            const totalPeserta = ev.peserta ? ev.peserta.length : 0;
+            let rekoBabak = totalPeserta > 1 ? Math.ceil(Math.log2(totalPeserta)) : 3;
+            if (rekoBabak < 3) rekoBabak = 3;
+
+            document.getElementById('infoBabakPeserta').innerHTML = `
+                <i class="fa-solid fa-users-gear"></i> Total Peserta: <b>${totalPeserta} Orang</b><br>
+                <i class="fa-solid fa-calculator"></i> Rekomendasi Wasit: <b>${rekoBabak} Babak</b>
+            `;
+
+            renderListBabakAktif(ev);
+            openModal('aturBabakWasitModal');
+        }
+
+        function onSelectBabakPresetChange(selectEl) {
+            const customGroup = document.getElementById('groupCustomBabak');
+            if(selectEl.value === 'custom') {
+                customGroup.style.display = 'block';
+            } else {
+                customGroup.style.display = 'none';
+            }
+        }
+
+        function handleTambahBabak(event) {
+            event.preventDefault();
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            const totalPeserta = ev.peserta ? ev.peserta.length : 0;
+            let jumlahBabak = 5;
+
+            const presetVal = document.getElementById('selectBabakPreset').value;
+            if(presetVal === 'auto') {
+                jumlahBabak = totalPeserta > 1 ? Math.ceil(Math.log2(totalPeserta)) : 3;
+                if(jumlahBabak < 3) jumlahBabak = 3;
+            } else if(presetVal === 'custom') {
+                jumlahBabak = parseInt(document.getElementById('inputCustomBabak').value) || 5;
+            } else {
+                jumlahBabak = parseInt(presetVal);
+            }
+
+            ev.totalBabak = jumlahBabak;
+            
+            ev.babakList = [];
+            for(let i = 1; i <= jumlahBabak; i++) {
+                ev.babakList.push({
+                    babakKe: i,
+                    status: i === 1 ? 'Siap Pairing' : 'Belum Dimulai',
+                    isTimerRunning: false,
+                    pairing: []
+                });
+            }
+
+            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+
+            alert(`Berhasil mengatur ${jumlahBabak} babak pertandingan untuk '${ev.nama}'!`);
+            renderListBabakAktif(ev);
+        }
+
+        function renderListBabakAktif(ev) {
+            const container = document.getElementById('listBabakAktif');
+            container.innerHTML = '';
+
+            if(!ev.babakList || ev.babakList.length === 0) {
+                container.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted);">Belum ada babak yang diatur.</p>';
+            } else {
+                ev.babakList.forEach(b => {
+                    container.innerHTML += `
+                        <div class="player-item">
+                            <div class="player-info-left">
+                                <div class="player-name"><i class="fa-solid fa-flag" style="color: var(--accent-gold);"></i> Babak ${b.babakKe}</div>
+                                <div class="player-city">Status: ${b.status}</div>
+                            </div>
+                            <span class="elo-tag">${b.status}</span>
+                        </div>`;
+                });
+            }
+        }
+
+        function openPairingWasitModal() {
+            closeModal('wasitMatchSubmenuModal');
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            const selectBabak = document.getElementById('selectBabakPairing');
+            selectBabak.innerHTML = '';
+
+            if(!ev.babakList || ev.babakList.length === 0) {
+                selectBabak.innerHTML = '<option value="">-- Atur Babak Terlebih Dahulu --</option>';
+                document.getElementById('infoPairingStatus').innerHTML = 'Silakan atur babak di menu "Atur babak" sebelum membuat pairing.';
+                document.getElementById('actionGeneratePairing').style.display = 'none';
+                document.getElementById('wasitGlobalTimerControls').style.display = 'none';
+                document.getElementById('listMejaPairing').innerHTML = '';
+                document.getElementById('btnSimpanSkorBabak').style.display = 'none';
+                openModal('pairingWasitModal');
+                return;
+            }
+
+            ev.babakList.forEach(b => {
+                selectBabak.innerHTML += `<option value="${b.babakKe}">Babak ${b.babakKe} (${b.status})</option>`;
+            });
+
+            renderPairingMejaInfo();
+            openModal('pairingWasitModal');
+        }
+
+        function renderPairingMejaInfo() {
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
+            if(!ev || !babakKe) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
+            const containerMeja = document.getElementById('listMejaPairing');
+            const actionGen = document.getElementById('actionGeneratePairing');
+            const globalTimer = document.getElementById('wasitGlobalTimerControls');
+            const btnSimpan = document.getElementById('btnSimpanSkorBabak');
+            const infoBox = document.getElementById('infoPairingStatus');
+
+            containerMeja.innerHTML = '';
+            if(!babakObj) return;
+
+            if(!babakObj.pairing || babakObj.pairing.length === 0) {
+                infoBox.innerHTML = `Babak ${babakKe} belum memiliki susunan pairing meja.`;
+                actionGen.style.display = 'block';
+                globalTimer.style.display = 'none';
+                btnSimpan.style.display = 'none';
+                containerMeja.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Klik "Generate Pairing Otomatis".</p>';
+            } else {
+                actionGen.style.display = 'none';
+                globalTimer.style.display = 'flex';
+                btnSimpan.style.display = 'block';
+                infoBox.innerHTML = `Pairing Babak ${babakKe} Aktif. Timer: <b>${babakObj.isTimerRunning ? 'BERJALAN' : 'BERHENTI'}</b>`;
+
+                babakObj.pairing.forEach((m, idx) => {
+                    if(m.isBye) {
+                        containerMeja.innerHTML += `
+                            <div class="pairing-card">
+                                <div class="pairing-header">
+                                    <span>Meja ${m.meja || idx + 1}</span>
+                                    <span style="color: #34d399;">BYE (+1 Poin)</span>
+                                </div>
+                                <div class="pairing-row">
+                                    <span class="player-p">${m.pemainPutih.nama}</span>
+                                    <span class="vs-tag">-</span>
+                                    <span class="player-h">Tidak Ada Lawan</span>
+                                </div>
+                            </div>`;
+                    } else {
+                        containerMeja.innerHTML += `
+                            <div class="pairing-card">
+                                <div class="pairing-header">
+                                    <span>Meja ${m.meja || idx + 1}</span>
+                                    <span>⏱️ Putih: ${formatTime(m.timePutih)} | Hitam: ${formatTime(m.timeHitam)}</span>
+                                </div>
+                                <div class="pairing-row" style="margin-bottom: 6px;">
+                                    <span class="player-p">⚪ ${m.pemainPutih.nama}</span>
+                                    <span class="vs-tag">VS</span>
+                                    <span class="player-h">⚫ ${m.pemainHitam.nama}</span>
+                                </div>
+
+                                <div class="timer-control-row">
+                                    <button class="btn-small-penalty" onclick="tambahWaktuPenalti(${babakKe}, ${idx}, 'w', 60)">+1 Mnt Putih</button>
+                                    <button class="btn-small-penalty" onclick="tambahWaktuPenalti(${babakKe}, ${idx}, 'b', 60)">+1 Mnt Hitam</button>
+                                </div>
+
+                                <div class="input-group" style="margin-bottom: 0;">
+                                    <select id="skorMeja_${idx}">
+                                        <option value="0" ${m.skor === '0' ? 'selected' : ''}>-- Pilih Hasil Skor --</option>
+                                        <option value="1-0" ${m.skor === '1-0' ? 'selected' : ''}>1 - 0 (Putih Menang)</option>
+                                        <option value="0.5-0.5" ${m.skor === '0.5-0.5' ? 'selected' : ''}>½ - ½ (Remis)</option>
+                                        <option value="0-1" ${m.skor === '0-1' ? 'selected' : ''}>0 - 1 (Hitam Menang)</option>
+                                    </select>
+                                </div>
+                            </div>`;
+                    }
+                });
+            }
+        }
+
+        function generatePairingSistem() {
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
+            if(!ev || !ev.peserta || ev.peserta.length < 2) {
+                alert("Jumlah peserta minimal 2 orang untuk melakukan pairing!");
+                return;
+            }
+
+            const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
+            if(!babakObj) return;
+
+            let players = [...ev.peserta].sort((a, b) => (b.poin || 0) - (a.poin || 0));
+            let pairingResult = [];
+            const durasiDetik = (ev.durasiWaktu || 10) * 60;
+
+            if(players.length % 2 !== 0) {
+                let byePlayer = players.pop();
+                pairingResult.push({
+                    meja: 0,
+                    pemainPutih: byePlayer,
+                    pemainHitam: null,
+                    isBye: true,
+                    skor: '1-0',
+                    timePutih: durasiDetik,
+                    timeHitam: durasiDetik,
+                    isFinished: true
+                });
+            }
+
+            for(let i = 0; i < players.length; i += 2) {
+                pairingResult.push({
+                    meja: (i / 2) + 1,
+                    pemainPutih: players[i],
+                    pemainHitam: players[i+1],
+                    isBye: false,
+                    skor: '0',
+                    timePutih: durasiDetik,
+                    timeHitam: durasiDetik,
+                    isFinished: false
+                });
+            }
+
+            babakObj.pairing = pairingResult;
+            babakObj.status = 'Berjalan';
+            babakObj.isTimerRunning = false;
+            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+
+            alert(`Pairing Babak ${babakKe} Berhasil Digenerate!`);
+            renderPairingMejaInfo();
+        }
+
+        function startAllTimersWasit() {
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
+            if(!ev) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
+            if(!babakObj) return;
+
+            babakObj.isTimerRunning = true;
+            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+            alert(`Timer Babak ${babakKe} DIMULAI secara resmi!`);
+            renderPairingMejaInfo();
+        }
+
+        function stopAllTimersWasit() {
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
+            if(!ev) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
+            if(!babakObj) return;
+
+            babakObj.isTimerRunning = false;
+            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+            alert(`Timer Babak ${babakKe} DIHENTIKAN/PAUSE!`);
+            renderPairingMejaInfo();
+        }
+
+        function tambahWaktuPenalti(babakKe, idxMeja, rolePemain, detikTambahan) {
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
+            if(!babakObj || !babakObj.pairing) return;
+
+            const meja = babakObj.pairing[idxMeja];
+            if(meja) {
+                if(rolePemain === 'w') {
+                    meja.timePutih += detikTambahan;
+                } else {
+                    meja.timeHitam += detikTambahan;
+                }
+                meja.isFinished = false; 
+                localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+                renderPairingMejaInfo();
+            }
+        }
+
+        function simpanHasilSkorBabak() {
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
+            if(!ev) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
+            if(!babakObj || !babakObj.pairing) return;
+
+            babakObj.pairing.forEach((m, idx) => {
+                if(!m.isBye) {
+                    const elSelect = document.getElementById(`skorMeja_${idx}`);
+                    if(elSelect) {
+                        m.skor = elSelect.value;
+                    }
+                }
+            });
+
+            babakObj.status = 'Selesai';
+            babakObj.isTimerRunning = false;
+
+            const nextBabak = ev.babakList.find(b => b.babakKe === babakKe + 1);
+            if(nextBabak && nextBabak.status === 'Belum Dimulai') {
+                nextBabak.status = 'Siap Pairing';
+            }
+
+            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+
+            alert(`Hasil Skor Babak ${babakKe} Disimpan!`);
+            closeModal('pairingWasitModal');
+        }
+
+        function openKelolaPemainView() {
+            renderListPemain();
+        }
+
+        function renderListPemain() {
+            const listPending = document.getElementById('listPendingPemain');
+            const listApproved = document.getElementById('listApprovedPemain');
+            listPending.innerHTML = '';
+            listApproved.innerHTML = '';
+
+            const pending = daftarPemain.filter(p => p.status === 'pending');
+            const approved = daftarPemain.filter(p => p.status === 'approved');
+
+            if (pending.length === 0) listPending.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted);">Tidak ada pendaftaran baru.</p>';
+            pending.forEach(p => {
+                listPending.innerHTML += `
+                    <div class="player-item">
+                        <div class="player-info-left" onclick="showDetailPemain(${p.id})">
+                            <div class="player-name">${p.nama}</div>
+                            <div class="player-city">${p.kota} • ${p.hp}</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="elo-tag">Elo: ${p.elo}</span>
+                            <div class="action-group">
+                                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.68rem;" onclick="terimaPemain(${p.id})">Terima</button>
+                                <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.68rem;" onclick="tolakPemain(${p.id})">Tolak</button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            if (approved.length === 0) listApproved.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted);">Belum ada pemain disetujui.</p>';
+            approved.forEach(p => {
+                listApproved.innerHTML += `
+                    <div class="player-item">
+                        <div class="player-info-left" onclick="showDetailPemain(${p.id})">
+                            <div class="player-name">${p.nama}</div>
+                            <div class="player-city">${p.kota} • ${p.hp}</div>
+                        </div>
+                        <span class="elo-tag">Elo: ${p.elo}</span>
+                    </div>`;
+            });
+        }
+
+        function terimaPemain(id) {
+            const p = daftarPemain.find(item => item.id === id);
+            if(p) { p.status = 'approved'; localStorage.setItem('asr_data_pemain', JSON.stringify(daftarPemain)); renderListPemain(); }
+        }
+
+        function tolakPemain(id) {
+            if(confirm("Tolak dan hapus pendaftaran pemain ini?")) {
+                daftarPemain = daftarPemain.filter(item => item.id !== id);
+                localStorage.setItem('asr_data_pemain', JSON.stringify(daftarPemain));
+                renderListPemain();
+            }
+        }
+
+        function showDetailPemain(id) {
+            const p = daftarPemain.find(item => item.id === id);
+            if(!p) return;
+            document.getElementById('detailPemainContent').innerHTML = `
+                <div class="detail-row"><span>Nama Lengkap:</span> <span><b>${p.nama}</b></span></div>
+                <div class="detail-row"><span>Nomor HP:</span> <span>${p.hp}</span></div>
+                <div class="detail-row"><span>Kota:</span> <span>${p.kota}</span></div>
+                <div class="detail-row"><span>ELO Rating:</span> <span><b style="color: var(--accent-gold);">${p.elo}</b></span></div>
+                <div class="detail-row"><span>Status Akun:</span> <span>${p.status === 'approved' ? 'Terverifikasi' : 'Menunggu Persetujuan'}</span></div>
+            `;
+            document.getElementById('btnHapusPemain').onclick = function() {
+                if(confirm("Hapus pemain ini?")) {
+                    daftarPemain = daftarPemain.filter(item => item.id !== id);
+                    localStorage.setItem('asr_data_pemain', JSON.stringify(daftarPemain));
+                    closeModal('detailPemainModal');
+                    renderListPemain();
+                }
+            };
+            openModal('detailPemainModal');
+        }
+
+        function openKelolaWasitView() {
+            renderListWasit();
+        }
+
+        function renderListWasit() {
+            const listPending = document.getElementById('listPendingWasit');
+            const listApproved = document.getElementById('listApprovedWasit');
+            listPending.innerHTML = '';
+            listApproved.innerHTML = '';
+
+            const pending = daftarWasit.filter(w => w.status === 'pending');
+            const approved = daftarWasit.filter(w => w.status === 'approved');
+
+            if (pending.length === 0) listPending.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted);">Tidak ada pendaftaran wasit baru.</p>';
+            pending.forEach(w => {
+                listPending.innerHTML += `
+                    <div class="player-item">
+                        <div class="player-info-left" onclick="showDetailWasit(${w.id})">
+                            <div class="player-name">${w.nama}</div>
+                            <div class="player-city">${w.kota} • ${w.hp}</div>
+                        </div>
+                        <div class="action-group">
+                            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.68rem;" onclick="terimaWasit(${w.id})">Terima</button>
+                            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.68rem;" onclick="tolakWasit(${w.id})">Tolak</button>
+                        </div>
+                    </div>`;
+            });
+
+            if (approved.length === 0) listApproved.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted);">Belum ada wasit disetujui.</p>';
+            approved.forEach(w => {
+                listApproved.innerHTML += `
+                    <div class="player-item" onclick="showDetailWasit(${w.id})">
+                        <div class="player-info-left">
+                            <div class="player-name">${w.nama}</div>
+                            <div class="player-city">${w.kota} • ${w.hp}</div>
+                        </div>
+                        <span class="elo-tag" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">Aktif</span>
+                    </div>`;
+            });
+        }
+
+        function terimaWasit(id) {
+            const w = daftarWasit.find(item => item.id === id);
+            if(w) { w.status = 'approved'; localStorage.setItem('asr_data_wasit', JSON.stringify(daftarWasit)); renderListWasit(); }
+        }
+
+        function tolakWasit(id) {
+            if(confirm("Tolak dan hapus pendaftaran wasit ini?")) {
+                daftarWasit = daftarWasit.filter(item => item.id !== id);
+                localStorage.setItem('asr_data_wasit', JSON.stringify(daftarWasit));
+                renderListWasit();
+            }
+        }
+
+        function showDetailWasit(id) {
+            const w = daftarWasit.find(item => item.id === id);
+            if(!w) return;
+            document.getElementById('detailWasitContent').innerHTML = `
+                <div class="detail-row"><span>Nama / Gelar:</span> <span><b>${w.nama}</b></span></div>
+                <div class="detail-row"><span>Nomor HP:</span> <span>${w.hp}</span></div>
+                <div class="detail-row"><span>Kota:</span> <span>${w.kota}</span></div>
+                <div class="detail-row"><span>Status Lisensi:</span> <span>${w.status === 'approved' ? 'Terverifikasi' : 'Menunggu Verifikasi'}</span></div>
+            `;
+            document.getElementById('btnHapusWasit').onclick = function() {
+                if(confirm("Hapus wasit ini dari sistem?")) {
+                    daftarWasit = daftarWasit.filter(item => item.id !== id);
+                    localStorage.setItem('asr_data_wasit', JSON.stringify(daftarWasit));
+                    closeModal('detailWasitModal');
+                    renderListWasit();
+                }
+            };
+            openModal('detailWasitModal');
         }
 
         function handleAdminLogin(event) {
             event.preventDefault();
-            if (document.getElementById('username').value === "user" && document.getElementById('password').value === "12345") {
+            const userInput = document.getElementById('username').value;
+            const passInput = document.getElementById('password').value;
+
+            if (userInput === "user" && passInput === "12345") {
                 localStorage.setItem('asr_active_role', 'admin');
                 closeModal('adminModal');
                 switchView('dashboardView');
+                
                 document.getElementById('roleBadge').style.display = 'inline-flex';
                 document.getElementById('roleBadge').innerHTML = '<i class="fa-solid fa-user-shield"></i> <span>Admin</span>';
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
             } else {
                 document.getElementById('errorMsg').style.display = 'block';
             }
+        }
+
+        function handleCreateEvent(event) {
+            event.preventDefault();
+            
+            const nama = document.getElementById('eventNameView').value;
+            const tanggal = document.getElementById('eventDateView').value;
+            const hadiah = document.getElementById('eventRewardView').value;
+
+            const eventBaru = {
+                id: Date.now(),
+                nama: nama,
+                tanggal: tanggal,
+                hadiah: hadiah,
+                durasiWaktu: 10,
+                peserta: [],
+                totalBabak: 0,
+                babakList: []
+            };
+
+            daftarEvent.push(eventBaru);
+            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+            localStorage.setItem('asr_unread_match', JSON.stringify(true));
+
+            alert("Pertandingan Berhasil Dibuat! Notifikasi telah dikirimkan ke Dashboard Pemain dan Wasit.");
+            event.target.reset();
+            switchView('dashboardView');
         }
 
         function logoutView(viewId) {
             activeUserPemain = null;
             localStorage.removeItem('asr_active_pemain');
             localStorage.removeItem('asr_active_role');
+            localStorage.setItem('asr_current_view', 'landingView');
+
             switchView('landingView');
             document.getElementById('roleBadge').style.display = 'none';
         }
