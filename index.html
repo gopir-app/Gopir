@@ -21,7 +21,6 @@
             --accent-green: #10b981;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            /* WARNA SOLID PAPAN CATUR HIJAU KREM KHAS CHESS.COM */
             --square-light: #eeeed2; 
             --square-dark: #769656;
         }
@@ -44,7 +43,6 @@
             padding: 0.8rem;
         }
 
-        /* Header */
         header {
             padding: 0.5rem 0;
             display: flex;
@@ -85,7 +83,6 @@
             gap: 6px;
         }
 
-        /* Main Container */
         main {
             max-width: 400px;
             width: 100%;
@@ -123,7 +120,6 @@
             font-size: 0.8rem;
         }
 
-        /* LANDING PAGE STYLES */
         .role-container {
             display: flex;
             flex-direction: column;
@@ -215,7 +211,6 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
-        /* DASHBOARD GRID STYLES */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -266,7 +261,6 @@
             color: var(--text-muted);
         }
 
-        /* NOTIFIKASI TITIK HIJAU */
         .green-dot {
             position: absolute;
             top: 6px;
@@ -285,7 +279,6 @@
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
-        /* MODAL STYLES */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -388,7 +381,6 @@
             display: none;
         }
 
-        /* KELOLA LIST & FORM FULL VIEW STYLES */
         .section-title-sub {
             font-size: 0.85rem;
             color: var(--accent-gold);
@@ -445,7 +437,6 @@
             border: 1px solid rgba(245, 158, 11, 0.3);
         }
 
-        /* PAIRING MATCH BOARD STYLES WASIT */
         .pairing-card {
             background: rgba(15, 23, 42, 0.95);
             border: 1px solid var(--border-color);
@@ -495,7 +486,6 @@
             flex: 1;
         }
 
-        /* PROFIL & FORM CARD STYLES */
         .form-card-box {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -550,7 +540,6 @@
             color: var(--text-muted);
         }
 
-        /* SUBMENU STYLES */
         .submenu-grid {
             display: flex;
             flex-direction: column;
@@ -591,7 +580,6 @@
             margin-bottom: 10px;
         }
 
-        /* DRAFT BOARD MEJA PEMAIN */
         .meja-card-view {
             background: rgba(15, 23, 42, 0.9);
             border: 2px solid var(--accent-gold);
@@ -627,7 +615,6 @@
             font-size: 1.6rem;
         }
 
-        /* STYLES PAPAN CATUR & ARENA BERTANDING */
         .match-arena-box {
             display: flex;
             flex-direction: column;
@@ -664,7 +651,6 @@
             margin-top: 2px;
         }
 
-        /* GRID PAPAN CATUR (SOLID CHESS.COM NEO STYLE) */
         .chessboard-grid {
             width: 100%;
             max-width: 360px;
@@ -699,7 +685,6 @@
             background-color: #facc15 !important;
         }
 
-        /* HIGHLIGHT LANGKAH VALID & KOTAK TERANCAM SKAK */
         .square.valid-move::after {
             content: '';
             width: 16px;
@@ -714,7 +699,6 @@
             background-color: #ef4444 !important;
         }
 
-        /* STYLES GAMBAR SVG BIDAK & PION CATUR DILEBARKAN (CHESS.COM NEO) */
         .chess-piece-img {
             width: 98%;
             height: 98%;
@@ -726,12 +710,6 @@
 
         .square:hover .chess-piece-img {
             transform: scale(1.05);
-        }
-
-        .arena-controls {
-            display: flex;
-            gap: 8px;
-            width: 100%;
         }
 
         footer {
@@ -762,7 +740,6 @@
             <p class="hero-subtitle">Silakan pilih peran Anda untuk melanjutkan</p>
 
             <div class="role-container">
-                <!-- Pemain -->
                 <div class="role-card">
                     <div class="role-left">
                         <div class="role-icon-box"><i class="fa-solid fa-chess-pawn"></i></div>
@@ -777,7 +754,6 @@
                     </div>
                 </div>
 
-                <!-- Wasit -->
                 <div class="role-card">
                     <div class="role-left">
                         <div class="role-icon-box"><i class="fa-solid fa-clipboard-check"></i></div>
@@ -792,7 +768,6 @@
                     </div>
                 </div>
 
-                <!-- Admin -->
                 <div class="role-card">
                     <div class="role-left">
                         <div class="role-icon-box"><i class="fa-solid fa-user-gear"></i></div>
@@ -911,7 +886,6 @@
             <p class="hero-subtitle" id="arenaMatchSubtitle">Meja Pertandingan Resmi</p>
 
             <div class="match-arena-box">
-                <!-- Clock Timer Pemain Atas & Bawah -->
                 <div class="clock-container">
                     <div class="player-clock-card" id="clockHitamBox">
                         <div style="font-size: 0.72rem; color: var(--text-muted);" id="namaLawanClock">Lawan (Hitam)</div>
@@ -923,10 +897,8 @@
                     </div>
                 </div>
 
-                <!-- Papan Catur 8x8 Grid Solid Hijau Krem -->
                 <div id="chessboard" class="chessboard-grid"></div>
 
-                <!-- Status Game Catur -->
                 <div class="info-badge-box" id="chessGameStatus" style="width: 100%; text-align: center; margin-top: 5px;">
                     <i class="fa-solid fa-circle-info"></i> Giliran Putih Melangkah
                 </div>
@@ -1113,9 +1085,7 @@
         </div>
     </main>
 
-    <!-- ================= MODALS / POP-UP FORM ================= -->
-
-    <!-- 1. LOGIN PEMAIN -->
+    <!-- MODALS / POP-UP FORM -->
     <div class="modal-overlay" id="loginPemainModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1137,7 +1107,6 @@
         </div>
     </div>
 
-    <!-- 2. DAFTAR PEMAIN -->
     <div class="modal-overlay" id="regPemainModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1166,7 +1135,6 @@
         </div>
     </div>
 
-    <!-- 3. LOGIN WASIT -->
     <div class="modal-overlay" id="loginWasitModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1188,7 +1156,6 @@
         </div>
     </div>
 
-    <!-- 4. DAFTAR WASIT -->
     <div class="modal-overlay" id="regWasitModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1221,7 +1188,6 @@
         </div>
     </div>
 
-    <!-- 5. LOGIN ADMIN -->
     <div class="modal-overlay" id="adminModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1243,7 +1209,6 @@
         </div>
     </div>
 
-    <!-- 6. MODAL DETAIL PEMAIN -->
     <div class="modal-overlay" id="detailPemainModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1257,7 +1222,6 @@
         </div>
     </div>
 
-    <!-- 7. MODAL DETAIL WASIT -->
     <div class="modal-overlay" id="detailWasitModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1271,7 +1235,6 @@
         </div>
     </div>
 
-    <!-- 8. MODAL SUBMENU PERTANDINGAN PEMAIN -->
     <div class="modal-overlay" id="pemainMatchSubmenuModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1295,7 +1258,6 @@
         </div>
     </div>
 
-    <!-- 8.1 MODAL VIEW MEJA TANDING PEMAIN -->
     <div class="modal-overlay" id="mejaPemainModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1306,7 +1268,6 @@
         </div>
     </div>
 
-    <!-- 9. MODAL SUBMENU PERTANDINGAN WASIT -->
     <div class="modal-overlay" id="wasitMatchSubmenuModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1339,7 +1300,6 @@
         </div>
     </div>
 
-    <!-- 9.1 MODAL ATUR WAKTU PERTANDINGAN -->
     <div class="modal-overlay" id="aturWaktuWasitModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1373,7 +1333,6 @@
         </div>
     </div>
 
-    <!-- 10. MODAL DAFTAR PESERTA (WASIT VIEW) -->
     <div class="modal-overlay" id="daftarPesertaWasitModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1384,7 +1343,6 @@
         </div>
     </div>
 
-    <!-- 11. MODAL ATUR BABAK (WASIT VIEW) -->
     <div class="modal-overlay" id="aturBabakWasitModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1422,7 +1380,6 @@
         </div>
     </div>
 
-    <!-- 12. MODAL SYSTEM PAIRING BABAK & KONTROL TIMER TERPUSAT (WASIT VIEW) -->
     <div class="modal-overlay" id="pairingWasitModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1445,7 +1402,6 @@
                 </button>
             </div>
 
-            <!-- TOMBOL CONTROL TIMER UTAMA UNTUK WASIT -->
             <div id="wasitGlobalTimerControls" style="display: none; margin-bottom: 12px; display: flex; gap: 6px;">
                 <button class="btn btn-success" style="flex: 1; padding: 8px;" onclick="startAllTimersWasit()">
                     <i class="fa-solid fa-play"></i> Start Timer All
@@ -1467,12 +1423,11 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer>
         <p>&copy; 2026 Asr.Catur Online</p>
     </footer>
 
-    <!-- FIREBASE SDK & INISIALISASI -->
+    <!-- FIREBASE SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -1489,21 +1444,19 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        console.info("Firebase berhasil diinisialisasi untuk Asr.Catur Online.");
     </script>
 
-    <!-- JAVASCRIPT LOGIK APLIKASI -->
     <script>
         let activeUserPemain = JSON.parse(localStorage.getItem('asr_active_pemain')) || null;
         let selectedMatchId = JSON.parse(localStorage.getItem('asr_selected_match')) || null;
+        let activeMejaNo = JSON.parse(localStorage.getItem('asr_active_meja')) || null;
+        let activeBabakKe = JSON.parse(localStorage.getItem('asr_active_babak')) || null;
 
-        // CHESS ENGINE INSTANCE DARI CHESS.JS
         let chessEngine = new Chess();
         let selectedSquareSquareNotation = null;
         let validMovesForSelectedSquare = [];
         let timerIntervalPemain = null;
 
-        // ASSET SVG CHESS.COM (SET NEO)
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
             'R': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
@@ -1532,7 +1485,6 @@
         let daftarEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
         let globalWasitInterval = null;
 
-        // RESTORE VIEW SAAT HALAMAN DIREFRESH
         window.addEventListener('DOMContentLoaded', () => {
             const lastView = localStorage.getItem('asr_current_view') || 'landingView';
             const activeRole = localStorage.getItem('asr_active_role');
@@ -1552,6 +1504,10 @@
 
             checkNotifDots();
             startGlobalWasitTimerTick();
+
+            if(lastView === 'papanCaturFullView' && activeMejaNo && activeBabakKe) {
+                resetMatchArenaPemain(activeMejaNo, activeBabakKe);
+            }
         });
 
         function switchView(viewId, saveState = true) {
@@ -1562,17 +1518,17 @@
             }
         }
 
-        // TIK TIMER TERPUSAT DARI WASIT UNTUK SELURUH MEJA
+        // TICKER TERPUSAT UNTUK PERHITUNGAN WAKTU WASIT & PEMAIN
         function startGlobalWasitTimerTick() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
             globalWasitInterval = setInterval(() => {
                 let updated = false;
+                daftarEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
 
                 daftarEvent.forEach(ev => {
                     if(ev.babakList) {
                         ev.babakList.forEach(b => {
                             if(b.status === 'Berjalan' && b.isTimerRunning) {
-                                let allFinished = true;
                                 if(b.pairing) {
                                     b.pairing.forEach(m => {
                                         if(!m.isBye && !m.isFinished) {
@@ -1581,17 +1537,8 @@
 
                                             if(m.timeHitam > 0) m.timeHitam--;
                                             else m.isFinished = true;
-
-                                            if(m.timePutih > 0 || m.timeHitam > 0) {
-                                                allFinished = false;
-                                            }
                                         }
                                     });
-                                }
-
-                                if(allFinished && b.pairing && b.pairing.length > 0) {
-                                    b.status = 'Selesai';
-                                    b.isTimerRunning = false;
                                 }
                                 updated = true;
                             }
@@ -1608,7 +1555,6 @@
             }, 1000);
         }
 
-        // FUNGSI UTAMA MODAL
         function openModal(id) {
             document.getElementById(id).classList.add('active');
             if(id === 'adminModal') document.getElementById('errorMsg').style.display = 'none';
@@ -1629,7 +1575,6 @@
             if(dotWasit) dotWasit.style.display = hasUnread ? 'block' : 'none';
         }
 
-        // 1. PENDAFTARAN & LOGIN PEMAIN
         function handleRegisterPemain(event) {
             event.preventDefault();
             const hp = document.getElementById('regPemainHp').value;
@@ -1862,6 +1807,11 @@
             closeModal('mejaPemainModal');
             switchView('papanCaturFullView');
 
+            activeMejaNo = noMeja;
+            activeBabakKe = babakKe;
+            localStorage.setItem('asr_active_meja', JSON.stringify(noMeja));
+            localStorage.setItem('asr_active_babak', JSON.stringify(babakKe));
+
             document.getElementById('arenaMatchTitle').innerText = `Meja ${noMeja} - Babak ${babakKe}`;
             document.getElementById('arenaMatchSubtitle').innerText = `${namaEvent} vs ${namaLawan}`;
             document.getElementById('namaSayaClock').innerText = `${activeUserPemain ? activeUserPemain.nama : 'Pemain'}`;
@@ -1870,6 +1820,7 @@
             resetMatchArenaPemain(noMeja, babakKe);
         }
 
+        // PENYESUAIAN SINKRONISASI WAKTU PAPAN CATUR DENGAN WASIT
         function resetMatchArenaPemain(noMeja, babakKe) {
             chessEngine = new Chess(); 
             selectedSquareSquareNotation = null;
@@ -1879,6 +1830,8 @@
             updateChessGameStatusInfo();
 
             if(timerIntervalPemain) clearInterval(timerIntervalPemain);
+
+            // MEMBACA DAN MENAMPILKAN SISA WAKTU WASIT SECARA PRESISI
             timerIntervalPemain = setInterval(() => {
                 const freshEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
                 const ev = freshEvent.find(e => e.id === selectedMatchId);
@@ -1887,12 +1840,12 @@
                     if(babakObj && babakObj.pairing) {
                         const meja = babakObj.pairing.find(m => m.meja === noMeja);
                         if(meja) {
-                            document.getElementById('timerPutih').innerText = formatTime(meja.timePutih || 600);
-                            document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam || 600);
+                            document.getElementById('timerPutih').innerText = formatTime(meja.timePutih);
+                            document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam);
                         }
                     }
                 }
-            }, 500);
+            }, 300);
         }
 
         function renderChessboard() {
@@ -2039,13 +1992,12 @@
         }
 
         function formatTime(seconds) {
-            if(seconds < 0) seconds = 0;
+            if(seconds < 0 || isNaN(seconds)) seconds = 0;
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
             const s = (seconds % 60).toString().padStart(2, '0');
             return `${m}:${s}`;
         }
 
-        // 2. WASIT LOGIK & KONTROL TIMER TERPUSAT WASIT
         function handleRegisterWasit(event) {
             event.preventDefault();
             const hp = document.getElementById('regWasitHp').value;
@@ -2133,11 +2085,25 @@
             openModal('aturWaktuWasitModal');
         }
 
+        // FUNGSI MENGUBAH WAKTU & UPDATE KE SETIAP PAIRING MEJA
         function setMatchTime(menit) {
             const ev = daftarEvent.find(e => e.id === selectedMatchId);
             if(!ev) return;
 
             ev.durasiWaktu = menit;
+            const durasiDetik = menit * 60;
+
+            if(ev.babakList) {
+                ev.babakList.forEach(b => {
+                    if(b.pairing) {
+                        b.pairing.forEach(m => {
+                            m.timePutih = durasiDetik;
+                            m.timeHitam = durasiDetik;
+                        });
+                    }
+                });
+            }
+
             localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
 
             alert(`Berhasil mengatur durasi pertandingan '${ev.nama}' menjadi ${menit} Menit!`);
@@ -2301,7 +2267,7 @@
                 actionGen.style.display = 'block';
                 globalTimer.style.display = 'none';
                 btnSimpan.style.display = 'none';
-                containerMeja.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Klik tombol "Generate Pairing Otomatis".</p>';
+                containerMeja.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Klik "Generate Pairing Otomatis".</p>';
             } else {
                 actionGen.style.display = 'none';
                 globalTimer.style.display = 'flex';
@@ -2415,7 +2381,7 @@
 
             babakObj.isTimerRunning = true;
             localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
-            alert(`Timer Babak ${babakKe} DIMULAI!`);
+            alert(`Timer Babak ${babakKe} DIMULAI secara resmi!`);
             renderPairingMejaInfo();
         }
 
@@ -2429,7 +2395,7 @@
 
             babakObj.isTimerRunning = false;
             localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
-            alert(`Timer Babak ${babakKe} DIHENTIKAN!`);
+            alert(`Timer Babak ${babakKe} DIHENTIKAN/PAUSE!`);
             renderPairingMejaInfo();
         }
 
@@ -2484,7 +2450,6 @@
             closeModal('pairingWasitModal');
         }
 
-        // RENDER & AKSI PEMAIN (ADMIN)
         function renderListPemain() {
             const listPending = document.getElementById('listPendingPemain');
             const listApproved = document.getElementById('listApprovedPemain');
@@ -2559,7 +2524,6 @@
             openModal('detailPemainModal');
         }
 
-        // RENDER & AKSI WASIT (ADMIN)
         function renderListWasit() {
             const listPending = document.getElementById('listPendingWasit');
             const listApproved = document.getElementById('listApprovedWasit');
@@ -2630,7 +2594,6 @@
             openModal('detailWasitModal');
         }
 
-        // 4. ADMIN LOGIN
         function handleAdminLogin(event) {
             event.preventDefault();
             const userInput = document.getElementById('username').value;
@@ -2650,7 +2613,6 @@
             }
         }
 
-        // 5. BUAT PERTANDINGAN LOGIC
         function handleCreateEvent(event) {
             event.preventDefault();
             
@@ -2678,7 +2640,6 @@
             switchView('dashboardView');
         }
 
-        // LOGOUT UMUM
         function logoutView(viewId) {
             activeUserPemain = null;
             localStorage.removeItem('asr_active_pemain');
