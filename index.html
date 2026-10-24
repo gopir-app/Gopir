@@ -1092,10 +1092,10 @@
                     <h3>Wasit</h3>
                     <p>Verifikasi & lisensi wasit</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Statistik Pemain')">
-                    <div class="menu-icon"><i class="fa-solid fa-chart-line"></i></div>
-                    <h3>Statistik</h3>
-                    <p>Grafik & rekapan aktivitas</p>
+                <div class="menu-card" onclick="switchView('ubahKeamananAdminView')">
+                    <div class="menu-icon"><i class="fa-solid fa-key"></i></div>
+                    <h3>Keamanan Admin</h3>
+                    <p>Ubah user & password</p>
                 </div>
                 <div class="menu-card" onclick="alert('Membuka ELO Rating')">
                     <div class="menu-icon"><i class="fa-solid fa-trophy"></i></div>
@@ -1115,6 +1115,40 @@
             </div>
             <button class="btn btn-danger" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="logoutView('dashboardView')">
                 <i class="fa-solid fa-right-from-bracket"></i> Keluar Dashboard
+            </button>
+        </div>
+
+        <!-- HALAMAN 4.1: UBAH KEAMANAN ADMIN VIEW -->
+        <div id="ubahKeamananAdminView" class="page-view">
+            <h1 class="hero-title"><i class="fa-solid fa-shield-halved"></i> Keamanan Akun Admin</h1>
+            <p class="hero-subtitle">Ubah Username & Password Admin</p>
+
+            <div class="form-card-box">
+                <form id="formUbahKeamananAdmin" onsubmit="handleUbahKeamananAdmin(event)">
+                    <div class="input-group">
+                        <label>Username Baru</label>
+                        <input type="text" id="newAdminUser" required autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <label>Password Lama</label>
+                        <input type="password" id="oldAdminPass" placeholder="Masukkan password saat ini" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Password Baru</label>
+                        <input type="password" id="newAdminPass" placeholder="Min. 8 Karakter (Huruf Besar, Angka, Simbol)" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Konfirmasi Password Baru</label>
+                        <input type="password" id="confirmAdminPass" placeholder="Ulangi password baru" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; margin-top: 5px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan Akun
+                    </button>
+                </form>
+            </div>
+
+            <button class="btn btn-outline" style="width: 100%; padding: 8px;" onclick="switchView('dashboardView')">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard Admin
             </button>
         </div>
 
@@ -1301,11 +1335,11 @@
             <form onsubmit="handleAdminLogin(event)">
                 <div class="input-group">
                     <label>Username</label>
-                    <input type="text" id="username" placeholder="user" required autocomplete="off">
+                    <input type="text" id="username" placeholder="Masukkan Username Admin" required autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>Password</label>
-                    <input type="password" id="password" placeholder="12345" required>
+                    <input type="password" id="password" placeholder="Masukkan Password Admin" required>
                 </div>
                 <div class="error-msg" id="errorMsg">Username atau Password salah!</div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px;">Masuk Admin</button>
@@ -1591,7 +1625,28 @@
         let daftarEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
         let globalWasitInterval = null;
 
-        window.addEventListener('DOMContentLoaded', () => {
+        // FUNGSI ENKRIPSI SHA-256 UNTUK KEAMANAN PASSWORD
+        async function hashSHA256(text) {
+            const msgUint8 = new TextEncoder().encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // INISIALISASI KREDENSIAL ADMIN SECARA AMAN TERENKRIPSI
+        async function initAdminAuth() {
+            let adminAuth = JSON.parse(localStorage.getItem('asr_admin_auth'));
+            if (!adminAuth) {
+                const defaultUser = "admin";
+                const defaultPassHash = await hashSHA256("Admin#2026!Asr");
+                adminAuth = { username: defaultUser, passHash: defaultPassHash };
+                localStorage.setItem('asr_admin_auth', JSON.stringify(adminAuth));
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initAdminAuth();
+
             const lastView = localStorage.getItem('asr_current_view') || 'landingView';
             const activeRole = localStorage.getItem('asr_active_role');
             
@@ -1616,6 +1671,8 @@
                 openAnalisaEngineView();
             } else if(lastView === 'papanCaturFullView' && activeMejaNo && activeBabakKe) {
                 resetMatchArenaPemain(activeMejaNo, activeBabakKe);
+            } else if(lastView === 'ubahKeamananAdminView') {
+                loadKeamananAdminForm();
             }
         });
 
@@ -1625,6 +1682,55 @@
             if(saveState) {
                 localStorage.setItem('asr_current_view', viewId);
             }
+            if(viewId === 'ubahKeamananAdminView') {
+                loadKeamananAdminForm();
+            }
+        }
+
+        function loadKeamananAdminForm() {
+            const adminAuth = JSON.parse(localStorage.getItem('asr_admin_auth'));
+            if(adminAuth) {
+                document.getElementById('newAdminUser').value = adminAuth.username;
+            }
+        }
+
+        async function handleUbahKeamananAdmin(event) {
+            event.preventDefault();
+
+            const newUsername = document.getElementById('newAdminUser').value.trim();
+            const oldPass = document.getElementById('oldAdminPass').value;
+            const newPass = document.getElementById('newAdminPass').value;
+            const confirmPass = document.getElementById('confirmAdminPass').value;
+
+            if(newPass !== confirmPass) {
+                alert("Konfirmasi password baru tidak cocok!");
+                return;
+            }
+
+            // REGEX VALIDASI PASSWORD KUAT
+            const strongPassRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+            if (!strongPassRegex.test(newPass)) {
+                alert("Password Baru Kurang Kuat!\nAturan: Minimal 8 karakter, mengandung setidaknya 1 huruf besar, 1 huruf kecil, 1 angka, dan 1 simbol khusus (@$!%*?&#).");
+                return;
+            }
+
+            const adminAuth = JSON.parse(localStorage.getItem('asr_admin_auth'));
+            const oldPassHashInput = await hashSHA256(oldPass);
+
+            if(oldPassHashInput !== adminAuth.passHash) {
+                alert("Password Lama Anda Salah!");
+                return;
+            }
+
+            const newPassHash = await hashSHA256(newPass);
+            adminAuth.username = newUsername;
+            adminAuth.passHash = newPassHash;
+
+            localStorage.setItem('asr_admin_auth', JSON.stringify(adminAuth));
+
+            alert("Username dan Password Admin Berhasil Diperbarui!");
+            document.getElementById('formUbahKeamananAdmin').reset();
+            switchView('dashboardView');
         }
 
         // --- STOCKFISH BLOB WORKER ENGINE (DEPTH 10-15) ---
@@ -2955,12 +3061,15 @@
             openModal('detailWasitModal');
         }
 
-        function handleAdminLogin(event) {
+        async function handleAdminLogin(event) {
             event.preventDefault();
-            const userInput = document.getElementById('username').value;
+            const userInput = document.getElementById('username').value.trim();
             const passInput = document.getElementById('password').value;
 
-            if (userInput === "user" && passInput === "12345") {
+            const adminAuth = JSON.parse(localStorage.getItem('asr_admin_auth'));
+            const passInputHash = await hashSHA256(passInput);
+
+            if (adminAuth && userInput === adminAuth.username && passInputHash === adminAuth.passHash) {
                 localStorage.setItem('asr_active_role', 'admin');
                 closeModal('adminModal');
                 switchView('dashboardView');
