@@ -1029,10 +1029,10 @@
                     <h3>Pertandingan</h3>
                     <p>Meja & jadwal pengawasan</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Statistik Pemain')">
-                    <div class="menu-icon"><i class="fa-solid fa-chart-column"></i></div>
-                    <h3>Statistik Pemain</h3>
-                    <p>Pantau catatan pemain</p>
+                <div class="menu-card" onclick="openStatistikPertandinganView()">
+                    <div class="menu-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <h3>Statistik Pertandingan</h3>
+                    <p>Klasemen babak & poin</p>
                 </div>
                 <div class="menu-card" onclick="alert('Membuka Menu: ELO Rating Pemain')">
                     <div class="menu-icon"><i class="fa-solid fa-ranking-star"></i></div>
@@ -1097,10 +1097,10 @@
                     <h3>Keamanan Admin</h3>
                     <p>Ubah user & password</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka ELO Rating')">
-                    <div class="menu-icon"><i class="fa-solid fa-trophy"></i></div>
-                    <h3>ELO Rating</h3>
-                    <p>Peringkat & poin pemain</p>
+                <div class="menu-card" onclick="openStatistikPertandinganView()">
+                    <div class="menu-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <h3>Statistik Pertandingan</h3>
+                    <p>Klasemen babak & poin</p>
                 </div>
                 <div class="menu-card" onclick="switchView('buatEventFullView')">
                     <div class="menu-icon"><i class="fa-solid fa-calendar-plus"></i></div>
@@ -1118,7 +1118,19 @@
             </button>
         </div>
 
-        <!-- HALAMAN 4.1: UBAH KEAMANAN ADMIN VIEW -->
+        <!-- HALAMAN 4.1: STATISTIK PERTANDINGAN & KLASEMEN VIEW -->
+        <div id="statistikPertandinganFullView" class="page-view">
+            <h1 class="hero-title"><i class="fa-solid fa-chart-line"></i> Statistik Pertandingan</h1>
+            <p class="hero-subtitle">Pilih pertandingan aktif untuk melihat babak & poin</p>
+
+            <div id="listStatistikEventContainer" class="player-list"></div>
+
+            <button class="btn btn-outline" style="width: 100%; margin-top: 15px; padding: 8px;" id="btnBackFromStatistik" onclick="handleBackFromStatistik()">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard
+            </button>
+        </div>
+
+        <!-- HALAMAN 4.2: UBAH KEAMANAN ADMIN VIEW -->
         <div id="ubahKeamananAdminView" class="page-view">
             <h1 class="hero-title"><i class="fa-solid fa-shield-halved"></i> Keamanan Akun Admin</h1>
             <p class="hero-subtitle">Ubah Username & Password Admin</p>
@@ -1201,7 +1213,7 @@
                 <form id="formBuatEventView" onsubmit="handleCreateEvent(event)">
                     <div class="input-group">
                         <label>Nama Pertandingan</label>
-                        <input type="text" id="eventNameView" placeholder="Contoh: Piala Bergilir Asr.Catur 2026" required>
+                        <input type="text" id="eventNameView" placeholder="Contoh: AACUP 2026" required>
                     </div>
                     <div class="input-group">
                         <label>Hari/Tanggal Pelaksanaan</label>
@@ -1360,7 +1372,6 @@
         </div>
     </div>
 
-    <!-- MODAL PROFIL / DETAIL WASIT -->
     <div class="modal-overlay" id="detailWasitModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1387,11 +1398,11 @@
                 <button class="submenu-btn" onclick="openMejaPemainModal()">
                     <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> Masuk meja
                 </button>
-                <button class="submenu-btn" onclick="alert('Membuka: Hasil sementara')">
-                    <i class="fa-solid fa-square-poll-vertical" style="color: var(--accent-gold);"></i> Hasil sementara
+                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
+                    <i class="fa-solid fa-square-poll-vertical" style="color: var(--accent-gold);"></i> Klasemen Poin
                 </button>
-                <button class="submenu-btn" onclick="alert('Membuka: Hasil akhir')">
-                    <i class="fa-solid fa-award" style="color: var(--accent-gold);"></i> Hasil akhir
+                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
+                    <i class="fa-solid fa-award" style="color: var(--accent-gold);"></i> Hasil Akhir
                 </button>
             </div>
         </div>
@@ -1426,8 +1437,8 @@
                 <button class="submenu-btn" onclick="openAturWaktuModal()">
                     <i class="fa-solid fa-stopwatch" style="color: var(--accent-gold);"></i> Atur waktu
                 </button>
-                <button class="submenu-btn" onclick="alert('Membuka: Hasil babak')">
-                    <i class="fa-solid fa-square-check" style="color: var(--accent-gold);"></i> Hasil babak
+                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
+                    <i class="fa-solid fa-square-check" style="color: var(--accent-gold);"></i> Hasil babak / Klasemen
                 </button>
                 <button class="submenu-btn" onclick="alert('Membuka: Kirim hasil babak')">
                     <i class="fa-solid fa-paper-plane" style="color: var(--accent-gold);"></i> Kirim hasil babak
@@ -1599,6 +1610,10 @@
         let stockfishDepthLevel = 10;
         let stockfishWorker = null;
 
+        // STATISTIK PERTANDINGAN STATE
+        let currentStatistikViewLevel = 'eventList'; 
+        let currentStatistikEventId = null;
+
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
             'R': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
@@ -1624,10 +1639,40 @@
             { id: 2, hp: "081988887777", pass: "12345", nama: "Arb. Siti, SN", kota: "Semarang", lisensiImg: "", status: "pending" }
         ];
 
-        let daftarEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
+        let daftarEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [
+            {
+                id: 101,
+                nama: "AACUP 2026",
+                tanggal: "Sabtu, 24 Oktober 2026",
+                hadiah: "Rp 10.000.000",
+                durasiWaktu: 10,
+                totalBabak: 3,
+                peserta: [
+                    { id: 1, nama: "Budi Santoso", hp: "081344444444", kota: "Jakarta", elo: 1200 },
+                    { id: 2, nama: "Ahmad Catur", hp: "081299998888", kota: "Bandung", elo: 1150 }
+                ],
+                babakList: [
+                    {
+                        babakKe: 1,
+                        status: "Selesai",
+                        pairing: [
+                            {
+                                meja: 1,
+                                pemainPutih: { id: 1, nama: "Budi Santoso" },
+                                pemainHitam: { id: 2, nama: "Ahmad Catur" },
+                                skor: "1-0",
+                                timePutih: 420,
+                                timeHitam: 0,
+                                isFinished: true
+                            }
+                        ]
+                    }
+                ]
+            }
+        ];
+
         let globalWasitInterval = null;
 
-        // FUNGSI ENKRIPSI SHA-256 UNTUK KEAMANAN PASSWORD ADMIN
         async function hashSHA256(text) {
             const msgUint8 = new TextEncoder().encode(text);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
@@ -1674,6 +1719,8 @@
                 resetMatchArenaPemain(activeMejaNo, activeBabakKe);
             } else if(lastView === 'ubahKeamananAdminView') {
                 loadKeamananAdminForm();
+            } else if(lastView === 'statistikPertandinganFullView') {
+                openStatistikPertandinganView();
             }
         });
 
@@ -1731,6 +1778,187 @@
             alert("Username dan Password Admin Berhasil Diperbarui!");
             document.getElementById('formUbahKeamananAdmin').reset();
             switchView('dashboardView');
+        }
+
+        // --- FITUR STATISTIK PERTANDINGAN & KLASEMEN AUTOMATIS ---
+        function openStatistikPertandinganView() {
+            switchView('statistikPertandinganFullView');
+            currentStatistikViewLevel = 'eventList';
+            currentStatistikEventId = null;
+            renderStatistikPertandingan();
+        }
+
+        function renderStatistikPertandingan() {
+            const container = document.getElementById('listStatistikEventContainer');
+            container.innerHTML = '';
+
+            if (currentStatistikViewLevel === 'eventList') {
+                if (daftarEvent.length === 0) {
+                    container.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">Belum ada pertandingan aktif.</p>';
+                    return;
+                }
+
+                daftarEvent.forEach(ev => {
+                    const totalPeserta = ev.peserta ? ev.peserta.length : 0;
+                    const totalBabak = ev.totalBabak ? `${ev.totalBabak} Babak` : 'Belum diatur';
+
+                    container.innerHTML += `
+                        <div class="player-item" onclick="selectStatistikEvent(${ev.id})">
+                            <div class="player-info-left">
+                                <div class="player-name"><i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
+                                <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • ${totalBabak}</div>
+                            </div>
+                            <span class="elo-tag"><i class="fa-solid fa-chevron-right"></i> Pilih</span>
+                        </div>`;
+                });
+            } else if (currentStatistikViewLevel === 'babakList') {
+                const ev = daftarEvent.find(e => e.id === currentStatistikEventId);
+                if (!ev) return;
+
+                container.innerHTML += `
+                    <div class="info-badge-box" style="margin-bottom: 12px; font-weight: 700;">
+                        <i class="fa-solid fa-trophy"></i> Turnamen: ${ev.nama}
+                    </div>`;
+
+                container.innerHTML += `
+                    <div class="player-item" style="border-color: var(--accent-gold);" onclick="renderKlasemenPoin(${ev.id}, 'all')">
+                        <div class="player-info-left">
+                            <div class="player-name" style="color: var(--accent-gold);"><i class="fa-solid fa-award"></i> Klasemen Keseluruhan (Total Poin)</div>
+                            <div class="player-city">Akumulasi seluruh babak</div>
+                        </div>
+                        <span class="elo-tag">Buka Klasemen</span>
+                    </div>`;
+
+                if (!ev.babakList || ev.babakList.length === 0) {
+                    container.innerHTML += '<p style="font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: 10px;">Belum ada babak yang dikonfigurasi.</p>';
+                } else {
+                    ev.babakList.forEach(b => {
+                        container.innerHTML += `
+                            <div class="player-item" onclick="renderKlasemenPoin(${ev.id}, ${b.babakKe})">
+                                <div class="player-info-left">
+                                    <div class="player-name"><i class="fa-solid fa-flag" style="color: var(--accent-gold);"></i> Babak ${b.babakKe}</div>
+                                    <div class="player-city">Status: ${b.status}</div>
+                                </div>
+                                <span class="elo-tag">Lihat Poin</span>
+                            </div>`;
+                    });
+                }
+            }
+        }
+
+        function selectStatistikEvent(eventId) {
+            currentStatistikEventId = eventId;
+            currentStatistikViewLevel = 'babakList';
+            renderStatistikPertandingan();
+        }
+
+        function renderKlasemenPoin(eventId, targetBabak) {
+            const ev = daftarEvent.find(e => e.id === eventId);
+            if (!ev || !ev.peserta || ev.peserta.length === 0) {
+                alert("Belum ada peserta/data dalam pertandingan ini.");
+                return;
+            }
+
+            const container = document.getElementById('listStatistikEventContainer');
+            container.innerHTML = '';
+
+            const statsPemainMap = {};
+            ev.peserta.forEach(p => {
+                statsPemainMap[p.hp || p.nama] = {
+                    nama: p.nama,
+                    kota: p.kota || '-',
+                    poin: 0,
+                    sisaWaktuDetik: 0,
+                    menangCount: 0
+                };
+            });
+
+            const filterBabakList = targetBabak === 'all' 
+                ? (ev.babakList || []) 
+                : (ev.babakList || []).filter(b => b.babakKe <= targetBabak);
+
+            filterBabakList.forEach(b => {
+                if (b.pairing) {
+                    b.pairing.forEach(m => {
+                        if (m.isBye && m.pemainPutih) {
+                            const pKey = m.pemainPutih.hp || m.pemainPutih.nama;
+                            if (statsPemainMap[pKey]) {
+                                statsPemainMap[pKey].poin += 1.0;
+                                statsPemainMap[pKey].menangCount += 1;
+                            }
+                        } else if (m.pemainPutih && m.pemainHitam) {
+                            const pPutihKey = m.pemainPutih.hp || m.pemainPutih.nama;
+                            const pHitamKey = m.pemainHitam.hp || m.pemainHitam.nama;
+
+                            if (m.skor === '1-0') {
+                                if (statsPemainMap[pPutihKey]) {
+                                    statsPemainMap[pPutihKey].poin += 1.0;
+                                    statsPemainMap[pPutihKey].sisaWaktuDetik += (m.timePutih || 0);
+                                    statsPemainMap[pPutihKey].menangCount += 1;
+                                }
+                            } else if (m.skor === '0-1') {
+                                if (statsPemainMap[pHitamKey]) {
+                                    statsPemainMap[pHitamKey].poin += 1.0;
+                                    statsPemainMap[pHitamKey].sisaWaktuDetik += (m.timeHitam || 0);
+                                    statsPemainMap[pHitamKey].menangCount += 1;
+                                }
+                            } else if (m.skor === '0.5-0.5') {
+                                if (statsPemainMap[pPutihKey]) {
+                                    statsPemainMap[pPutihKey].poin += 0.5;
+                                    statsPemainMap[pPutihKey].sisaWaktuDetik += (m.timePutih || 0);
+                                }
+                                if (statsPemainMap[pHitamKey]) {
+                                    statsPemainMap[pHitamKey].poin += 0.5;
+                                    statsPemainMap[pHitamKey].sisaWaktuDetik += (m.timeHitam || 0);
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+
+            const standings = Object.values(statsPemainMap).sort((a, b) => {
+                if (b.poin !== a.poin) {
+                    return b.poin - a.poin; 
+                }
+                if (b.sisaWaktuDetik !== a.sisaWaktuDetik) {
+                    return b.sisaWaktuDetik - a.sisaWaktuDetik; 
+                }
+                return b.menangCount - a.menangCount;
+            });
+
+            const babakJudul = targetBabak === 'all' ? 'Klasemen Akhir Turnamen' : `Hasil / Standings Babak ${targetBabak}`;
+
+            container.innerHTML += `
+                <div class="info-badge-box" style="margin-bottom: 12px; font-weight: 700; text-align: center;">
+                    <i class="fa-solid fa-ranking-star"></i> ${ev.nama}<br>
+                    <span style="color: #fff;">${babakJudul}</span>
+                </div>`;
+
+            standings.forEach((p, idx) => {
+                const medal = idx === 0 ? '🥇 ' : (idx === 1 ? '🥈 ' : (idx === 2 ? '🥉 ' : `${idx + 1}. `));
+                const highlightClass = idx === 0 ? 'border-color: var(--accent-gold);' : '';
+
+                container.innerHTML += `
+                    <div class="player-item" style="${highlightClass}">
+                        <div class="player-info-left">
+                            <div class="player-name">${medal}${p.nama}</div>
+                            <div class="player-city">${p.kota} • Sisa Waktu (Kemenangan Cepat): ${formatTime(p.sisaWaktuDetik)}</div>
+                        </div>
+                        <span class="elo-tag" style="font-size: 0.85rem;">${p.poin} Poin</span>
+                    </div>`;
+            });
+        }
+
+        function handleBackFromStatistik() {
+            if (currentStatistikViewLevel === 'babakList') {
+                currentStatistikViewLevel = 'eventList';
+                renderStatistikPertandingan();
+            } else {
+                const role = localStorage.getItem('asr_active_role');
+                if (role === 'wasit') switchView('wasitDashboardView');
+                else switchView('dashboardView');
+            }
         }
 
         // --- STOCKFISH BLOB WORKER ENGINE (DEPTH 10-15) ---
@@ -2524,7 +2752,6 @@
             }
         }
 
-        // FUNGSI MEMBUKA DETAIL PROFIL WASIT
         function openProfilWasitModal() {
             if (!activeUserWasit) {
                 activeUserWasit = daftarWasit.find(w => w.status === 'approved') || daftarWasit[0];
