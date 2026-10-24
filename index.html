@@ -1396,13 +1396,40 @@
                     <i class="fa-solid fa-list-check" style="color: var(--accent-gold);"></i> Daftar pertandingan ini
                 </button>
                 <button class="submenu-btn" onclick="openMejaPemainModal()">
-                    <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> Masuk meja
+                    <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> Masuk meja (Wajib Zoom)
                 </button>
                 <button class="submenu-btn" onclick="openStatistikPertandinganView()">
                     <i class="fa-solid fa-square-poll-vertical" style="color: var(--accent-gold);"></i> Klasemen Poin
                 </button>
                 <button class="submenu-btn" onclick="openStatistikPertandinganView()">
                     <i class="fa-solid fa-award" style="color: var(--accent-gold);"></i> Hasil Akhir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ZOOM CHECK ANTI-ENGINE SEBELUM MASUK MEJA -->
+    <div class="modal-overlay" id="zoomCheckModal">
+        <div class="modal-box" style="text-align: center;">
+            <div class="modal-header" style="justify-content: center; position: relative;">
+                <h3 style="color: #34d399;"><i class="fa-solid fa-video"></i> Verifikasi Anti-Kecurangan Zoom</h3>
+            </div>
+            <div class="info-badge-box" style="text-align: left; margin: 12px 0;">
+                <i class="fa-solid fa-shield-halved"></i> <b>Aturan Turnamen Asr.Catur:</b><br>
+                Sebelum meja tanding terbuka, peserta **wajib terhubung ke ruang Zoom** pengawasan wasit untuk mencegah penggunaan *engine* / HP kedua.
+            </div>
+            <p id="zoomLinkInfoText" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 15px;">
+                Link Zoom belum diatur oleh wasit. Silakan hubungi wasit ruangan Anda.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <a id="btnBukaZoomLink" href="#" target="_blank" class="btn btn-success" style="padding: 10px; display: block; text-decoration: none;">
+                    <i class="fa-solid fa-video"></i> Buka & Gabung Ruang Zoom Wasit
+                </a>
+                <button class="btn btn-primary" style="padding: 10px;" onclick="konfirmasiSudahJoinZoom()">
+                    <i class="fa-solid fa-check-circle"></i> Saya Sudah Masuk Zoom & Buka Kamera
+                </button>
+                <button class="btn btn-outline" style="padding: 8px;" onclick="closeModal('zoomCheckModal')">
+                    Batal
                 </button>
             </div>
         </div>
@@ -1428,6 +1455,9 @@
                 <button class="submenu-btn" onclick="openDaftarPesertaWasitModal()">
                     <i class="fa-solid fa-users" style="color: var(--accent-gold);"></i> Daftar peserta
                 </button>
+                <button class="submenu-btn" onclick="openZoomWasitModal()">
+                    <i class="fa-solid fa-video" style="color: var(--accent-gold);"></i> Atur Link Zoom Pengawasan
+                </button>
                 <button class="submenu-btn" onclick="openPairingWasitModal()">
                     <i class="fa-solid fa-sitemap" style="color: var(--accent-gold);"></i> Pairing
                 </button>
@@ -1440,13 +1470,30 @@
                 <button class="submenu-btn" onclick="openStatistikPertandinganView()">
                     <i class="fa-solid fa-square-check" style="color: var(--accent-gold);"></i> Hasil babak / Klasemen
                 </button>
-                <button class="submenu-btn" onclick="alert('Membuka: Kirim hasil babak')">
-                    <i class="fa-solid fa-paper-plane" style="color: var(--accent-gold);"></i> Kirim hasil babak
-                </button>
-                <button class="submenu-btn" onclick="alert('Membuka: Kirim hasil akhir')">
-                    <i class="fa-solid fa-flag-checkered" style="color: var(--accent-gold);"></i> Kirim hasil akhir
-                </button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL ATUR ZOOM OLEH WASIT -->
+    <div class="modal-overlay" id="aturZoomWasitModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-video"></i> Atur Link Zoom Pengawasan</h3>
+                <button class="close-btn" onclick="closeModal('aturZoomWasitModal')">&times;</button>
+            </div>
+            <form onsubmit="handleSimpanZoomWasit(event)">
+                <div class="input-group">
+                    <label>URL / Tautan Zoom Meeting</label>
+                    <input type="url" id="inputZoomUrl" placeholder="https://zoom.us/j/xxxxxxxxxx" required>
+                </div>
+                <div class="input-group">
+                    <label>Meeting ID & Passcode (Opsional)</label>
+                    <input type="text" id="inputZoomInfo" placeholder="ID: 123 456 Pass: asrcatur" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 9px; margin-top: 5px;">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Link Zoom Anti-Kecurangan
+                </button>
+            </form>
         </div>
     </div>
 
@@ -1647,6 +1694,8 @@
                 hadiah: "Rp 10.000.000",
                 durasiWaktu: 10,
                 totalBabak: 3,
+                zoomUrl: "https://zoom.us/j/1234567890",
+                zoomInfo: "Meeting ID: 123 456 Pass: asr2026",
                 peserta: [
                     { id: 1, nama: "Budi Santoso", hp: "081344444444", kota: "Jakarta", elo: 1200 },
                     { id: 2, nama: "Ahmad Catur", hp: "081299998888", kota: "Bandung", elo: 1150 }
@@ -2405,6 +2454,7 @@
             closeModal('pemainMatchSubmenuModal');
         }
 
+        // --- ATURAN ZOOM ANTI-KECURANGAN SEBELUM MASUK MEJA ---
         function openMejaPemainModal() {
             closeModal('pemainMatchSubmenuModal');
 
@@ -2413,6 +2463,28 @@
                 return;
             }
 
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            // CEK ZOOM TERLEBIH DAHULU SEBELUM MEMBUKA MEJA TANDING
+            if(!ev.zoomUrl) {
+                document.getElementById('zoomLinkInfoText').innerHTML = `⚠️ Wasit belum mengatur Link Zoom untuk turnamen <b>${ev.nama}</b>.`;
+                document.getElementById('btnBukaZoomLink').style.display = 'none';
+            } else {
+                document.getElementById('zoomLinkInfoText').innerHTML = `
+                    Silakan bergabung ke Zoom wasit untuk pengawasan anti-kecurangan:<br>
+                    <b>${ev.zoomInfo || 'Zoom Pengawasan Wasit'}</b>
+                `;
+                document.getElementById('btnBukaZoomLink').href = ev.zoomUrl;
+                document.getElementById('btnBukaZoomLink').style.display = 'block';
+            }
+
+            openModal('zoomCheckModal');
+        }
+
+        function konfirmasiSudahJoinZoom() {
+            closeModal('zoomCheckModal');
+            
             const ev = daftarEvent.find(e => e.id === selectedMatchId);
             const container = document.getElementById('mejaPemainContent');
             container.innerHTML = '';
@@ -2487,12 +2559,12 @@
                         </div>
 
                         <div class="info-badge-box" style="margin-bottom: 12px; margin-top: 5px;">
-                            <i class="fa-solid fa-stopwatch"></i> Waktu: <b>${durasi} Menit</b><br>
-                            <i class="fa-solid fa-flag"></i> Status: <b>${statusSkor}</b>
+                            <i class="fa-solid fa-video" style="color: #34d399;"></i> Terhubung Zoom Wasit: <b>Aktif</b><br>
+                            <i class="fa-solid fa-stopwatch"></i> Waktu: <b>${durasi} Menit</b>
                         </div>
 
                         <button class="btn btn-success" style="width: 100%; padding: 10px; font-size: 0.85rem;" onclick="masukKeArenaBertanding('${ev.nama}', ${babakAktif.babakKe}, ${mejaPemain.meja}, '${lawan.nama}')">
-                            <i class="fa-solid fa-chess-board"></i> Masuk Bertanding
+                            <i class="fa-solid fa-chess-board"></i> Masuk Bertanding Sekarang
                         </button>
                     </div>`;
             }
@@ -2813,7 +2885,7 @@
                         <div class="player-item" onclick="openWasitMatchSubmenu(${ev.id})">
                             <div class="player-info-left">
                                 <div class="player-name"><i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
-                                <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • ${totalBabak} • ⏱️ ${durasi} Mnt</div>
+                                <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • ⏱️ ${durasi} Mnt</div>
                             </div>
                             <span class="elo-tag">Kelola</span>
                         </div>`;
@@ -2829,6 +2901,29 @@
 
             document.getElementById('wasitMatchSubmenuTitle').innerText = ev.nama;
             openModal('wasitMatchSubmenuModal');
+        }
+
+        function openZoomWasitModal() {
+            closeModal('wasitMatchSubmenuModal');
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            document.getElementById('inputZoomUrl').value = ev.zoomUrl || '';
+            document.getElementById('inputZoomInfo').value = ev.zoomInfo || '';
+            openModal('aturZoomWasitModal');
+        }
+
+        function handleSimpanZoomWasit(event) {
+            event.preventDefault();
+            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            if(!ev) return;
+
+            ev.zoomUrl = document.getElementById('inputZoomUrl').value;
+            ev.zoomInfo = document.getElementById('inputZoomInfo').value;
+
+            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+            alert("Link Zoom Pengawasan Anti-Kecurangan Berhasil Disimpan!");
+            closeModal('aturZoomWasitModal');
         }
 
         function openAturWaktuModal() {
@@ -3412,6 +3507,8 @@
                 tanggal: tanggal,
                 hadiah: hadiah,
                 durasiWaktu: 10,
+                zoomUrl: "",
+                zoomInfo: "",
                 peserta: [],
                 totalBabak: 0,
                 babakList: []
