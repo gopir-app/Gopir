@@ -712,6 +712,58 @@
             transform: scale(1.05);
         }
 
+        /* ANALISA ENGINE CONTROL BAR & EVALUATION BAR */
+        .eval-bar-container {
+            width: 100%;
+            max-width: 360px;
+            height: 14px;
+            background: #334155;
+            border-radius: 7px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border-color);
+            margin-top: 4px;
+        }
+
+        .eval-bar-fill {
+            height: 100%;
+            background: #f8fafc;
+            width: 50%;
+            transition: width 0.4s ease;
+        }
+
+        .eval-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #0f172a;
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+        }
+
+        .engine-controls-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            width: 100%;
+            max-width: 360px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .engine-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .engine-row select, .engine-row button {
+            font-size: 0.72rem;
+        }
+
         footer {
             text-align: center;
             padding: 0.5rem;
@@ -793,10 +845,11 @@
                     <h3>Profil</h3>
                     <p>Informasi akun & biodata</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Analisa')">
-                    <div class="menu-icon"><i class="fa-solid fa-chart-pie"></i></div>
-                    <h3>Analisa</h3>
-                    <p>Menang, kalah & rekap match</p>
+                <!-- MENU ANALISA UTAMA UNTUK MASTER VS STOCKFISH ENGINE -->
+                <div class="menu-card" onclick="openAnalisaEngineView();">
+                    <div class="menu-icon"><i class="fa-solid fa-microchip"></i></div>
+                    <h3>Analisa Engine</h3>
+                    <p>Latihan & tanding vs Stockfish AI</p>
                 </div>
                 <div class="menu-card" onclick="alert('Membuka Menu: ELO Rating')">
                     <div class="menu-icon"><i class="fa-solid fa-trophy"></i></div>
@@ -906,6 +959,64 @@
 
             <button class="btn btn-outline" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="switchView('pemainDashboardView')">
                 <i class="fa-solid fa-arrow-left"></i> Keluar Arena / Ke Dashboard
+            </button>
+        </div>
+
+        <!-- HALAMAN PEMAIN 2.4: PAPAN CATUR ANALISA ENGINE STOCKFISH -->
+        <div id="analisaEngineFullView" class="page-view">
+            <h1 class="hero-title"><i class="fa-solid fa-microchip"></i> Papan Analisa Engine</h1>
+            <p class="hero-subtitle">Master vs AI Stockfish Engine</p>
+
+            <div class="match-arena-box">
+                <!-- Panel Kontrol Engine AI -->
+                <div class="engine-controls-card">
+                    <div class="engine-row">
+                        <div style="flex: 1;" class="input-group">
+                            <label><i class="fa-solid fa-brain"></i> Tingkat Level AI</label>
+                            <select id="selectEngineSkill" onchange="changeEngineSkillLevel(this.value)">
+                                <option value="1">Level 1 (Pemula - Kedalaman 2)</option>
+                                <option value="3">Level 3 (Klub - Kedalaman 4)</option>
+                                <option value="5" selected>Level 5 (Master - Kedalaman 8)</option>
+                                <option value="8">Level 8 (Grandmaster - Kedalaman 12)</option>
+                                <option value="10">Level 10 (Maksimal Stockfish)</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;" class="input-group">
+                            <label><i class="fa-solid fa-chess-knight"></i> Bidak Master</label>
+                            <select id="selectMasterPieceColor" onchange="changeMasterPlayerColor(this.value)">
+                                <option value="w" selected>Putih (⚪)</option>
+                                <option value="b">Hitam (⚫)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 6px;">
+                        <button class="btn btn-primary" style="flex: 1;" onclick="resetEngineGameAnalisa()">
+                            <i class="fa-solid fa-rotate-right"></i> Main Ulang
+                        </button>
+                        <button class="btn btn-outline" style="flex: 1;" onclick="undoEngineGameMove()">
+                            <i class="fa-solid fa-arrow-rotate-left"></i> Undo Step
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bar Evaluasi Engine -->
+                <div class="eval-bar-container">
+                    <div id="evalBarFill" class="eval-bar-fill"></div>
+                    <span id="evalText" class="eval-text">Eval: 0.0</span>
+                </div>
+
+                <!-- Papan Catur Solid Neo -->
+                <div id="chessboardAnalisa" class="chessboard-grid"></div>
+
+                <!-- Status Engine -->
+                <div class="info-badge-box" id="analisaEngineStatus" style="width: 100%; text-align: center; margin-top: 5px;">
+                    <i class="fa-solid fa-robot"></i> Stockfish AI Siap Bertanding
+                </div>
+            </div>
+
+            <button class="btn btn-outline" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="switchView('pemainDashboardView')">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard
             </button>
         </div>
 
@@ -1452,10 +1563,19 @@
         let activeMejaNo = JSON.parse(localStorage.getItem('asr_active_meja')) || null;
         let activeBabakKe = JSON.parse(localStorage.getItem('asr_active_babak')) || null;
 
+        // CHESS ENGINE INSTANCES
         let chessEngine = new Chess();
         let selectedSquareSquareNotation = null;
         let validMovesForSelectedSquare = [];
         let timerIntervalPemain = null;
+
+        // ANALISA ENGINE STOCKFISH INSTANCE & STATES
+        let chessEngineAnalisa = new Chess();
+        let selectedSquareAnalisa = null;
+        let validMovesAnalisa = [];
+        let masterPlayerColor = 'w'; // 'w' Putih, 'b' Hitam
+        let stockfishDepthLevel = 8;
+        let stockfishWorker = null;
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -1504,8 +1624,11 @@
 
             checkNotifDots();
             startGlobalWasitTimerTick();
+            initStockfishWebWorker();
 
-            if(lastView === 'papanCaturFullView' && activeMejaNo && activeBabakKe) {
+            if(lastView === 'analisaEngineFullView') {
+                openAnalisaEngineView();
+            } else if(lastView === 'papanCaturFullView' && activeMejaNo && activeBabakKe) {
                 resetMatchArenaPemain(activeMejaNo, activeBabakKe);
             }
         });
@@ -1518,7 +1641,255 @@
             }
         }
 
-        // TICKER TERPUSAT UNTUK PERHITUNGAN WAKTU WASIT & PEMAIN
+        // INITIALIZATION WEB WORKER STOCKFISH AI ENGINE
+        function initStockfishWebWorker() {
+            try {
+                stockfishWorker = new Worker("https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js");
+                stockfishWorker.onmessage = function(event) {
+                    const message = event.data;
+
+                    // METRIK EVALUASI
+                    if (message.includes("score cp") || message.includes("score mate")) {
+                        parseStockfishScore(message);
+                    }
+
+                    // LANGKAH TERBAIK AI ENGINE
+                    if (message.startsWith("bestmove")) {
+                        const moveStr = message.split(" ")[1];
+                        if (moveStr && moveStr !== "(none)") {
+                            const fromSq = moveStr.substring(0, 2);
+                            const toSq = moveStr.substring(2, 4);
+                            const promo = moveStr.length > 4 ? moveStr.substring(4, 5) : 'q';
+
+                            chessEngineAnalisa.move({
+                                from: fromSq,
+                                to: toSq,
+                                promotion: promo
+                            });
+
+                            renderChessboardAnalisa();
+                            updateAnalisaEngineStatusInfo();
+                        }
+                    }
+                };
+
+                stockfishWorker.postMessage("uci");
+                stockfishWorker.postMessage("ucinewgame");
+            } catch (err) {
+                console.warn("Stockfish Worker fallback initialized:", err);
+            }
+        }
+
+        function parseStockfishScore(msg) {
+            let cpVal = 0;
+            if(msg.includes("score cp")) {
+                const parts = msg.split("score cp ");
+                if(parts.length > 1) {
+                    cpVal = parseInt(parts[1].split(" ")[0]);
+                }
+            } else if(msg.includes("score mate")) {
+                const parts = msg.split("score mate ");
+                if(parts.length > 1) {
+                    const mateIn = parseInt(parts[1].split(" ")[0]);
+                    cpVal = mateIn > 0 ? 1000 : -1000;
+                }
+            }
+
+            let evalPoint = (cpVal / 100).toFixed(2);
+            if(chessEngineAnalisa.turn() === 'b') {
+                evalPoint = (-evalPoint).toFixed(2);
+            }
+
+            const fillBar = document.getElementById('evalBarFill');
+            const fillText = document.getElementById('evalText');
+            
+            let percent = 50 + (parseFloat(evalPoint) * 5);
+            if (percent > 98) percent = 98;
+            if (percent < 2) percent = 2;
+
+            if(fillBar) fillBar.style.width = `${percent}%`;
+            if(fillText) fillText.innerText = `Eval: ${evalPoint > 0 ? '+' + evalPoint : evalPoint}`;
+        }
+
+        // SINKRONISASI PEMANGGILAN ENGINE AI BERDASARKAN FEN
+        function askStockfishToMove() {
+            if (!stockfishWorker) return;
+            const fen = chessEngineAnalisa.fen();
+            stockfishWorker.postMessage(`position fen ${fen}`);
+            stockfishWorker.postMessage(`go depth ${stockfishDepthLevel}`);
+
+            const statusEl = document.getElementById('analisaEngineStatus');
+            if(statusEl) {
+                statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Stockfish Engine Berpikir... (Level Kedalaman: ${stockfishDepthLevel})`;
+            }
+        }
+
+        function openAnalisaEngineView() {
+            switchView('analisaEngineFullView');
+            resetEngineGameAnalisa();
+        }
+
+        function changeEngineSkillLevel(val) {
+            const depthMap = { '1': 2, '3': 4, '5': 8, '8': 12, '10': 16 };
+            stockfishDepthLevel = depthMap[val] || 8;
+        }
+
+        function changeMasterPlayerColor(color) {
+            masterPlayerColor = color;
+            resetEngineGameAnalisa();
+        }
+
+        function resetEngineGameAnalisa() {
+            chessEngineAnalisa = new Chess();
+            selectedSquareAnalisa = null;
+            validMovesAnalisa = [];
+
+            const fillBar = document.getElementById('evalBarFill');
+            const fillText = document.getElementById('evalText');
+            if(fillBar) fillBar.style.width = '50%';
+            if(fillText) fillText.innerText = 'Eval: 0.0';
+
+            renderChessboardAnalisa();
+            updateAnalisaEngineStatusInfo();
+
+            if (chessEngineAnalisa.turn() !== masterPlayerColor) {
+                setTimeout(() => { askStockfishToMove(); }, 400);
+            }
+        }
+
+        function undoEngineGameMove() {
+            chessEngineAnalisa.undo(); 
+            chessEngineAnalisa.undo(); 
+            selectedSquareAnalisa = null;
+            validMovesAnalisa = [];
+            renderChessboardAnalisa();
+            updateAnalisaEngineStatusInfo();
+        }
+
+        function renderChessboardAnalisa() {
+            const boardEl = document.getElementById('chessboardAnalisa');
+            boardEl.innerHTML = '';
+
+            const boardArray = chessEngineAnalisa.board(); 
+            const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const rowIdx = masterPlayerColor === 'w' ? r : (7 - r);
+                    const colIdx = masterPlayerColor === 'w' ? c : (7 - c);
+
+                    const squareEl = document.createElement('div');
+                    const isLight = (rowIdx + colIdx) % 2 === 0;
+                    const squareNotation = files[colIdx] + (8 - rowIdx);
+
+                    squareEl.className = `square ${isLight ? 'light' : 'dark'}`;
+                    squareEl.dataset.square = squareNotation;
+
+                    if (selectedSquareAnalisa === squareNotation) {
+                        squareEl.classList.add('selected');
+                    }
+
+                    if (validMovesAnalisa.some(m => m.to === squareNotation)) {
+                        squareEl.classList.add('valid-move');
+                    }
+
+                    const piece = boardArray[rowIdx][colIdx];
+                    if (piece) {
+                        const pieceKey = piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase();
+                        if (pieceImages[pieceKey]) {
+                            const img = document.createElement('img');
+                            img.src = pieceImages[pieceKey];
+                            img.className = 'chess-piece-img';
+                            img.alt = pieceKey;
+                            squareEl.appendChild(img);
+                        }
+
+                        if (piece.type === 'k' && chessEngineAnalisa.in_check() && piece.color === chessEngineAnalisa.turn()) {
+                            squareEl.classList.add('in-check');
+                        }
+                    }
+
+                    squareEl.onclick = () => onAnalisaSquareClick(squareNotation);
+                    boardEl.appendChild(squareEl);
+                }
+            }
+        }
+
+        function onAnalisaSquareClick(squareNotation) {
+            if (chessEngineAnalisa.game_over()) return;
+            if (chessEngineAnalisa.turn() !== masterPlayerColor) return; 
+
+            if (selectedSquareAnalisa === null) {
+                const piece = chessEngineAnalisa.get(squareNotation);
+                if (piece && piece.color === chessEngineAnalisa.turn()) {
+                    selectedSquareAnalisa = squareNotation;
+                    validMovesAnalisa = chessEngineAnalisa.moves({ square: squareNotation, verbose: true });
+                    renderChessboardAnalisa();
+                }
+            } else {
+                const isMoveValid = validMovesAnalisa.some(m => m.to === squareNotation);
+
+                if (isMoveValid) {
+                    const selectedPiece = chessEngineAnalisa.get(selectedSquareAnalisa);
+                    let promotionChoice = 'q';
+
+                    if (selectedPiece && selectedPiece.type === 'p') {
+                        if ((selectedPiece.color === 'w' && squareNotation[1] === '8') || (selectedPiece.color === 'b' && squareNotation[1] === '1')) {
+                            const inputChoice = prompt("Promosi Pion! Pilih bidak: (q = Menteri, r = Benteng, b = Gajah, n = Kuda)", "q");
+                            if (['q', 'r', 'b', 'n'].includes(inputChoice ? inputChoice.toLowerCase() : '')) {
+                                promotionChoice = inputChoice.toLowerCase();
+                            }
+                        }
+                    }
+
+                    chessEngineAnalisa.move({
+                        from: selectedSquareAnalisa,
+                        to: squareNotation,
+                        promotion: promotionChoice
+                    });
+
+                    selectedSquareAnalisa = null;
+                    validMovesAnalisa = [];
+                    renderChessboardAnalisa();
+                    updateAnalisaEngineStatusInfo();
+
+                    if (!chessEngineAnalisa.game_over()) {
+                        setTimeout(() => { askStockfishToMove(); }, 300);
+                    }
+                } else {
+                    const piece = chessEngineAnalisa.get(squareNotation);
+                    if (piece && piece.color === chessEngineAnalisa.turn()) {
+                        selectedSquareAnalisa = squareNotation;
+                        validMovesAnalisa = chessEngineAnalisa.moves({ square: squareNotation, verbose: true });
+                    } else {
+                        selectedSquareAnalisa = null;
+                        validMovesAnalisa = [];
+                    }
+                    renderChessboardAnalisa();
+                }
+            }
+        }
+
+        function updateAnalisaEngineStatusInfo() {
+            const statusEl = document.getElementById('analisaEngineStatus');
+            const turnText = chessEngineAnalisa.turn() === masterPlayerColor ? 'Master (Anda)' : 'Stockfish AI';
+
+            if (chessEngineAnalisa.in_checkmate()) {
+                const winner = chessEngineAnalisa.turn() === 'w' ? 'Hitam' : 'Putih';
+                statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>SKAKMATI!</b> Pemenang: ${winner}`;
+                statusEl.style.color = '#10b981';
+            } else if (chessEngineAnalisa.in_draw()) {
+                statusEl.innerHTML = `<i class="fa-solid fa-handshake"></i> <b>REMIS / DRAW!</b>`;
+                statusEl.style.color = 'var(--accent-gold)';
+            } else if (chessEngineAnalisa.in_check()) {
+                statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> <b>SKAK!</b> Giliran: <b>${turnText}</b>`;
+                statusEl.style.color = '#ef4444';
+            } else {
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> Giliran Melangkah: <b>${turnText}</b>`;
+                statusEl.style.color = 'var(--accent-gold)';
+            }
+        }
+
         function startGlobalWasitTimerTick() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
             globalWasitInterval = setInterval(() => {
@@ -1820,7 +2191,6 @@
             resetMatchArenaPemain(noMeja, babakKe);
         }
 
-        // PENYESUAIAN SINKRONISASI WAKTU PAPAN CATUR DENGAN WASIT
         function resetMatchArenaPemain(noMeja, babakKe) {
             chessEngine = new Chess(); 
             selectedSquareSquareNotation = null;
@@ -1831,7 +2201,6 @@
 
             if(timerIntervalPemain) clearInterval(timerIntervalPemain);
 
-            // MEMBACA DAN MENAMPILKAN SISA WAKTU WASIT SECARA PRESISI
             timerIntervalPemain = setInterval(() => {
                 const freshEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
                 const ev = freshEvent.find(e => e.id === selectedMatchId);
@@ -2085,7 +2454,6 @@
             openModal('aturWaktuWasitModal');
         }
 
-        // FUNGSI MENGUBAH WAKTU & UPDATE KE SETIAP PAIRING MEJA
         function setMatchTime(menit) {
             const ev = daftarEvent.find(e => e.id === selectedMatchId);
             if(!ev) return;
