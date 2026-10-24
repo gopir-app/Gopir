@@ -1018,7 +1018,7 @@
             <h1 class="hero-title">Dashboard Wasit</h1>
             <p class="hero-subtitle">Selamat datang, Arbitrer / Wasit!</p>
             <div class="dashboard-grid">
-                <div class="menu-card" onclick="alert('Membuka Menu: Profil Wasit')">
+                <div class="menu-card" onclick="openProfilWasitModal()">
                     <div class="menu-icon"><i class="fa-solid fa-user-tie"></i></div>
                     <h3>Profil</h3>
                     <p>Data diri & akun wasit</p>
@@ -1044,7 +1044,7 @@
                     <h3>Daftar Pemain</h3>
                     <p>List terdaftar di event</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Lisensi Wasit')">
+                <div class="menu-card" onclick="openProfilWasitModal()">
                     <div class="menu-icon"><i class="fa-solid fa-id-card"></i></div>
                     <h3>Lisensi</h3>
                     <p>Status Sertifikat/Lisensi</p>
@@ -1319,7 +1319,7 @@
                 </div>
                 <div class="input-group">
                     <label>Foto Lisensi Wasit</label>
-                    <input type="file" id="regWasitFile" class="input-file" accept="image/*" required>
+                    <input type="file" id="regWasitFile" class="input-file" accept="image/*">
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px;">Daftar Wasit</button>
             </form>
@@ -1360,10 +1360,11 @@
         </div>
     </div>
 
+    <!-- MODAL PROFIL / DETAIL WASIT -->
     <div class="modal-overlay" id="detailWasitModal">
         <div class="modal-box">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-id-card"></i> Detail Wasit</h3>
+                <h3><i class="fa-solid fa-user-tie"></i> Profil & Detail Wasit</h3>
                 <button class="close-btn" onclick="closeModal('detailWasitModal')">&times;</button>
             </div>
             <div id="detailWasitContent"></div>
@@ -1579,6 +1580,7 @@
 
     <script>
         let activeUserPemain = JSON.parse(localStorage.getItem('asr_active_pemain')) || null;
+        let activeUserWasit = JSON.parse(localStorage.getItem('asr_active_wasit')) || null;
         let selectedMatchId = JSON.parse(localStorage.getItem('asr_selected_match')) || null;
         let activeMejaNo = JSON.parse(localStorage.getItem('asr_active_meja')) || null;
         let activeBabakKe = JSON.parse(localStorage.getItem('asr_active_babak')) || null;
@@ -1618,14 +1620,14 @@
         ];
 
         let daftarWasit = JSON.parse(localStorage.getItem('asr_data_wasit')) || [
-            { id: 1, hp: "081355555555", pass: "12345", nama: "Arb. Joko, MN", kota: "Surabaya", status: "approved" },
-            { id: 2, hp: "081988887777", pass: "12345", nama: "Arb. Siti, SN", kota: "Semarang", status: "pending" }
+            { id: 1, hp: "081355555555", pass: "12345", nama: "Arb. Joko, MN", kota: "Surabaya", lisensiImg: "", status: "approved" },
+            { id: 2, hp: "081988887777", pass: "12345", nama: "Arb. Siti, SN", kota: "Semarang", lisensiImg: "", status: "pending" }
         ];
 
         let daftarEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
         let globalWasitInterval = null;
 
-        // FUNGSI ENKRIPSI SHA-256 UNTUK KEAMANAN PASSWORD
+        // FUNGSI ENKRIPSI SHA-256 UNTUK KEAMANAN PASSWORD ADMIN
         async function hashSHA256(text) {
             const msgUint8 = new TextEncoder().encode(text);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
@@ -1633,7 +1635,6 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        // INISIALISASI KREDENSIAL ADMIN SECARA AMAN TERENKRIPSI
         async function initAdminAuth() {
             let adminAuth = JSON.parse(localStorage.getItem('asr_admin_auth'));
             if (!adminAuth) {
@@ -1707,7 +1708,6 @@
                 return;
             }
 
-            // REGEX VALIDASI PASSWORD KUAT
             const strongPassRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
             if (!strongPassRegex.test(newPass)) {
                 alert("Password Baru Kurang Kuat!\nAturan: Minimal 8 karakter, mengandung setidaknya 1 huruf besar, 1 huruf kecil, 1 angka, dan 1 simbol khusus (@$!%*?&#).");
@@ -2464,18 +2464,40 @@
             const nama = document.getElementById('regWasitNama').value;
             const kota = document.getElementById('regWasitKota').value;
             const pass = document.getElementById('regWasitPass').value;
+            const fileInput = document.getElementById('regWasitFile');
 
             if(daftarWasit.find(w => w.hp === hp)) {
                 alert("Nomor HP ini sudah terdaftar!");
                 return;
             }
 
-            daftarWasit.push({ id: Date.now(), hp, pass, nama, kota, status: "pending" });
-            localStorage.setItem('asr_data_wasit', JSON.stringify(daftarWasit));
+            const processWasitData = (base64Img) => {
+                const wasitBaru = { 
+                    id: Date.now(), 
+                    hp, 
+                    pass, 
+                    nama, 
+                    kota, 
+                    lisensiImg: base64Img || "", 
+                    status: "pending" 
+                };
+                daftarWasit.push(wasitBaru);
+                localStorage.setItem('asr_data_wasit', JSON.stringify(daftarWasit));
 
-            alert("Pendaftaran Wasit Berhasil! Menunggu Verifikasi Lisensi oleh Admin.");
-            closeModal('regWasitModal');
-            event.target.reset();
+                alert("Pendaftaran Wasit Berhasil! Menunggu Verifikasi Lisensi oleh Admin.");
+                closeModal('regWasitModal');
+                event.target.reset();
+            };
+
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    processWasitData(e.target.result);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                processWasitData("");
+            }
         }
 
         function handleWasitLogin(event) {
@@ -2485,7 +2507,10 @@
             const wasit = daftarWasit.find(w => w.hp === hp && w.pass === pass && w.status === 'approved');
 
             if (wasit) {
+                activeUserWasit = wasit;
+                localStorage.setItem('asr_active_wasit', JSON.stringify(wasit));
                 localStorage.setItem('asr_active_role', 'wasit');
+
                 closeModal('loginWasitModal');
                 switchView('wasitDashboardView');
                 
@@ -2497,6 +2522,50 @@
             } else {
                 document.getElementById('wasitErrorMsg').style.display = 'block';
             }
+        }
+
+        // FUNGSI MEMBUKA DETAIL PROFIL WASIT
+        function openProfilWasitModal() {
+            if (!activeUserWasit) {
+                activeUserWasit = daftarWasit.find(w => w.status === 'approved') || daftarWasit[0];
+            }
+
+            if (!activeUserWasit) {
+                alert("Data wasit tidak ditemukan.");
+                return;
+            }
+
+            const wasitData = daftarWasit.find(w => w.id === activeUserWasit.id) || activeUserWasit;
+            const statusBadge = wasitData.status === 'approved' 
+                ? '<span style="color: #34d399; font-weight: 700;">Terverifikasi (Aktif)</span>' 
+                : '<span style="color: #f59e0b; font-weight: 700;">Menunggu Verifikasi</span>';
+
+            const fotoLisensiHTML = wasitData.lisensiImg 
+                ? `<div style="margin-top: 10px; text-align: center;">
+                    <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">Foto Lisensi Wasit:</p>
+                    <img src="${wasitData.lisensiImg}" style="max-width: 100%; max-height: 180px; border-radius: 8px; border: 1px solid var(--border-color); object-fit: contain;">
+                   </div>`
+                : `<div class="info-badge-box" style="margin-top: 10px; text-align: center;"><i class="fa-solid fa-file-image"></i> Berkas Lisensi Tidak Ditinggalkan</div>`;
+
+            document.getElementById('detailWasitContent').innerHTML = `
+                <div class="profile-avatar-box">
+                    <div class="avatar-circle">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div class="avatar-info">
+                        <h2>${wasitData.nama}</h2>
+                        <p>${wasitData.hp}</p>
+                    </div>
+                </div>
+                <div class="detail-row"><span>Nama Lengkap & Gelar:</span> <span><b>${wasitData.nama}</b></span></div>
+                <div class="detail-row"><span>Nomor HP:</span> <span>${wasitData.hp}</span></div>
+                <div class="detail-row"><span>Kota Asal:</span> <span>${wasitData.kota}</span></div>
+                <div class="detail-row"><span>Status Akun:</span> <span>${statusBadge}</span></div>
+                ${fotoLisensiHTML}
+            `;
+
+            document.getElementById('btnHapusWasit').style.display = localStorage.getItem('asr_active_role') === 'admin' ? 'block' : 'none';
+            openModal('detailWasitModal');
         }
 
         function openPertandinganWasitView() {
@@ -3044,12 +3113,32 @@
         function showDetailWasit(id) {
             const w = daftarWasit.find(item => item.id === id);
             if(!w) return;
+
+            const fotoLisensiHTML = w.lisensiImg 
+                ? `<div style="margin-top: 10px; text-align: center;">
+                    <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">Berkas Lisensi:</p>
+                    <img src="${w.lisensiImg}" style="max-width: 100%; max-height: 180px; border-radius: 8px; border: 1px solid var(--border-color); object-fit: contain;">
+                   </div>`
+                : `<div class="info-badge-box" style="margin-top: 10px; text-align: center;"><i class="fa-solid fa-file-image"></i> Belum Mengunggah Foto Lisensi</div>`;
+
             document.getElementById('detailWasitContent').innerHTML = `
+                <div class="profile-avatar-box">
+                    <div class="avatar-circle">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div class="avatar-info">
+                        <h2>${w.nama}</h2>
+                        <p>${w.hp}</p>
+                    </div>
+                </div>
                 <div class="detail-row"><span>Nama / Gelar:</span> <span><b>${w.nama}</b></span></div>
                 <div class="detail-row"><span>Nomor HP:</span> <span>${w.hp}</span></div>
-                <div class="detail-row"><span>Kota:</span> <span>${w.kota}</span></div>
+                <div class="detail-row"><span>Kota Asal:</span> <span>${w.kota}</span></div>
                 <div class="detail-row"><span>Status Lisensi:</span> <span>${w.status === 'approved' ? 'Terverifikasi' : 'Menunggu Verifikasi'}</span></div>
+                ${fotoLisensiHTML}
             `;
+
+            document.getElementById('btnHapusWasit').style.display = 'block';
             document.getElementById('btnHapusWasit').onclick = function() {
                 if(confirm("Hapus wasit ini dari sistem?")) {
                     daftarWasit = daftarWasit.filter(item => item.id !== id);
@@ -3112,7 +3201,9 @@
 
         function logoutView(viewId) {
             activeUserPemain = null;
+            activeUserWasit = null;
             localStorage.removeItem('asr_active_pemain');
+            localStorage.removeItem('asr_active_wasit');
             localStorage.removeItem('asr_active_role');
             localStorage.setItem('asr_current_view', 'landingView');
 
