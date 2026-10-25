@@ -1629,19 +1629,18 @@
         <p>&copy; 2026 Asr.Catur Online</p>
     </footer>
 
-    <!-- FIREBASE FIRESTORE SYNC & LOGIC SCRIPT -->
+    <!-- FIREBASE FIRESTORE SYNC & LOGIC SCRIPT (Updated to AccoAsrCaturOnline) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyCB9VFST65f7UhMiHg826ZYJaoBXJfY6qs",
-            authDomain: "gopir-app.firebaseapp.com",
-            databaseURL: "https://gopir-app-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "gopir-app",
-            storageBucket: "gopir-app.firebasestorage.app",
-            messagingSenderId: "213809630129",
-            appId: "1:213809630129:web:544ff0f19e442652250b90"
+            apiKey: "AIzaSyD1a6aAp4wSBbqwmXTn9NA2HgXa4b_bmcE",
+            authDomain: "accoasrcaturonline.firebaseapp.com",
+            projectId: "accoasrcaturonline",
+            storageBucket: "accoasrcaturonline.firebasestorage.app",
+            messagingSenderId: "774056182835",
+            appId: "1:774056182835:web:c093dadf110bac26fd0f46"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -1719,7 +1718,6 @@
             }
         }
 
-        // Sinkronisasi data real-time dengan Firebase Firestore (Ditambahkan fetch awal)
         async function initFirebaseListeners() {
             if (!window.db) return;
 
@@ -1733,7 +1731,6 @@
                 console.error("Gagal mengambil data awal pemain:", e);
             }
 
-            // Real-time listener Pemain
             window.onSnapshot(window.collection(window.db, "pemain"), (snapshot) => {
                 daftarPemain = [];
                 snapshot.forEach((docSnap) => {
@@ -1744,7 +1741,6 @@
                 }
             });
 
-            // Real-time listener Wasit
             window.onSnapshot(window.collection(window.db, "wasit"), (snapshot) => {
                 daftarWasit = [];
                 snapshot.forEach((docSnap) => {
@@ -1755,7 +1751,6 @@
                 }
             });
 
-            // Real-time listener Event / Pertandingan
             window.onSnapshot(window.collection(window.db, "event"), (snapshot) => {
                 daftarEvent = [];
                 snapshot.forEach((docSnap) => {
@@ -1874,7 +1869,6 @@
             switchView('dashboardView');
         }
 
-        // --- STATISTIK PERTANDINGAN & KLASEMEN ---
         function openStatistikPertandinganView() {
             switchView('statistikPertandinganFullView');
             currentStatistikViewLevel = 'eventList';
@@ -2055,7 +2049,6 @@
             }
         }
 
-        // --- STOCKFISH BLOB WORKER ENGINE ---
         function initStockfishBlobWorker() {
             if (stockfishWorker) return;
             const stockfishCdnUrl = "https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js";
@@ -2309,7 +2302,6 @@
             }
         }
 
-        // --- TIMER WASIT TICK ---
         function startGlobalWasitTimerTick() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
             globalWasitInterval = setInterval(async () => {
@@ -2369,7 +2361,6 @@
             if(dotWasit) dotWasit.style.display = hasUnread ? 'block' : 'none';
         }
 
-        // --- PENDAFTARAN PEMAIN YANG DIPERBAIKI ---
         async function handleRegisterPemain(event) {
             event.preventDefault();
             const hp = document.getElementById('regPemainHp').value.trim();
