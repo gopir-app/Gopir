@@ -1893,7 +1893,6 @@
                 const totalPeserta = ev.peserta ? ev.peserta.length : 0;
                 const totalBabak = ev.totalBabak || 0;
                 const babakSelesai = ev.babakList ? ev.babakList.filter(b => b.status === 'Selesai').length : 0;
-                const statusLabel = babakSelesai > 0 ? `Selesai (${babakSelesai}/${totalBabak} Babak)` : 'Aktif / Belum Selesai';
                 const zoomStatusText = ev.useZoom === 'tidak' ? 'Tanpa Zoom' : 'Wajib Zoom';
 
                 container.innerHTML += `
@@ -2571,14 +2570,15 @@
             const daftarBtnIcon = isRegistered ? 'fa-circle-check' : 'fa-list-check';
             const daftarBtnColor = isRegistered ? '#34d399' : 'var(--accent-gold)';
 
-            const zoomMenuLabel = ev.useZoom === 'tidak' ? 'Masuk meja (Tanpa Zoom)' : 'Masuk meja (Wajib Zoom)';
+            // TOMBOL MASUK MEJA DINAMIS SESUAI PERMINTAAN ADMIN
+            const mejaMenuLabel = ev.useZoom === 'tidak' ? 'Masuk meja' : 'Masuk meja (Wajib Zoom)';
 
             gridContainer.innerHTML = `
                 <button class="submenu-btn" id="btnDaftarPertandinganIni" onclick="handleDaftarKePertandingan()">
                     <i class="fa-solid ${daftarBtnIcon}" style="color: ${daftarBtnColor};"></i> ${daftarBtnText}
                 </button>
                 <button class="submenu-btn" onclick="openMejaPemainModal()">
-                    <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> ${zoomMenuLabel}
+                    <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> ${mejaMenuLabel}
                 </button>
                 <button class="submenu-btn" onclick="openStatistikPertandinganView()">
                     <i class="fa-solid fa-square-poll-vertical" style="color: var(--accent-gold);"></i> Klasemen Poin
