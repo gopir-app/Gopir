@@ -1669,7 +1669,7 @@
         let chessEngine = new Chess();
         let selectedSquareSquareNotation = null;
         let validMovesForSelectedSquare = [];
-        let timerIntervalPemain = null;
+        let lastKnownFenOnline = "";
 
         let chessEngineAnalisa = new Chess();
         let selectedSquareAnalisa = null;
@@ -1770,7 +1770,7 @@
                     openRiwayatPertandinganView();
                 }
 
-                // SINKRONISASI REAL-TIME ARENA CATUR PEMAIN
+                // SINKRONISASI REAL-TIME ARENA CATUR PEMAIN (DIOPTIMALKAN AGAR TIDAK GOYANG)
                 if(document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
                     syncRealtimeArenaState();
                 }
@@ -2405,7 +2405,7 @@
                                         if(!m.isBye && !m.isFinished) {
                                             const engineChecker = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
                                             
-                                            // WAKTU HANYA BERKURANG SESUAI GILIRAN MELANGKAH
+                                            // WAKTU BERKURANG 1 DETIK SESUAI GILIRAN SECARA STABIL
                                             if(engineChecker.turn() === 'w') {
                                                 if(m.timePutih > 0) {
                                                     m.timePutih--;
@@ -2794,6 +2794,7 @@
         function resetMatchArenaPemain(noMeja, babakKe) {
             selectedSquareSquareNotation = null;
             validMovesForSelectedSquare = [];
+            lastKnownFenOnline = "";
 
             syncRealtimeArenaState();
         }
@@ -2829,12 +2830,17 @@
             }
 
             const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-            chessEngine = new Chess(currentFen);
+            
+            // HANYA RENDER ULANG PAPAN JIKA FEN BERUBAH AGAR TIDAK GOYANG & TIDAK MENGEMBALIKAN BIDAK
+            if (currentFen !== lastKnownFenOnline) {
+                lastKnownFenOnline = currentFen;
+                chessEngine = new Chess(currentFen);
+                renderChessboardOnline(myRoleColor);
+            }
 
             document.getElementById('timerPutih').innerText = formatTime(meja.timePutih || 600);
             document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam || 600);
 
-            renderChessboardOnline(myRoleColor);
             updateChessGameStatusInfoOnline(meja, myRoleColor);
         }
 
@@ -2847,7 +2853,6 @@
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
-                    // ROTASI PAPAN OTOMATIS SESUAI POSISI PEMAIN (PUTIH DI BAWAH, HITAM DI BAWAH)
                     const rowIdx = myRoleColor === 'w' ? r : (7 - r);
                     const colIdx = myRoleColor === 'w' ? c : (7 - c);
 
@@ -2907,7 +2912,6 @@
         async function onSquareClickOnline(squareNotation, myRoleColor) {
             if (chessEngine.game_over()) return;
 
-            // CEK APAKAH GILIRAN SESUAI DENGAN WARNA BIDAK PEMAIN
             if (chessEngine.turn() !== myRoleColor) {
                 alert("Bukan giliran Anda! Tunggu lawan melangkah.");
                 return;
@@ -2936,17 +2940,19 @@
                         }
                     }
 
-                    chessEngine.move({
+                    const moveResult = chessEngine.move({
                         from: selectedSquareSquareNotation,
                         to: squareNotation,
                         promotion: promotionChoice
                     });
 
-                    selectedSquareSquareNotation = null;
-                    validMovesForSelectedSquare = [];
-
-                    // SIMPAN STATE FEN TERBARU KE DATABASE FIREBASE AGAR TERSINKRON KE LAWAN
-                    await pushMoveToFirebaseOnline();
+                    if (moveResult) {
+                        selectedSquareSquareNotation = null;
+                        validMovesForSelectedSquare = [];
+                        lastKnownFenOnline = chessEngine.fen();
+                        renderChessboardOnline(myRoleColor);
+                        await pushMoveToFirebaseOnline();
+                    }
                 } else {
                     const piece = chessEngine.get(squareNotation);
                     if (piece && piece.color === myRoleColor) {
@@ -2997,9 +3003,6 @@
                     babakList: ev.babakList
                 });
             }
-
-            const isPemainPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
-            renderChessboardOnline(isPemainPutih ? 'w' : 'b');
         }
 
         function updateChessGameStatusInfoOnline(meja, myRoleColor) {
