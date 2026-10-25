@@ -931,9 +931,9 @@
             </button>
         </div>
 
-        <!-- HALAMAN PEMAIN 2.3: ARENA PAPAN CATUR BERTANDING -->
+        <!-- HALAMAN PEMAIN 2.3: ARENA PAPAN CATUR BERTANDING ONLINE -->
         <div id="papanCaturFullView" class="page-view">
-            <h1 class="hero-title" id="arenaMatchTitle"><i class="fa-solid fa-chess-board"></i> Arena Pertandingan</h1>
+            <h1 class="hero-title" id="arenaMatchTitle"><i class="fa-solid fa-chess-board"></i> Arena Pertandingan Online</h1>
             <p class="hero-subtitle" id="arenaMatchSubtitle">Meja Pertandingan Resmi</p>
 
             <div class="match-arena-box">
@@ -951,11 +951,11 @@
                 <div id="chessboard" class="chessboard-grid"></div>
 
                 <div class="info-badge-box" id="chessGameStatus" style="width: 100%; text-align: center; margin-top: 5px;">
-                    <i class="fa-solid fa-circle-info"></i> Giliran Putih Melangkah
+                    <i class="fa-solid fa-circle-info"></i> Menghubungkan ke meja online...
                 </div>
             </div>
 
-            <button class="btn btn-outline" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="switchView('pemainDashboardView')">
+            <button class="btn btn-outline" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="keluarArenaPertandingan()">
                 <i class="fa-solid fa-arrow-left"></i> Keluar Arena / Ke Dashboard
             </button>
         </div>
@@ -1670,6 +1670,7 @@
         let selectedSquareSquareNotation = null;
         let validMovesForSelectedSquare = [];
         let timerIntervalPemain = null;
+        let unsubscribeEventSnapshot = null;
 
         let chessEngineAnalisa = new Chess();
         let selectedSquareAnalisa = null;
@@ -1768,6 +1769,11 @@
                 }
                 if(document.getElementById('riwayatPertandinganFullView').classList.contains('active')) {
                     openRiwayatPertandinganView();
+                }
+
+                // JIKA SEDANG BERADA DI ARENA PERTANDINGAN ONLINE, SINKRONKAN PAPAN & WAKTU
+                if(document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
+                    syncRealtimeArenaState();
                 }
             });
         }
@@ -1888,7 +1894,6 @@
             daftarEvent.forEach(ev => {
                 const totalPeserta = ev.peserta ? ev.peserta.length : 0;
                 const totalBabak = ev.totalBabak || 0;
-                const babakSelesai = ev.babakList ? ev.babakList.filter(b => b.status === 'Selesai').length : 0;
                 const zoomStatusText = ev.useZoom === 'tidak' ? 'Tanpa Zoom' : 'Wajib Zoom';
 
                 container.innerHTML += `
@@ -2400,18 +2405,21 @@
                                 if(b.pairing) {
                                     b.pairing.forEach(m => {
                                         if(!m.isBye && !m.isFinished) {
-                                            if(m.timePutih > 0) m.timePutih--;
-                                            else {
-                                                m.isFinished = true;
-                                                m.skor = '0-1'; // Putih habis waktu, Hitam menang
-                                                m.alasanSelesai = `Waktu Habis (${m.pemainHitam.nama} Menang)`;
-                                            }
-
-                                            if(m.timeHitam > 0) m.timeHitam--;
-                                            else {
-                                                m.isFinished = true;
-                                                m.skor = '1-0'; // Hitam habis waktu, Putih menang
-                                                m.alasanSelesai = `Waktu Habis (${m.pemainPutih.nama} Menang)`;
+                                            const engineChecker = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+                                            if(engineChecker.turn() === 'w') {
+                                                if(m.timePutih > 0) m.timePutih--;
+                                                else {
+                                                    m.isFinished = true;
+                                                    m.skor = '0-1';
+                                                    m.alasanSelesai = `Waktu Habis (${m.pemainHitam.nama} Menang)`;
+                                                }
+                                            } else {
+                                                if(m.timeHitam > 0) m.timeHitam--;
+                                                else {
+                                                    m.isFinished = true;
+                                                    m.skor = '1-0';
+                                                    m.alasanSelesai = `Waktu Habis (${m.pemainPutih.nama} Menang)`;
+                                                }
                                             }
                                         }
                                     });
@@ -2752,7 +2760,7 @@
                         </div>
 
                         <button class="btn btn-success" style="width: 100%; padding: 10px; font-size: 0.85rem;" onclick="masukKeArenaBertanding('${ev.nama}', ${babakAktif.babakKe}, ${mejaPemain.meja}, '${lawan.nama}')">
-                            <i class="fa-solid fa-chess-board"></i> Masuk Bertanding / Papan Catur
+                            <i class="fa-solid fa-chess-board"></i> Masuk Bertanding Online Sekarang
                         </button>
                     </div>`;
             }
@@ -2771,28 +2779,27 @@
 
             document.getElementById('arenaMatchTitle').innerText = `Meja ${noMeja} - Babak ${babakKe}`;
             document.getElementById('arenaMatchSubtitle').innerText = `${namaEvent} vs ${namaLawan}`;
-            document.getElementById('namaSayaClock').innerText = `${activeUserPemain ? activeUserPemain.nama : 'Pemain'}`;
-            document.getElementById('namaLawanClock').innerText = `${namaLawan}`;
 
             resetMatchArenaPemain(noMeja, babakKe);
         }
 
         function resetMatchArenaPemain(noMeja, babakKe) {
-            chessEngine = new Chess(); 
             selectedSquareSquareNotation = null;
             validMovesForSelectedSquare = [];
 
-            renderChessboard();
-            updateChessGameStatusInfo();
+            syncRealtimeArenaState();
+            startPemainTimerTickLoop();
+        }
 
+        function startPemainTimerTickLoop() {
             if(timerIntervalPemain) clearInterval(timerIntervalPemain);
 
             timerIntervalPemain = setInterval(async () => {
                 const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
                 if(ev && ev.babakList) {
-                    const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
+                    const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
                     if(babakObj && babakObj.pairing) {
-                        const meja = babakObj.pairing.find(m => m.meja === noMeja);
+                        const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
                         if(meja && !meja.isFinished) {
                             let updatedTime = false;
 
@@ -2832,7 +2839,46 @@
             }, 1000);
         }
 
-        function renderChessboard() {
+        function syncRealtimeArenaState() {
+            if(!activeUserPemain || !selectedMatchId || !activeMejaNo || !activeBabakKe) return;
+
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            if(!ev || !ev.babakList) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+            if(!babakObj || !babakObj.pairing) return;
+
+            const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+            if(!meja) return;
+
+            // TENTUKAN APAKAH PEMAIN LOGIN SEBAGAI PUTIH ATAU HITAM DI MEJA INI
+            let myRoleColor = 'w';
+            let namaLawan = 'Lawan';
+
+            if(meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp) {
+                myRoleColor = 'w';
+                namaLawan = meja.pemainHitam ? meja.pemainHitam.nama : 'Bot / Kosong';
+                document.getElementById('namaSayaClock').innerText = `${activeUserPemain.nama} (Putih ⚪)`;
+                document.getElementById('namaLawanClock').innerText = `${namaLawan} (Hitam ⚫)`;
+            } else if(meja.pemainHitam && meja.pemainHitam.hp === activeUserPemain.hp) {
+                myRoleColor = 'b';
+                namaLawan = meja.pemainPutih ? meja.pemainPutih.nama : 'Bot / Kosong';
+                document.getElementById('namaSayaClock').innerText = `${activeUserPemain.nama} (Hitam ⚫)`;
+                document.getElementById('namaLawanClock').innerText = `${namaLawan} (Putih ⚪)`;
+            }
+
+            // LOAD POSISI CHESS DARI FEN DATABASE ATAU INISIASI AWAL
+            const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+            chessEngine = new Chess(currentFen);
+
+            document.getElementById('timerPutih').innerText = formatTime(meja.timePutih || 600);
+            document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam || 600);
+
+            renderChessboardOnline(myRoleColor);
+            updateChessGameStatusInfoOnline(meja, myRoleColor);
+        }
+
+        function renderChessboardOnline(myRoleColor) {
             const boardEl = document.getElementById('chessboard');
             boardEl.innerHTML = '';
 
@@ -2841,9 +2887,12 @@
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
+                    const rowIdx = myRoleColor === 'w' ? r : (7 - r);
+                    const colIdx = myRoleColor === 'w' ? c : (7 - c);
+
                     const squareEl = document.createElement('div');
                     const isLight = (r + c) % 2 === 0;
-                    const squareNotation = files[c] + (8 - r);
+                    const squareNotation = files[colIdx] + (8 - rowIdx);
 
                     squareEl.className = `square ${isLight ? 'light' : 'dark'}`;
                     squareEl.dataset.square = squareNotation;
@@ -2856,7 +2905,7 @@
                         squareEl.classList.add('valid-move');
                     }
 
-                    const piece = boardArray[r][c];
+                    const piece = boardArray[rowIdx][colIdx];
                     if (piece) {
                         const pieceKey = piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase();
                         if (pieceImages[pieceKey]) {
@@ -2872,7 +2921,7 @@
                         }
                     }
 
-                    squareEl.onclick = () => onSquareClick(squareNotation);
+                    squareEl.onclick = () => onSquareClickOnline(squareNotation, myRoleColor);
                     boardEl.appendChild(squareEl);
                 }
             }
@@ -2880,15 +2929,21 @@
             updateTurnActiveBox();
         }
 
-        async function onSquareClick(squareNotation) {
+        async function onSquareClickOnline(squareNotation, myRoleColor) {
             if (chessEngine.game_over()) return;
+
+            // CEK APAKAH GILIRAN SESUAI DENGAN WARNA BIDAK PEMAIN
+            if (chessEngine.turn() !== myRoleColor) {
+                alert("Bukan giliran Anda! Tunggu lawan melangkah.");
+                return;
+            }
 
             if (selectedSquareSquareNotation === null) {
                 const piece = chessEngine.get(squareNotation);
-                if (piece && piece.color === chessEngine.turn()) {
+                if (piece && piece.color === myRoleColor) {
                     selectedSquareSquareNotation = squareNotation;
                     validMovesForSelectedSquare = chessEngine.moves({ square: squareNotation, verbose: true });
-                    renderChessboard();
+                    renderChessboardOnline(myRoleColor);
                 }
             } else {
                 const isMoveValid = validMovesForSelectedSquare.some(m => m.to === squareNotation);
@@ -2914,28 +2969,24 @@
 
                     selectedSquareSquareNotation = null;
                     validMovesForSelectedSquare = [];
-                    renderChessboard();
-                    updateChessGameStatusInfo();
 
-                    // CEK APAKAH PERTANDINGAN BERAKHIR (SKAKMAT / REMIS)
-                    await cekDanSimpanHasilOtomatisGame();
+                    // SIMPAN STATE FEN TERBARU KE DATABASE FIREBASE AGAR TERSINKRON KE LAWAN
+                    await pushMoveToFirebaseOnline();
                 } else {
                     const piece = chessEngine.get(squareNotation);
-                    if (piece && piece.color === chessEngine.turn()) {
+                    if (piece && piece.color === myRoleColor) {
                         selectedSquareSquareNotation = squareNotation;
                         validMovesForSelectedSquare = chessEngine.moves({ square: squareNotation, verbose: true });
                     } else {
                         selectedSquareSquareNotation = null;
                         validMovesForSelectedSquare = [];
                     }
-                    renderChessboard();
+                    renderChessboardOnline(myRoleColor);
                 }
             }
         }
 
-        async function cekDanSimpanHasilOtomatisGame() {
-            if (!chessEngine.game_over()) return;
-
+        async function pushMoveToFirebaseOnline() {
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev || !ev.babakList) return;
 
@@ -2943,33 +2994,28 @@
             if(!babakObj || !babakObj.pairing) return;
 
             const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
-            if(!meja || meja.isFinished) return;
+            if(!meja) return;
 
-            let skorHasil = '0-1';
-            let alasanText = '';
-            let pesanNotif = '';
-            const sisaWaktuPemenangDetik = chessEngine.turn() === 'b' ? meja.timePutih : meja.timeHitam;
-            const sisaWaktuFormat = formatTime(sisaWaktuPemenangDetik);
+            meja.fen = chessEngine.fen();
 
-            if (chessEngine.in_checkmate()) {
-                const pemenang = chessEngine.turn() === 'w' ? meja.pemainHitam.nama : meja.pemainPutih.nama;
-                skorHasil = chessEngine.turn() === 'w' ? '0-1' : '1-0';
-                alasanText = `Skakmat`;
-                pesanNotif = `${pemenang} ${skorHasil === '1-0' ? '1 - ' + meja.pemainHitam.nama + ' 0' : meja.pemainPutih.nama + ' 0 - ' + pemenang + ' 1'} skak mati ${sisaWaktuFormat}`;
-            } else if (chessEngine.in_draw()) {
-                skorHasil = '0.5-0.5';
-                alasanText = 'Remis / Draw';
-                pesanNotif = `${meja.pemainPutih.nama} ½ - ½ ${meja.pemainHitam.nama} (Remis - Sisa Waktu Putih: ${formatTime(meja.timePutih)} | Hitam: ${formatTime(meja.timeHitam)})`;
-            } else {
-                skorHasil = '0.5-0.5';
-                alasanText = 'Selesai';
-                pesanNotif = `Pertandingan Selesai (${meja.pemainPutih.nama} vs ${meja.pemainHitam.nama})`;
+            if (chessEngine.game_over()) {
+                meja.isFinished = true;
+                babakObj.isTimerRunning = false;
+
+                const sisaWaktuPemenangDetik = chessEngine.turn() === 'b' ? meja.timePutih : meja.timeHitam;
+                const sisaWaktuFormat = formatTime(sisaWaktuPemenangDetik);
+
+                if (chessEngine.in_checkmate()) {
+                    const pemenang = chessEngine.turn() === 'w' ? meja.pemainHitam.nama : meja.pemainPutih.nama;
+                    meja.skor = chessEngine.turn() === 'w' ? '0-1' : '1-0';
+                    meja.alasanSelesai = `Skakmat`;
+                    tampilkanPesanHasilOtomatis(`${pemenang} ${meja.skor === '1-0' ? '1 - ' + meja.pemainHitam.nama + ' 0' : meja.pemainPutih.nama + ' 0 - ' + pemenang + ' 1'} skak mati ${sisaWaktuFormat}`);
+                } else if (chessEngine.in_draw()) {
+                    meja.skor = '0.5-0.5';
+                    meja.alasanSelesai = 'Remis / Draw';
+                    tampilkanPesanHasilOtomatis(`${meja.pemainPutih.nama} ½ - ½ ${meja.pemainHitam.nama} (Remis)`);
+                }
             }
-
-            meja.isFinished = true;
-            meja.skor = skorHasil;
-            meja.alasanSelesai = alasanText;
-            babakObj.isTimerRunning = false;
 
             if (window.db) {
                 await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
@@ -2977,7 +3023,36 @@
                 });
             }
 
-            tampilkanPesanHasilOtomatis(pesanNotif);
+            renderChessboardOnline(meja.pemainPutih.hp === activeUserPemain.hp ? 'w' : 'b');
+        }
+
+        function updateChessGameStatusInfoOnline(meja, myRoleColor) {
+            const statusEl = document.getElementById('chessGameStatus');
+            const turnText = chessEngine.turn() === 'w' ? 'Putih (⚪)' : 'Hitam (⚫)';
+            const isMyTurn = chessEngine.turn() === myRoleColor;
+
+            if (meja.isFinished) {
+                statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>Pertandingan Selesai!</b> Skor: ${meja.skor}`;
+                statusEl.style.color = '#10b981';
+            } else if (chessEngine.in_checkmate()) {
+                const winner = chessEngine.turn() === 'w' ? 'Hitam' : 'Putih';
+                statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>SKAKMATI!</b> ${winner} Menang!`;
+                statusEl.style.color = '#10b981';
+            } else if (chessEngine.in_draw()) {
+                statusEl.innerHTML = `<i class="fa-solid fa-handshake"></i> <b>REMIS / DRAW!</b>`;
+                statusEl.style.color = 'var(--accent-gold)';
+            } else if (chessEngine.in_check()) {
+                statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> <b>SKAK!</b> Giliran ${turnText} ${isMyTurn ? '(Giliran Anda!)' : ''}`;
+                statusEl.style.color = '#ef4444';
+            } else {
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> Giliran <b>${turnText}</b> ${isMyTurn ? '<b>(Giliran Anda!)</b>' : '(Menunggu lawan melangkah...)'}`;
+                statusEl.style.color = 'var(--accent-gold)';
+            }
+        }
+
+        function keluarArenaPertandingan() {
+            if(timerIntervalPemain) clearInterval(timerIntervalPemain);
+            switchView('pemainDashboardView');
         }
 
         function tampilkanPesanHasilOtomatis(teksPesan) {
@@ -2985,44 +3060,6 @@
             statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>${teksPesan}</b>`;
             statusEl.style.color = '#10b981';
             alert("Hasil Pertandingan Tercatat Otomatis:\n\n" + teksPesan);
-        }
-
-        function updateChessGameStatusInfo() {
-            const statusEl = document.getElementById('chessGameStatus');
-            const turnText = chessEngine.turn() === 'w' ? 'Putih' : 'Hitam';
-
-            if (chessEngine.in_checkmate()) {
-                const winner = chessEngine.turn() === 'w' ? 'Hitam' : 'Putih';
-                statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>SKAKMATI!</b> ${winner} Menang!`;
-                statusEl.style.color = '#10b981';
-            } else if (chessEngine.in_draw()) {
-                let alasan = 'Remis';
-                if (chessEngine.in_stalemate()) alasan = 'Remis (Stalemate / Pat)';
-                else if (chessEngine.in_threefold_repetition()) alasan = 'Remis (Pengulangan 3x)';
-                else if (chessEngine.insufficient_material()) alasan = 'Remis (Bidak Tidak Cukup)';
-                
-                statusEl.innerHTML = `<i class="fa-solid fa-handshake"></i> <b>${alasan}</b>`;
-                statusEl.style.color = 'var(--accent-gold)';
-            } else if (chessEngine.in_check()) {
-                statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> <b>SKAK!</b> Giliran ${turnText} Melangkah`;
-                statusEl.style.color = '#ef4444';
-            } else {
-                statusEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> Giliran <b>${turnText}</b> Melangkah`;
-                statusEl.style.color = 'var(--accent-gold)';
-            }
-        }
-
-        function updateTurnActiveBox() {
-            const clockPutih = document.getElementById('clockPutihBox');
-            const clockHitam = document.getElementById('clockHitamBox');
-
-            if (chessEngine.turn() === 'w') {
-                clockPutih.classList.add('active-turn');
-                clockHitam.classList.remove('active-turn');
-            } else {
-                clockHitam.classList.add('active-turn');
-                clockPutih.classList.remove('active-turn');
-            }
         }
 
         function formatTime(seconds) {
@@ -3505,7 +3542,6 @@
             const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
             if(!babakObj) return;
 
-            // KALKULASI TOTAL POIN & AKUMULASI SISA WAKTU DARI BABAK SEBELUMNYA UNTUK TIE-BREAK MEJA
             const statsPemainMap = {};
             ev.peserta.forEach(p => {
                 statsPemainMap[p.hp || p.nama] = {
@@ -3556,7 +3592,6 @@
                 }
             });
 
-            // URUTKAN PESERTA BERDASARKAN POIN TERTINGGI, LALU SISA WAKTU TERBANYAK (TIE-BREAK MEJA 1 DST)
             let sortedPlayers = Object.values(statsPemainMap).sort((a, b) => {
                 if (b.poin !== a.poin) return b.poin - a.poin;
                 if (b.sisaWaktuDetik !== a.sisaWaktuDetik) return b.sisaWaktuDetik - a.sisaWaktuDetik;
@@ -3565,6 +3600,7 @@
 
             let pairingResult = [];
             const durasiDetik = (ev.durasiWaktu || 10) * 60;
+            const startingFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
             if(sortedPlayers.length % 2 !== 0) {
                 let byePlayer = sortedPlayers.pop();
@@ -3577,7 +3613,8 @@
                     timePutih: durasiDetik,
                     timeHitam: durasiDetik,
                     isFinished: true,
-                    alasanSelesai: 'BYE Otomatis'
+                    alasanSelesai: 'BYE Otomatis',
+                    fen: startingFen
                 });
             }
 
@@ -3590,7 +3627,8 @@
                     skor: '0',
                     timePutih: durasiDetik,
                     timeHitam: durasiDetik,
-                    isFinished: false
+                    isFinished: false,
+                    fen: startingFen
                 });
             }
 
