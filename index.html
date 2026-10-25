@@ -1770,7 +1770,7 @@
                     openRiwayatPertandinganView();
                 }
 
-                // JIKA SEDANG BERADA DI ARENA PERTANDINGAN ONLINE, SINKRONKAN PAPAN & WAKTU
+                // SINKRONISASI REAL-TIME ARENA CATUR PEMAIN
                 if(document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
                     syncRealtimeArenaState();
                 }
@@ -2404,27 +2404,34 @@
                                     b.pairing.forEach(m => {
                                         if(!m.isBye && !m.isFinished) {
                                             const engineChecker = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+                                            
+                                            // WAKTU HANYA BERKURANG SESUAI GILIRAN MELANGKAH
                                             if(engineChecker.turn() === 'w') {
-                                                if(m.timePutih > 0) m.timePutih--;
-                                                else {
+                                                if(m.timePutih > 0) {
+                                                    m.timePutih--;
+                                                    updated = true;
+                                                } else {
                                                     m.isFinished = true;
                                                     m.skor = '0-1';
                                                     m.alasanSelesai = `Waktu Habis (${m.pemainHitam.nama} Menang)`;
+                                                    updated = true;
                                                 }
                                             } else {
-                                                if(m.timeHitam > 0) m.timeHitam--;
-                                                else {
+                                                if(m.timeHitam > 0) {
+                                                    m.timeHitam--;
+                                                    updated = true;
+                                                } else {
                                                     m.isFinished = true;
                                                     m.skor = '1-0';
                                                     m.alasanSelesai = `Waktu Habis (${m.pemainPutih.nama} Menang)`;
+                                                    updated = true;
                                                 }
                                             }
                                         }
                                     });
                                 }
-                                updated = true;
                                 
-                                if (window.db) {
+                                if (window.db && updated) {
                                     const eventDocId = ev.docId || ev.id;
                                     await window.updateDoc(window.doc(window.db, "event", String(eventDocId)), {
                                         babakList: ev.babakList
@@ -2699,7 +2706,6 @@
             let rolePemain = ''; 
 
             babakAktif.pairing.forEach(m => {
-                // PENGENALAN PEMAIN BERDASARKAN NAMA DAN NOMOR HP (UNIQUE KEY)
                 const isPemainPutih = m.pemainPutih && (m.pemainPutih.hp === activeUserPemain.hp || m.pemainPutih.nama === activeUserPemain.nama);
                 const isPemainHitam = m.pemainHitam && (m.pemainHitam.hp === activeUserPemain.hp || m.pemainHitam.nama === activeUserPemain.nama);
 
@@ -2790,60 +2796,6 @@
             validMovesForSelectedSquare = [];
 
             syncRealtimeArenaState();
-            startPemainTimerTickLoop();
-        }
-
-        function startPemainTimerTickLoop() {
-            if(timerIntervalPemain) clearInterval(timerIntervalPemain);
-
-            timerIntervalPemain = setInterval(async () => {
-                const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-                if(ev && ev.babakList) {
-                    const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
-                    if(babakObj && babakObj.pairing) {
-                        const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
-                        if(meja && !meja.isFinished) {
-                            let updatedTime = false;
-
-                            // WAKTU HANYA BERJALAN SESUAI GILIRAN MELANGKAH
-                            const engineChecker = new Chess(meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-
-                            if(engineChecker.turn() === 'w') {
-                                if(meja.timePutih > 0) {
-                                    meja.timePutih--;
-                                    updatedTime = true;
-                                }
-                                if(meja.timePutih <= 0) {
-                                    meja.isFinished = true;
-                                    meja.skor = '0-1';
-                                    meja.alasanSelesai = `Waktu Habis (${meja.pemainHitam.nama} Menang)`;
-                                    tampilkanPesanHasilOtomatis(`${meja.pemainHitam.nama} 1 - ${meja.pemainPutih.nama} 0 (Waktu Habis)`);
-                                }
-                            } else {
-                                if(meja.timeHitam > 0) {
-                                    meja.timeHitam--;
-                                    updatedTime = true;
-                                }
-                                if(meja.timeHitam <= 0) {
-                                    meja.isFinished = true;
-                                    meja.skor = '1-0';
-                                    meja.alasanSelesai = `Waktu Habis (${meja.pemainPutih.nama} Menang)`;
-                                    tampilkanPesanHasilOtomatis(`${meja.pemainPutih.nama} 1 - ${meja.pemainHitam.nama} 0 (Waktu Habis)`);
-                                }
-                            }
-
-                            document.getElementById('timerPutih').innerText = formatTime(meja.timePutih);
-                            document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam);
-
-                            if(updatedTime && window.db) {
-                                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                                    babakList: ev.babakList
-                                });
-                            }
-                        }
-                    }
-                }
-            }, 1000);
         }
 
         function syncRealtimeArenaState() {
@@ -2858,7 +2810,6 @@
             const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
             if(!meja) return;
 
-            // TENTUKAN WARNA BERDASARKAN NAMA & NO HP (MAPPING WASIT)
             let myRoleColor = 'w';
             let namaLawan = 'Lawan';
 
@@ -2877,7 +2828,6 @@
                 document.getElementById('namaLawanClock').innerText = `${namaLawan} (Putih ⚪)`;
             }
 
-            // LOAD POSISI CHESS DARI FEN DATABASE ATAU INISIASI AWAL
             const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
             chessEngine = new Chess(currentFen);
 
@@ -2897,6 +2847,7 @@
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
+                    // ROTASI PAPAN OTOMATIS SESUAI POSISI PEMAIN (PUTIH DI BAWAH, HITAM DI BAWAH)
                     const rowIdx = myRoleColor === 'w' ? r : (7 - r);
                     const colIdx = myRoleColor === 'w' ? c : (7 - c);
 
@@ -3076,7 +3027,6 @@
         }
 
         function keluarArenaPertandingan() {
-            if(timerIntervalPemain) clearInterval(timerIntervalPemain);
             switchView('pemainDashboardView');
         }
 
@@ -3687,7 +3637,7 @@
                 });
             }
 
-            alert(`Timer Babak ${babakKe} DIMULAI secara resmi!`);
+            alert(`Timer Babak ${babakKe} DIMULAI secara resmi oleh Wasit! Waktu berjalan otomatis sesuai giliran melangkah.`);
             renderPairingMejaInfo();
         }
 
@@ -3707,7 +3657,7 @@
                 });
             }
 
-            alert(`Timer Babak ${babakKe} DIHENTIKAN/PAUSE!`);
+            alert(`Timer Babak ${babakKe} DIHENTIKAN/PAUSE oleh Wasit!`);
             renderPairingMejaInfo();
         }
 
