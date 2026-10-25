@@ -1474,13 +1474,26 @@
         </div>
     </div>
 
-    <!-- MODAL ATUR ZOOM OLEH WASIT -->
+    <!-- MODAL ATUR ZOOM OLEH WASIT (DITAMBAHKAN TOMBOL PINTASAN BUAT ZOOM) -->
     <div class="modal-overlay" id="aturZoomWasitModal">
         <div class="modal-box">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-video"></i> Atur Link Zoom Pengawasan</h3>
                 <button class="close-btn" onclick="closeModal('aturZoomWasitModal')">&times;</button>
             </div>
+
+            <!-- Tombol Pintasan Cepat ke Website Zoom untuk Membuat Meeting -->
+            <div class="info-badge-box" style="margin-bottom: 12px; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.75rem; color: #34d399; font-weight: 700;">
+                        <i class="fa-solid fa-circle-plus"></i> Belum punya ruang Zoom?
+                    </span>
+                    <a href="https://zoom.us/profile" target="_blank" class="btn btn-success" style="padding: 5px 10px; font-size: 0.7rem; text-decoration: none; white-space: nowrap;">
+                        <i class="fa-solid fa-video"></i> Buat Zoom Baru
+                    </a>
+                </div>
+            </div>
+
             <form onsubmit="handleSimpanZoomWasit(event)">
                 <div class="input-group">
                     <label>URL / Tautan Zoom Meeting</label>
