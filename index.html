@@ -1630,10 +1630,10 @@
         <p>&copy; 2026 Asr.Catur Online</p>
     </footer>
 
-    <!-- FIREBASE SDK -->
+    <!-- FIREBASE FIRESTORE SYNC & LOGIC SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCB9VFST65f7UhMiHg826ZYJaoBXJfY6qs",
@@ -1647,6 +1647,19 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        window.db = db;
+        window.collection = collection;
+        window.getDocs = getDocs;
+        window.addDoc = addDoc;
+        window.updateDoc = updateDoc;
+        window.deleteDoc = deleteDoc;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.onSnapshot = onSnapshot;
+
+        // Trigger inisialisasi setelah modul Firebase siap
+        window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
     <script>
@@ -1656,13 +1669,11 @@
         let activeMejaNo = JSON.parse(localStorage.getItem('asr_active_meja')) || null;
         let activeBabakKe = JSON.parse(localStorage.getItem('asr_active_babak')) || null;
 
-        // CHESS ENGINE MATCH STATE
         let chessEngine = new Chess();
         let selectedSquareSquareNotation = null;
         let validMovesForSelectedSquare = [];
         let timerIntervalPemain = null;
 
-        // ANALISA ENGINE STOCKFISH (BLOB WORKER API)
         let chessEngineAnalisa = new Chess();
         let selectedSquareAnalisa = null;
         let validMovesAnalisa = [];
@@ -1670,7 +1681,6 @@
         let stockfishDepthLevel = 10;
         let stockfishWorker = null;
 
-        // STATISTIK PERTANDINGAN STATE
         let currentStatistikViewLevel = 'eventList'; 
         let currentStatistikEventId = null;
 
@@ -1689,50 +1699,9 @@
             'k': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png'
         };
 
-        let daftarPemain = JSON.parse(localStorage.getItem('asr_data_pemain')) || [
-            { id: 1, hp: "081344444444", pass: "12345", nama: "Budi Santoso", kota: "Jakarta", elo: 0, status: "approved" },
-            { id: 2, hp: "081299998888", pass: "12345", nama: "Ahmad Catur", kota: "Bandung", elo: 0, status: "pending" }
-        ];
-
-        let daftarWasit = JSON.parse(localStorage.getItem('asr_data_wasit')) || [
-            { id: 1, hp: "081355555555", pass: "12345", nama: "Arb. Joko, MN", kota: "Surabaya", lisensiImg: "", status: "approved" },
-            { id: 2, hp: "081988887777", pass: "12345", nama: "Arb. Siti, SN", kota: "Semarang", lisensiImg: "", status: "pending" }
-        ];
-
-        let daftarEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [
-            {
-                id: 101,
-                nama: "AACUP 2026",
-                tanggal: "Sabtu, 24 Oktober 2026",
-                hadiah: "Rp 10.000.000",
-                durasiWaktu: 10,
-                totalBabak: 3,
-                zoomUrl: "https://zoom.us/j/1234567890",
-                zoomInfo: "Meeting ID: 123 456 Pass: asr2026",
-                peserta: [
-                    { id: 1, nama: "Budi Santoso", hp: "081344444444", kota: "Jakarta", elo: 1200 },
-                    { id: 2, nama: "Ahmad Catur", hp: "081299998888", kota: "Bandung", elo: 1150 }
-                ],
-                babakList: [
-                    {
-                        babakKe: 1,
-                        status: "Selesai",
-                        pairing: [
-                            {
-                                meja: 1,
-                                pemainPutih: { id: 1, nama: "Budi Santoso" },
-                                pemainHitam: { id: 2, nama: "Ahmad Catur" },
-                                skor: "1-0",
-                                timePutih: 420,
-                                timeHitam: 0,
-                                isFinished: true
-                            }
-                        ]
-                    }
-                ]
-            }
-        ];
-
+        let daftarPemain = [];
+        let daftarWasit = [];
+        let daftarEvent = [];
         let globalWasitInterval = null;
 
         async function hashSHA256(text) {
@@ -1751,6 +1720,56 @@
                 localStorage.setItem('asr_admin_auth', JSON.stringify(adminAuth));
             }
         }
+
+        // Sinkronisasi data real-time dengan Firebase Firestore
+        function initFirebaseListeners() {
+            if (!window.db) return;
+
+            // Real-time listener Pemain
+            window.onSnapshot(window.collection(window.db, "pemain"), (snapshot) => {
+                daftarPemain = [];
+                snapshot.forEach((docSnap) => {
+                    daftarPemain.push({ docId: docSnap.id, ...docSnap.data() });
+                });
+                if(document.getElementById('kelolaPemainFullView').classList.contains('active')) {
+                    renderListPemain();
+                }
+            });
+
+            // Real-time listener Wasit
+            window.onSnapshot(window.collection(window.db, "wasit"), (snapshot) => {
+                daftarWasit = [];
+                snapshot.forEach((docSnap) => {
+                    daftarWasit.push({ docId: docSnap.id, ...docSnap.data() });
+                });
+                if(document.getElementById('kelolaWasitFullView').classList.contains('active')) {
+                    renderListWasit();
+                }
+            });
+
+            // Real-time listener Event / Pertandingan
+            window.onSnapshot(window.collection(window.db, "event"), (snapshot) => {
+                daftarEvent = [];
+                snapshot.forEach((docSnap) => {
+                    daftarEvent.push({ docId: docSnap.id, ...docSnap.data() });
+                });
+                
+                // Perbarui tampilan aktif jika sedang dibuka
+                if(document.getElementById('pertandinganPemainFullView').classList.contains('active')) {
+                    openPertandinganPemainView();
+                }
+                if(document.getElementById('pertandinganWasitFullView').classList.contains('active')) {
+                    openPertandinganWasitView();
+                }
+                if(document.getElementById('statistikPertandinganFullView').classList.contains('active')) {
+                    renderStatistikPertandingan();
+                }
+            });
+        }
+
+        window.addEventListener('firebase-ready', () => {
+            initFirebaseListeners();
+        });
 
         window.addEventListener('DOMContentLoaded', async () => {
             await initAdminAuth();
@@ -1774,6 +1793,10 @@
             checkNotifDots();
             startGlobalWasitTimerTick();
             initStockfishBlobWorker();
+
+            setTimeout(() => {
+                initFirebaseListeners();
+            }, 1000);
 
             if(lastView === 'analisaEngineFullView') {
                 openAnalisaEngineView();
@@ -1842,7 +1865,7 @@
             switchView('dashboardView');
         }
 
-        // --- FITUR STATISTIK PERTANDINGAN & KLASEMEN AUTOMATIS ---
+        // --- STATISTIK PERTANDINGAN & KLASEMEN ---
         function openStatistikPertandinganView() {
             switchView('statistikPertandinganFullView');
             currentStatistikViewLevel = 'eventList';
@@ -1865,7 +1888,7 @@
                     const totalBabak = ev.totalBabak ? `${ev.totalBabak} Babak` : 'Belum diatur';
 
                     container.innerHTML += `
-                        <div class="player-item" onclick="selectStatistikEvent(${ev.id})">
+                        <div class="player-item" onclick="selectStatistikEvent('${ev.id || ev.docId}')">
                             <div class="player-info-left">
                                 <div class="player-name"><i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
                                 <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • ${totalBabak}</div>
@@ -1874,7 +1897,7 @@
                         </div>`;
                 });
             } else if (currentStatistikViewLevel === 'babakList') {
-                const ev = daftarEvent.find(e => e.id === currentStatistikEventId);
+                const ev = daftarEvent.find(e => (e.id == currentStatistikEventId || e.docId == currentStatistikEventId));
                 if (!ev) return;
 
                 container.innerHTML += `
@@ -1883,7 +1906,7 @@
                     </div>`;
 
                 container.innerHTML += `
-                    <div class="player-item" style="border-color: var(--accent-gold);" onclick="renderKlasemenPoin(${ev.id}, 'all')">
+                    <div class="player-item" style="border-color: var(--accent-gold);" onclick="renderKlasemenPoin('${ev.id || ev.docId}', 'all')">
                         <div class="player-info-left">
                             <div class="player-name" style="color: var(--accent-gold);"><i class="fa-solid fa-award"></i> Klasemen Keseluruhan (Total Poin)</div>
                             <div class="player-city">Akumulasi seluruh babak</div>
@@ -1896,7 +1919,7 @@
                 } else {
                     ev.babakList.forEach(b => {
                         container.innerHTML += `
-                            <div class="player-item" onclick="renderKlasemenPoin(${ev.id}, ${b.babakKe})">
+                            <div class="player-item" onclick="renderKlasemenPoin('${ev.id || ev.docId}', ${b.babakKe})">
                                 <div class="player-info-left">
                                     <div class="player-name"><i class="fa-solid fa-flag" style="color: var(--accent-gold);"></i> Babak ${b.babakKe}</div>
                                     <div class="player-city">Status: ${b.status}</div>
@@ -1915,7 +1938,7 @@
         }
 
         function renderKlasemenPoin(eventId, targetBabak) {
-            const ev = daftarEvent.find(e => e.id === eventId);
+            const ev = daftarEvent.find(e => (e.id == eventId || e.docId == eventId));
             if (!ev || !ev.peserta || ev.peserta.length === 0) {
                 alert("Belum ada peserta/data dalam pertandingan ini.");
                 return;
@@ -2005,7 +2028,7 @@
                     <div class="player-item" style="${highlightClass}">
                         <div class="player-info-left">
                             <div class="player-name">${medal}${p.nama}</div>
-                            <div class="player-city">${p.kota} • Sisa Waktu (Kemenangan Cepat): ${formatTime(p.sisaWaktuDetik)}</div>
+                            <div class="player-city">${p.kota} • Sisa Waktu: ${formatTime(p.sisaWaktuDetik)}</div>
                         </div>
                         <span class="elo-tag" style="font-size: 0.85rem;">${p.poin} Poin</span>
                     </div>`;
@@ -2023,7 +2046,7 @@
             }
         }
 
-        // --- STOCKFISH BLOB WORKER ENGINE (DEPTH 10-15) ---
+        // --- STOCKFISH BLOB WORKER ENGINE ---
         function initStockfishBlobWorker() {
             if (stockfishWorker) return;
             const stockfishCdnUrl = "https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js";
@@ -2277,16 +2300,15 @@
             }
         }
 
-        // --- SISTEM PENILAIAN & TIMER WASIT ---
+        // --- TIMER WASIT TICK ---
         function startGlobalWasitTimerTick() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
-            globalWasitInterval = setInterval(() => {
+            globalWasitInterval = setInterval(async () => {
                 let updated = false;
-                daftarEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
 
-                daftarEvent.forEach(ev => {
+                for (let ev of daftarEvent) {
                     if(ev.babakList) {
-                        ev.babakList.forEach(b => {
+                        for (let b of ev.babakList) {
                             if(b.status === 'Berjalan' && b.isTimerRunning) {
                                 if(b.pairing) {
                                     b.pairing.forEach(m => {
@@ -2300,16 +2322,21 @@
                                     });
                                 }
                                 updated = true;
+                                
+                                // Simpan ke Firestore secara otomatis saat timer berjalan
+                                if (window.db) {
+                                    const eventDocId = ev.docId || ev.id;
+                                    await window.updateDoc(window.doc(window.db, "event", String(eventDocId)), {
+                                        babakList: ev.babakList
+                                    });
+                                }
                             }
-                        });
+                        }
                     }
-                });
+                }
 
-                if(updated) {
-                    localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
-                    if(document.getElementById('pairingWasitModal').classList.contains('active')) {
-                        renderPairingMejaInfo();
-                    }
+                if(updated && document.getElementById('pairingWasitModal').classList.contains('active')) {
+                    renderPairingMejaInfo();
                 }
             }, 1000);
         }
@@ -2334,7 +2361,7 @@
             if(dotWasit) dotWasit.style.display = hasUnread ? 'block' : 'none';
         }
 
-        function handleRegisterPemain(event) {
+        async function handleRegisterPemain(event) {
             event.preventDefault();
             const hp = document.getElementById('regPemainHp').value;
             const nama = document.getElementById('regPemainNama').value;
@@ -2346,8 +2373,11 @@
                 return;
             }
 
-            daftarPemain.push({ id: Date.now(), hp, pass, nama, kota, elo: 0, status: "pending" });
-            localStorage.setItem('asr_data_pemain', JSON.stringify(daftarPemain));
+            const pemainBaru = { id: Date.now(), hp, pass, nama, kota, elo: 0, status: "pending" };
+            
+            if (window.db) {
+                await window.addDoc(window.collection(window.db, "pemain"), pemainBaru);
+            }
 
             alert("Pendaftaran Pemain berhasil! Menunggu persetujuan Admin.");
             closeModal('regPemainModal');
@@ -2379,7 +2409,7 @@
         }
 
         function openProfilPemainView() {
-            if (!activeUserPemain) activeUserPemain = daftarPemain[0];
+            if (!activeUserPemain) activeUserPemain = daftarPemain[0] || { nama: 'Pemain', hp: '-', kota: '-', elo: 0 };
 
             document.getElementById('profNama').innerText = activeUserPemain.nama;
             document.getElementById('profHp').innerText = activeUserPemain.hp;
@@ -2402,7 +2432,7 @@
                 daftarEvent.forEach(ev => {
                     const durasi = ev.durasiWaktu || 10;
                     container.innerHTML += `
-                        <div class="player-item" onclick="openPemainMatchSubmenu(${ev.id})">
+                        <div class="player-item" onclick="openPemainMatchSubmenu('${ev.id || ev.docId}')">
                             <div class="player-info-left">
                                 <div class="player-name"><i class="fa-solid fa-chess-king" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
                                 <div class="player-city">${ev.tanggal} • Hadiah: ${ev.hadiah} • ⏱️ ${durasi} Mnt</div>
@@ -2416,7 +2446,7 @@
         function openPemainMatchSubmenu(eventId) {
             selectedMatchId = eventId;
             localStorage.setItem('asr_selected_match', JSON.stringify(eventId));
-            const ev = daftarEvent.find(e => e.id === eventId);
+            const ev = daftarEvent.find(e => (e.id == eventId || e.docId == eventId));
             if(!ev) return;
 
             document.getElementById('pemainMatchSubmenuTitle').innerText = ev.nama;
@@ -2435,13 +2465,13 @@
             openModal('pemainMatchSubmenuModal');
         }
 
-        function handleDaftarKePertandingan() {
+        async function handleDaftarKePertandingan() {
             if (!activeUserPemain) {
                 alert("Silakan login pemain terlebih dahulu!");
                 return;
             }
 
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
             if(!ev.peserta) ev.peserta = [];
@@ -2461,13 +2491,17 @@
                 poin: 0
             });
 
-            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    peserta: ev.peserta
+                });
+            }
 
             alert(`Berhasil! Nama Anda (${activeUserPemain.nama}) telah terdaftar di pertandingan '${ev.nama}'.`);
             closeModal('pemainMatchSubmenuModal');
         }
 
-        // --- ATURAN ZOOM ANTI-KECURANGAN SEBELUM MASUK MEJA ---
+        // --- ZOOM VERIFIKASI & MEJA TANDING ---
         function openMejaPemainModal() {
             closeModal('pemainMatchSubmenuModal');
 
@@ -2476,10 +2510,9 @@
                 return;
             }
 
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
-            // CEK ZOOM TERLEBIH DAHULU SEBELUM MEMBUKA MEJA TANDING
             if(!ev.zoomUrl) {
                 document.getElementById('zoomLinkInfoText').innerHTML = `⚠️ Wasit belum mengatur Link Zoom untuk turnamen <b>${ev.nama}</b>.`;
                 document.getElementById('btnBukaZoomLink').style.display = 'none';
@@ -2498,7 +2531,7 @@
         function konfirmasiSudahJoinZoom() {
             closeModal('zoomCheckModal');
             
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const container = document.getElementById('mejaPemainContent');
             container.innerHTML = '';
 
@@ -2550,7 +2583,6 @@
                     </div>`;
             } else {
                 const lawan = rolePemain.includes('Putih') ? mejaPemain.pemainHitam : mejaPemain.pemainPutih;
-                const statusSkor = mejaPemain.skor === '0' ? 'Pertandingan Berjalan' : `Hasil Skor: ${mejaPemain.skor}`;
                 const durasi = ev.durasiWaktu || 10;
 
                 container.innerHTML = `
@@ -2613,8 +2645,7 @@
             if(timerIntervalPemain) clearInterval(timerIntervalPemain);
 
             timerIntervalPemain = setInterval(() => {
-                const freshEvent = JSON.parse(localStorage.getItem('asr_data_event')) || [];
-                const ev = freshEvent.find(e => e.id === selectedMatchId);
+                const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
                 if(ev && ev.babakList) {
                     const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
                     if(babakObj && babakObj.pairing) {
@@ -2625,7 +2656,7 @@
                         }
                     }
                 }
-            }, 300);
+            }, 500);
         }
 
         function renderChessboard() {
@@ -2771,7 +2802,7 @@
             return `${m}:${s}`;
         }
 
-        function handleRegisterWasit(event) {
+        async function handleRegisterWasit(event) {
             event.preventDefault();
             const hp = document.getElementById('regWasitHp').value;
             const nama = document.getElementById('regWasitNama').value;
@@ -2784,7 +2815,7 @@
                 return;
             }
 
-            const processWasitData = (base64Img) => {
+            const processWasitData = async (base64Img) => {
                 const wasitBaru = { 
                     id: Date.now(), 
                     hp, 
@@ -2794,8 +2825,10 @@
                     lisensiImg: base64Img || "", 
                     status: "pending" 
                 };
-                daftarWasit.push(wasitBaru);
-                localStorage.setItem('asr_data_wasit', JSON.stringify(daftarWasit));
+
+                if (window.db) {
+                    await window.addDoc(window.collection(window.db, "wasit"), wasitBaru);
+                }
 
                 alert("Pendaftaran Wasit Berhasil! Menunggu Verifikasi Lisensi oleh Admin.");
                 closeModal('regWasitModal');
@@ -2847,7 +2880,7 @@
                 return;
             }
 
-            const wasitData = daftarWasit.find(w => w.id === activeUserWasit.id) || activeUserWasit;
+            const wasitData = daftarWasit.find(w => (w.id == activeUserWasit.id || w.docId == activeUserWasit.docId)) || activeUserWasit;
             const statusBadge = wasitData.status === 'approved' 
                 ? '<span style="color: #34d399; font-weight: 700;">Terverifikasi (Aktif)</span>' 
                 : '<span style="color: #f59e0b; font-weight: 700;">Menunggu Verifikasi</span>';
@@ -2895,7 +2928,7 @@
                     const totalBabak = ev.totalBabak ? `${ev.totalBabak} Babak` : 'Belum diatur';
                     const durasi = ev.durasiWaktu || 10;
                     container.innerHTML += `
-                        <div class="player-item" onclick="openWasitMatchSubmenu(${ev.id})">
+                        <div class="player-item" onclick="openWasitMatchSubmenu('${ev.id || ev.docId}')">
                             <div class="player-info-left">
                                 <div class="player-name"><i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
                                 <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • ⏱️ ${durasi} Mnt</div>
@@ -2909,7 +2942,7 @@
         function openWasitMatchSubmenu(eventId) {
             selectedMatchId = eventId;
             localStorage.setItem('asr_selected_match', JSON.stringify(eventId));
-            const ev = daftarEvent.find(e => e.id === eventId);
+            const ev = daftarEvent.find(e => (e.id == eventId || e.docId == eventId));
             if(!ev) return;
 
             document.getElementById('wasitMatchSubmenuTitle').innerText = ev.nama;
@@ -2918,7 +2951,7 @@
 
         function openZoomWasitModal() {
             closeModal('wasitMatchSubmenuModal');
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
             document.getElementById('inputZoomUrl').value = ev.zoomUrl || '';
@@ -2926,22 +2959,28 @@
             openModal('aturZoomWasitModal');
         }
 
-        function handleSimpanZoomWasit(event) {
+        async function handleSimpanZoomWasit(event) {
             event.preventDefault();
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
             ev.zoomUrl = document.getElementById('inputZoomUrl').value;
             ev.zoomInfo = document.getElementById('inputZoomInfo').value;
 
-            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    zoomUrl: ev.zoomUrl,
+                    zoomInfo: ev.zoomInfo
+                });
+            }
+
             alert("Link Zoom Pengawasan Anti-Kecurangan Berhasil Disimpan!");
             closeModal('aturZoomWasitModal');
         }
 
         function openAturWaktuModal() {
             closeModal('wasitMatchSubmenuModal');
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
             const durasi = ev.durasiWaktu || 10;
@@ -2949,8 +2988,8 @@
             openModal('aturWaktuWasitModal');
         }
 
-        function setMatchTime(menit) {
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+        async function setMatchTime(menit) {
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
             ev.durasiWaktu = menit;
@@ -2967,7 +3006,12 @@
                 });
             }
 
-            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    durasiWaktu: ev.durasiWaktu,
+                    babakList: ev.babakList
+                });
+            }
 
             alert(`Berhasil mengatur durasi pertandingan '${ev.nama}' menjadi ${menit} Menit!`);
             closeModal('aturWaktuWasitModal');
@@ -2975,7 +3019,7 @@
 
         function openDaftarPesertaWasitModal() {
             closeModal('wasitMatchSubmenuModal');
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
             document.getElementById('daftarPesertaTitle').innerText = `Peserta: ${ev.nama}`;
@@ -3002,7 +3046,7 @@
 
         function openAturBabakModal() {
             closeModal('wasitMatchSubmenuModal');
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
             const totalPeserta = ev.peserta ? ev.peserta.length : 0;
@@ -3027,9 +3071,9 @@
             }
         }
 
-        function handleTambahBabak(event) {
+        async function handleTambahBabak(event) {
             event.preventDefault();
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
             const totalPeserta = ev.peserta ? ev.peserta.length : 0;
@@ -3057,7 +3101,12 @@
                 });
             }
 
-            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    totalBabak: ev.totalBabak,
+                    babakList: ev.babakList
+                });
+            }
 
             alert(`Berhasil mengatur ${jumlahBabak} babak pertandingan untuk '${ev.nama}'!`);
             renderListBabakAktif(ev);
@@ -3085,7 +3134,7 @@
 
         function openPairingWasitModal() {
             closeModal('wasitMatchSubmenuModal');
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
             const selectBabak = document.getElementById('selectBabakPairing');
@@ -3111,7 +3160,7 @@
         }
 
         function renderPairingMejaInfo() {
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
             if(!ev || !babakKe) return;
 
@@ -3183,8 +3232,8 @@
             }
         }
 
-        function generatePairingSistem() {
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+        async function generatePairingSistem() {
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
             if(!ev || !ev.peserta || ev.peserta.length < 2) {
                 alert("Jumlah peserta minimal 2 orang untuk melakukan pairing!");
@@ -3228,14 +3277,19 @@
             babakObj.pairing = pairingResult;
             babakObj.status = 'Berjalan';
             babakObj.isTimerRunning = false;
-            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
 
             alert(`Pairing Babak ${babakKe} Berhasil Digenerate!`);
             renderPairingMejaInfo();
         }
 
-        function startAllTimersWasit() {
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+        async function startAllTimersWasit() {
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
             if(!ev) return;
 
@@ -3243,13 +3297,19 @@
             if(!babakObj) return;
 
             babakObj.isTimerRunning = true;
-            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
+
             alert(`Timer Babak ${babakKe} DIMULAI secara resmi!`);
             renderPairingMejaInfo();
         }
 
-        function stopAllTimersWasit() {
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+        async function stopAllTimersWasit() {
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
             if(!ev) return;
 
@@ -3257,13 +3317,19 @@
             if(!babakObj) return;
 
             babakObj.isTimerRunning = false;
-            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
+
             alert(`Timer Babak ${babakKe} DIHENTIKAN/PAUSE!`);
             renderPairingMejaInfo();
         }
 
-        function tambahWaktuPenalti(babakKe, idxMeja, rolePemain, detikTambahan) {
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+        async function tambahWaktuPenalti(babakKe, idxMeja, rolePemain, detikTambahan) {
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
             const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
@@ -3277,13 +3343,18 @@
                     meja.timeHitam += detikTambahan;
                 }
                 meja.isFinished = false; 
-                localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+
+                if (window.db) {
+                    await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                        babakList: ev.babakList
+                    });
+                }
                 renderPairingMejaInfo();
             }
         }
 
-        function simpanHasilSkorBabak() {
-            const ev = daftarEvent.find(e => e.id === selectedMatchId);
+        async function simpanHasilSkorBabak() {
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
             if(!ev) return;
 
@@ -3307,7 +3378,11 @@
                 nextBabak.status = 'Siap Pairing';
             }
 
-            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
 
             alert(`Hasil Skor Babak ${babakKe} Disimpan!`);
             closeModal('pairingWasitModal');
@@ -3330,15 +3405,15 @@
             pending.forEach(p => {
                 listPending.innerHTML += `
                     <div class="player-item">
-                        <div class="player-info-left" onclick="showDetailPemain(${p.id})">
+                        <div class="player-info-left" onclick="showDetailPemain('${p.docId}')">
                             <div class="player-name">${p.nama}</div>
                             <div class="player-city">${p.kota} • ${p.hp}</div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="elo-tag">Elo: ${p.elo}</span>
+                            <span class="elo-tag">Elo: ${p.elo || 0}</span>
                             <div class="action-group">
-                                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.68rem;" onclick="terimaPemain(${p.id})">Terima</button>
-                                <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.68rem;" onclick="tolakPemain(${p.id})">Tolak</button>
+                                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.68rem;" onclick="terimaPemain('${p.docId}')">Terima</button>
+                                <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.68rem;" onclick="tolakPemain('${p.docId}')">Tolak</button>
                             </div>
                         </div>
                     </div>`;
@@ -3348,44 +3423,45 @@
             approved.forEach(p => {
                 listApproved.innerHTML += `
                     <div class="player-item">
-                        <div class="player-info-left" onclick="showDetailPemain(${p.id})">
+                        <div class="player-info-left" onclick="showDetailPemain('${p.docId}')">
                             <div class="player-name">${p.nama}</div>
                             <div class="player-city">${p.kota} • ${p.hp}</div>
                         </div>
-                        <span class="elo-tag">Elo: ${p.elo}</span>
+                        <span class="elo-tag">Elo: ${p.elo || 0}</span>
                     </div>`;
             });
         }
 
-        function terimaPemain(id) {
-            const p = daftarPemain.find(item => item.id === id);
-            if(p) { p.status = 'approved'; localStorage.setItem('asr_data_pemain', JSON.stringify(daftarPemain)); renderListPemain(); }
-        }
-
-        function tolakPemain(id) {
-            if(confirm("Tolak dan hapus pendaftaran pemain ini?")) {
-                daftarPemain = daftarPemain.filter(item => item.id !== id);
-                localStorage.setItem('asr_data_pemain', JSON.stringify(daftarPemain));
-                renderListPemain();
+        async function terimaPemain(docId) {
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "pemain", docId), { status: 'approved' });
             }
         }
 
-        function showDetailPemain(id) {
-            const p = daftarPemain.find(item => item.id === id);
+        async function tolakPemain(docId) {
+            if(confirm("Tolak dan hapus pendaftaran pemain ini?")) {
+                if (window.db) {
+                    await window.deleteDoc(window.doc(window.db, "pemain", docId));
+                }
+            }
+        }
+
+        function showDetailPemain(docId) {
+            const p = daftarPemain.find(item => item.docId === docId);
             if(!p) return;
             document.getElementById('detailPemainContent').innerHTML = `
                 <div class="detail-row"><span>Nama Lengkap:</span> <span><b>${p.nama}</b></span></div>
                 <div class="detail-row"><span>Nomor HP:</span> <span>${p.hp}</span></div>
                 <div class="detail-row"><span>Kota:</span> <span>${p.kota}</span></div>
-                <div class="detail-row"><span>ELO Rating:</span> <span><b style="color: var(--accent-gold);">${p.elo}</b></span></div>
+                <div class="detail-row"><span>ELO Rating:</span> <span><b style="color: var(--accent-gold);">${p.elo || 0}</b></span></div>
                 <div class="detail-row"><span>Status Akun:</span> <span>${p.status === 'approved' ? 'Terverifikasi' : 'Menunggu Persetujuan'}</span></div>
             `;
-            document.getElementById('btnHapusPemain').onclick = function() {
+            document.getElementById('btnHapusPemain').onclick = async function() {
                 if(confirm("Hapus pemain ini?")) {
-                    daftarPemain = daftarPemain.filter(item => item.id !== id);
-                    localStorage.setItem('asr_data_pemain', JSON.stringify(daftarPemain));
+                    if (window.db) {
+                        await window.deleteDoc(window.doc(window.db, "pemain", docId));
+                    }
                     closeModal('detailPemainModal');
-                    renderListPemain();
                 }
             };
             openModal('detailPemainModal');
@@ -3408,13 +3484,13 @@
             pending.forEach(w => {
                 listPending.innerHTML += `
                     <div class="player-item">
-                        <div class="player-info-left" onclick="showDetailWasit(${w.id})">
+                        <div class="player-info-left" onclick="showDetailWasit('${w.docId}')">
                             <div class="player-name">${w.nama}</div>
                             <div class="player-city">${w.kota} • ${w.hp}</div>
                         </div>
                         <div class="action-group">
-                            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.68rem;" onclick="terimaWasit(${w.id})">Terima</button>
-                            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.68rem;" onclick="tolakWasit(${w.id})">Tolak</button>
+                            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.68rem;" onclick="terimaWasit('${w.docId}')">Terima</button>
+                            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.68rem;" onclick="tolakWasit('${w.docId}')">Tolak</button>
                         </div>
                     </div>`;
             });
@@ -3422,7 +3498,7 @@
             if (approved.length === 0) listApproved.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted);">Belum ada wasit disetujui.</p>';
             approved.forEach(w => {
                 listApproved.innerHTML += `
-                    <div class="player-item" onclick="showDetailWasit(${w.id})">
+                    <div class="player-item" onclick="showDetailWasit('${w.docId}')">
                         <div class="player-info-left">
                             <div class="player-name">${w.nama}</div>
                             <div class="player-city">${w.kota} • ${w.hp}</div>
@@ -3432,21 +3508,22 @@
             });
         }
 
-        function terimaWasit(id) {
-            const w = daftarWasit.find(item => item.id === id);
-            if(w) { w.status = 'approved'; localStorage.setItem('asr_data_wasit', JSON.stringify(daftarWasit)); renderListWasit(); }
-        }
-
-        function tolakWasit(id) {
-            if(confirm("Tolak dan hapus pendaftaran wasit ini?")) {
-                daftarWasit = daftarWasit.filter(item => item.id !== id);
-                localStorage.setItem('asr_data_wasit', JSON.stringify(daftarWasit));
-                renderListWasit();
+        async function terimaWasit(docId) {
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "wasit", docId), { status: 'approved' });
             }
         }
 
-        function showDetailWasit(id) {
-            const w = daftarWasit.find(item => item.id === id);
+        async function tolakWasit(docId) {
+            if(confirm("Tolak dan hapus pendaftaran wasit ini?")) {
+                if (window.db) {
+                    await window.deleteDoc(window.doc(window.db, "wasit", docId));
+                }
+            }
+        }
+
+        function showDetailWasit(docId) {
+            const w = daftarWasit.find(item => item.docId === docId);
             if(!w) return;
 
             const fotoLisensiHTML = w.lisensiImg 
@@ -3474,12 +3551,12 @@
             `;
 
             document.getElementById('btnHapusWasit').style.display = 'block';
-            document.getElementById('btnHapusWasit').onclick = function() {
+            document.getElementById('btnHapusWasit').onclick = async function() {
                 if(confirm("Hapus wasit ini dari sistem?")) {
-                    daftarWasit = daftarWasit.filter(item => item.id !== id);
-                    localStorage.setItem('asr_data_wasit', JSON.stringify(daftarWasit));
+                    if (window.db) {
+                        await window.deleteDoc(window.doc(window.db, "wasit", docId));
+                    }
                     closeModal('detailWasitModal');
-                    renderListWasit();
                 }
             };
             openModal('detailWasitModal');
@@ -3507,7 +3584,7 @@
             }
         }
 
-        function handleCreateEvent(event) {
+        async function handleCreateEvent(event) {
             event.preventDefault();
             
             const nama = document.getElementById('eventNameView').value;
@@ -3527,11 +3604,13 @@
                 babakList: []
             };
 
-            daftarEvent.push(eventBaru);
-            localStorage.setItem('asr_data_event', JSON.stringify(daftarEvent));
+            if (window.db) {
+                await window.addDoc(window.collection(window.db, "event"), eventBaru);
+            }
+
             localStorage.setItem('asr_unread_match', JSON.stringify(true));
 
-            alert("Pertandingan Berhasil Dibuat! Notifikasi telah dikirimkan ke Dashboard Pemain dan Wasit.");
+            alert("Pertandingan Berhasil Dibuat dan Disimpan ke Firebase!");
             event.target.reset();
             switchView('dashboardView');
         }
