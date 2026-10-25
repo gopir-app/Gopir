@@ -1107,7 +1107,7 @@
                     <h3>Buat Pertandingan</h3>
                     <p>Atur turnamen & laga baru</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Riwayat Pertandingan')">
+                <div class="menu-card" onclick="switchView('riwayatPertandinganFullView'); openRiwayatPertandinganView();">
                     <div class="menu-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
                     <h3>Riwayat Pertandingan</h3>
                     <p>Arsip & hasil laga selesai</p>
@@ -1160,6 +1160,18 @@
             </div>
 
             <button class="btn btn-outline" style="width: 100%; padding: 8px;" onclick="switchView('dashboardView')">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard Admin
+            </button>
+        </div>
+
+        <!-- HALAMAN 4.3: RIWAYAT PERTANDINGAN ADMIN VIEW -->
+        <div id="riwayatPertandinganFullView" class="page-view">
+            <h1 class="hero-title"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Pertandingan</h1>
+            <p class="hero-subtitle">Arsip pertandingan yang telah dibuat dan dikelola</p>
+
+            <div id="listRiwayatEventContainer" class="player-list"></div>
+
+            <button class="btn btn-outline" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="switchView('dashboardView')">
                 <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard Admin
             </button>
         </div>
@@ -1381,6 +1393,19 @@
             <div id="detailWasitContent"></div>
             <button class="btn btn-danger" id="btnHapusWasit" style="width: 100%; margin-top: 12px; padding: 8px;">
                 <i class="fa-solid fa-trash"></i> Hapus Wasit
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="detailRiwayatModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-trophy"></i> Detail Riwayat Turnamen</h3>
+                <button class="close-btn" onclick="closeModal('detailRiwayatModal')">&times;</button>
+            </div>
+            <div id="detailRiwayatContent"></div>
+            <button class="btn btn-danger" id="btnHapusRiwayatEvent" style="width: 100%; margin-top: 12px; padding: 8px;">
+                <i class="fa-solid fa-trash"></i> Hapus Permanen Riwayat Ini
             </button>
         </div>
     </div>
@@ -1766,6 +1791,9 @@
                 if(document.getElementById('statistikPertandinganFullView').classList.contains('active')) {
                     renderStatistikPertandingan();
                 }
+                if(document.getElementById('riwayatPertandinganFullView').classList.contains('active')) {
+                    openRiwayatPertandinganView();
+                }
             });
         }
 
@@ -1808,6 +1836,8 @@
                 loadKeamananAdminForm();
             } else if(lastView === 'statistikPertandinganFullView') {
                 openStatistikPertandinganView();
+            } else if(lastView === 'riwayatPertandinganFullView') {
+                openRiwayatPertandinganView();
             }
         });
 
@@ -1821,6 +1851,8 @@
                 loadKeamananAdminForm();
             } else if(viewId === 'kelolaPemainFullView') {
                 renderListPemain();
+            } else if(viewId === 'riwayatPertandinganFullView') {
+                openRiwayatPertandinganView();
             }
         }
 
@@ -1867,6 +1899,83 @@
             alert("Username dan Password Admin Berhasil Diperbarui!");
             document.getElementById('formUbahKeamananAdmin').reset();
             switchView('dashboardView');
+        }
+
+        function openRiwayatPertandinganView() {
+            const container = document.getElementById('listRiwayatEventContainer');
+            container.innerHTML = '';
+
+            if (daftarEvent.length === 0) {
+                container.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">Belum ada riwayat pertandingan.</p>';
+                return;
+            }
+
+            daftarEvent.forEach(ev => {
+                const totalPeserta = ev.peserta ? ev.peserta.length : 0;
+                const totalBabak = ev.totalBabak || 0;
+                const babakSelesai = ev.babakList ? ev.babakList.filter(b => b.status === 'Selesai').length : 0;
+                const statusLabel = babakSelesai > 0 ? `Selesai (${babakSelesai}/${totalBabak} Babak)` : 'Aktif / Belum Selesai';
+
+                container.innerHTML += `
+                    <div class="player-item" onclick="openDetailRiwayatModal('${ev.id || ev.docId}')">
+                        <div class="player-info-left">
+                            <div class="player-name"><i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
+                            <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • Status: ${statusLabel}</div>
+                        </div>
+                        <span class="elo-tag"><i class="fa-solid fa-eye"></i> Detail</span>
+                    </div>`;
+            });
+        }
+
+        function openDetailRiwayatModal(eventId) {
+            const ev = daftarEvent.find(e => (e.id == eventId || e.docId == eventId));
+            if(!ev) return;
+
+            const totalPeserta = ev.peserta ? ev.peserta.length : 0;
+            const totalBabak = ev.totalBabak || 0;
+            let babakRincianHTML = '';
+
+            if (ev.babakList && ev.babakList.length > 0) {
+                ev.babakList.forEach(b => {
+                    babakRincianHTML += `<div class="detail-row"><span>Babak ${b.babakKe}:</span> <span><b>${b.status}</b></span></div>`;
+                });
+            } else {
+                babakRincianHTML = '<p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Belum ada babak diatur.</p>';
+            }
+
+            document.getElementById('detailRiwayatContent').innerHTML = `
+                <div class="profile-avatar-box">
+                    <div class="avatar-circle">
+                        <i class="fa-solid fa-chess-board"></i>
+                    </div>
+                    <div class="avatar-info">
+                        <h2>${ev.nama}</h2>
+                        <p>${ev.tanggal}</p>
+                    </div>
+                </div>
+                <div class="detail-row"><span>Hadiah Total:</span> <span><b>${ev.hadiah}</b></span></div>
+                <div class="detail-row"><span>Jumlah Peserta:</span> <span><b>${totalPeserta} Orang</b></span></div>
+                <div class="detail-row"><span>Total Babak:</span> <span><b>${totalBabak} Babak</b></span></div>
+                <div class="section-title-sub" style="margin-top: 10px;"><i class="fa-solid fa-list-ol"></i> Status Babak</div>
+                ${babakRincianHTML}
+            `;
+
+            document.getElementById('btnHapusRiwayatEvent').onclick = async function() {
+                if(confirm(`Yakin ingin menghapus riwayat pertandingan '${ev.nama}' secara permanen dari database?`)) {
+                    if (window.db) {
+                        try {
+                            await window.deleteDoc(window.doc(window.db, "event", String(ev.docId || ev.id)));
+                            alert("Riwayat pertandingan berhasil dihapus!");
+                            closeModal('detailRiwayatModal');
+                            openRiwayatPertandinganView();
+                        } catch(err) {
+                            alert("Gagal menghapus data: " + err.message);
+                        }
+                    }
+                }
+            };
+
+            openModal('detailRiwayatModal');
         }
 
         function openStatistikPertandinganView() {
