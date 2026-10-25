@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online</title>
+    <title>Asr.Catur Online - Master Production</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -96,7 +96,7 @@
 
         .page-view {
             display: none;
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.25s ease;
         }
 
         .page-view.active {
@@ -104,7 +104,7 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
+            from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -1770,7 +1770,6 @@
                     openRiwayatPertandinganView();
                 }
 
-                // SINKRONISASI REAL-TIME ARENA CATUR PEMAIN (DIOPTIMALKAN AGAR TIDAK GOYANG)
                 if(document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
                     syncRealtimeArenaState();
                 }
@@ -1806,7 +1805,7 @@
 
             setTimeout(async () => {
                 await initFirebaseListeners();
-            }, 500);
+            }, 400);
 
             if(lastView === 'analisaEngineFullView') {
                 openAnalisaEngineView();
@@ -2391,9 +2390,16 @@
             }
         }
 
+        /* 
+          OPTIMALISASI KRUSIAL:
+          HANYA PERANGKAT WASIT AKTIF YANG MELAKUKAN WRITE WAKTU KE FIREBASE.
+          Pemain hanya membaca lewat snapshot untuk mencegah race condition & timer loncat-loncat.
+        */
         function startGlobalWasitTimerTick() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
             globalWasitInterval = setInterval(async () => {
+                if (!activeUserWasit) return;
+
                 let updated = false;
 
                 for (let ev of daftarEvent) {
@@ -2405,7 +2411,6 @@
                                         if(!m.isBye && !m.isFinished) {
                                             const engineChecker = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
                                             
-                                            // WAKTU BERKURANG 1 DETIK SESUAI GILIRAN SECARA STABIL
                                             if(engineChecker.turn() === 'w') {
                                                 if(m.timePutih > 0) {
                                                     m.timePutih--;
@@ -2831,7 +2836,7 @@
 
             const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
             
-            // HANYA RENDER ULANG PAPAN JIKA FEN BERUBAH AGAR TIDAK GOYANG & TIDAK MENGEMBALIKAN BIDAK
+            // SMART DIFFING FEN: Hanya render ulang jika posisi FEN berubah
             if (currentFen !== lastKnownFenOnline) {
                 lastKnownFenOnline = currentFen;
                 chessEngine = new Chess(currentFen);
@@ -3640,7 +3645,7 @@
                 });
             }
 
-            alert(`Timer Babak ${babakKe} DIMULAI secara resmi oleh Wasit! Waktu berjalan otomatis sesuai giliran melangkah.`);
+            alert(`Timer Babak ${babakKe} DIMULAI secara resmi oleh Wasit! Waktu berjalan otomatis.`);
             renderPairingMejaInfo();
         }
 
