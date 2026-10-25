@@ -1235,6 +1235,13 @@
                         <label>Hadiah Total</label>
                         <input type="text" id="eventRewardView" placeholder="Contoh: Rp 5.000.000" required>
                     </div>
+                    <div class="input-group">
+                        <label><i class="fa-solid fa-video"></i> Gunakan Pengawasan Zoom Anti-Kecurangan?</label>
+                        <select id="eventUseZoomView" required>
+                            <option value="ya" selected>Ya - Wajib Zoom (Ketat)</option>
+                            <option value="tidak">Tidak - Tanpa Zoom</option>
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; margin-top: 5px;">
                         <i class="fa-solid fa-check"></i> Buat Pertandingan Ini
                     </button>
@@ -1421,7 +1428,7 @@
                     <i class="fa-solid fa-list-check" style="color: var(--accent-gold);"></i> Daftar pertandingan ini
                 </button>
                 <button class="submenu-btn" onclick="openMejaPemainModal()">
-                    <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> Masuk meja (Wajib Zoom)
+                    <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> Masuk meja (Cek Zoom)
                 </button>
                 <button class="submenu-btn" onclick="openStatistikPertandinganView()">
                     <i class="fa-solid fa-square-poll-vertical" style="color: var(--accent-gold);"></i> Klasemen Poin
@@ -1476,25 +1483,8 @@
                 <h3 id="wasitMatchSubmenuTitle"><i class="fa-solid fa-clipboard-user"></i> Kelola Pertandingan</h3>
                 <button class="close-btn" onclick="closeModal('wasitMatchSubmenuModal')">&times;</button>
             </div>
-            <div class="submenu-grid">
-                <button class="submenu-btn" onclick="openDaftarPesertaWasitModal()">
-                    <i class="fa-solid fa-users" style="color: var(--accent-gold);"></i> Daftar peserta
-                </button>
-                <button class="submenu-btn" onclick="openZoomWasitModal()">
-                    <i class="fa-solid fa-video" style="color: var(--accent-gold);"></i> Atur Link Zoom Pengawasan
-                </button>
-                <button class="submenu-btn" onclick="openPairingWasitModal()">
-                    <i class="fa-solid fa-sitemap" style="color: var(--accent-gold);"></i> Pairing
-                </button>
-                <button class="submenu-btn" onclick="openAturBabakModal()">
-                    <i class="fa-solid fa-sliders" style="color: var(--accent-gold);"></i> Atur babak
-                </button>
-                <button class="submenu-btn" onclick="openAturWaktuModal()">
-                    <i class="fa-solid fa-stopwatch" style="color: var(--accent-gold);"></i> Atur waktu
-                </button>
-                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
-                    <i class="fa-solid fa-square-check" style="color: var(--accent-gold);"></i> Hasil babak / Klasemen
-                </button>
+            <div class="submenu-grid" id="wasitSubmenuGridContainer">
+                <!-- Diset dinamis berdasarkan status Zoom -->
             </div>
         </div>
     </div>
@@ -1654,7 +1644,7 @@
         <p>&copy; 2026 Asr.Catur Online</p>
     </footer>
 
-    <!-- FIREBASE FIRESTORE SYNC & LOGIC SCRIPT (Updated to AccoAsrCaturOnline) -->
+    <!-- FIREBASE FIRESTORE SYNC & LOGIC SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -1915,12 +1905,13 @@
                 const totalBabak = ev.totalBabak || 0;
                 const babakSelesai = ev.babakList ? ev.babakList.filter(b => b.status === 'Selesai').length : 0;
                 const statusLabel = babakSelesai > 0 ? `Selesai (${babakSelesai}/${totalBabak} Babak)` : 'Aktif / Belum Selesai';
+                const zoomStatusText = ev.useZoom === 'tidak' ? 'Tanpa Zoom' : 'Wajib Zoom';
 
                 container.innerHTML += `
                     <div class="player-item" onclick="openDetailRiwayatModal('${ev.id || ev.docId}')">
                         <div class="player-info-left">
                             <div class="player-name"><i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
-                            <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • Status: ${statusLabel}</div>
+                            <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • [${zoomStatusText}]</div>
                         </div>
                         <span class="elo-tag"><i class="fa-solid fa-eye"></i> Detail</span>
                     </div>`;
@@ -1933,6 +1924,7 @@
 
             const totalPeserta = ev.peserta ? ev.peserta.length : 0;
             const totalBabak = ev.totalBabak || 0;
+            const zoomStatusText = ev.useZoom === 'tidak' ? 'Tidak Wajib (Tanpa Zoom)' : 'Wajib Zoom Anti-Kecurangan';
             let babakRincianHTML = '';
 
             if (ev.babakList && ev.babakList.length > 0) {
@@ -1954,6 +1946,7 @@
                     </div>
                 </div>
                 <div class="detail-row"><span>Hadiah Total:</span> <span><b>${ev.hadiah}</b></span></div>
+                <div class="detail-row"><span>Pengaturan Zoom:</span> <span><b>${zoomStatusText}</b></span></div>
                 <div class="detail-row"><span>Jumlah Peserta:</span> <span><b>${totalPeserta} Orang</b></span></div>
                 <div class="detail-row"><span>Total Babak:</span> <span><b>${totalBabak} Babak</b></span></div>
                 <div class="section-title-sub" style="margin-top: 10px;"><i class="fa-solid fa-list-ol"></i> Status Babak</div>
@@ -2561,11 +2554,12 @@
             } else {
                 daftarEvent.forEach(ev => {
                     const durasi = ev.durasiWaktu || 10;
+                    const zoomInfoLabel = ev.useZoom === 'tidak' ? 'Tanpa Zoom' : 'Wajib Zoom';
                     container.innerHTML += `
                         <div class="player-item" onclick="openPemainMatchSubmenu('${ev.id || ev.docId}')">
                             <div class="player-info-left">
                                 <div class="player-name"><i class="fa-solid fa-chess-king" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
-                                <div class="player-city">${ev.tanggal} • Hadiah: ${ev.hadiah} • ⏱️ ${durasi} Mnt</div>
+                                <div class="player-city">${ev.tanggal} • Hadiah: ${ev.hadiah} • ⏱️ ${durasi} Mnt (${zoomInfoLabel})</div>
                             </div>
                             <span class="elo-tag">Buka Menu</span>
                         </div>`;
@@ -2642,24 +2636,34 @@
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
-            if(!ev.zoomUrl) {
-                document.getElementById('zoomLinkInfoText').innerHTML = `⚠️ Wasit belum mengatur Link Zoom untuk turnamen <b>${ev.nama}</b>.`;
-                document.getElementById('btnBukaZoomLink').style.display = 'none';
+            // CEK APAKAH PERTANDINGAN INI MENGGUNAKAN WAJIB ZOOM
+            if (ev.useZoom === 'tidak') {
+                // Langsung lewati verifikasi zoom dan tampilkan meja
+                tampilkanKontenMejaPemain();
             } else {
-                document.getElementById('zoomLinkInfoText').innerHTML = `
-                    Silakan bergabung ke Zoom wasit untuk pengawasan anti-kecurangan:<br>
-                    <b>${ev.zoomInfo || 'Zoom Pengawasan Wasit'}</b>
-                `;
-                document.getElementById('btnBukaZoomLink').href = ev.zoomUrl;
-                document.getElementById('btnBukaZoomLink').style.display = 'block';
-            }
+                // Tampilkan popup verifikasi zoom seperti biasa
+                if(!ev.zoomUrl) {
+                    document.getElementById('zoomLinkInfoText').innerHTML = `⚠️ Wasit belum mengatur Link Zoom untuk turnamen <b>${ev.nama}</b>.`;
+                    document.getElementById('btnBukaZoomLink').style.display = 'none';
+                } else {
+                    document.getElementById('zoomLinkInfoText').innerHTML = `
+                        Silakan bergabung ke Zoom wasit untuk pengawasan anti-kecurangan:<br>
+                        <b>${ev.zoomInfo || 'Zoom Pengawasan Wasit'}</b>
+                    `;
+                    document.getElementById('btnBukaZoomLink').href = ev.zoomUrl;
+                    document.getElementById('btnBukaZoomLink').style.display = 'block';
+                }
 
-            openModal('zoomCheckModal');
+                openModal('zoomCheckModal');
+            }
         }
 
         function konfirmasiSudahJoinZoom() {
             closeModal('zoomCheckModal');
-            
+            tampilkanKontenMejaPemain();
+        }
+
+        function tampilkanKontenMejaPemain() {
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const container = document.getElementById('mejaPemainContent');
             container.innerHTML = '';
@@ -2713,6 +2717,9 @@
             } else {
                 const lawan = rolePemain.includes('Putih') ? mejaPemain.pemainHitam : mejaPemain.pemainPutih;
                 const durasi = ev.durasiWaktu || 10;
+                const zoomStatusBadge = ev.useZoom === 'tidak' 
+                    ? `<i class="fa-solid fa-circle-info" style="color: var(--accent-gold);"></i> Mode Turnamen: <b>Tanpa Zoom</b>` 
+                    : `<i class="fa-solid fa-video" style="color: #34d399;"></i> Terhubung Zoom Wasit: <b>Aktif</b>`;
 
                 container.innerHTML = `
                     <div class="meja-card-view">
@@ -2733,7 +2740,7 @@
                         </div>
 
                         <div class="info-badge-box" style="margin-bottom: 12px; margin-top: 5px;">
-                            <i class="fa-solid fa-video" style="color: #34d399;"></i> Terhubung Zoom Wasit: <b>Aktif</b><br>
+                            ${zoomStatusBadge}<br>
                             <i class="fa-solid fa-stopwatch"></i> Waktu: <b>${durasi} Menit</b>
                         </div>
 
@@ -3056,11 +3063,12 @@
                     const totalPeserta = ev.peserta ? ev.peserta.length : 0;
                     const totalBabak = ev.totalBabak ? `${ev.totalBabak} Babak` : 'Belum diatur';
                     const durasi = ev.durasiWaktu || 10;
+                    const zoomInfoLabel = ev.useZoom === 'tidak' ? 'Tanpa Zoom' : 'Wajib Zoom';
                     container.innerHTML += `
                         <div class="player-item" onclick="openWasitMatchSubmenu('${ev.id || ev.docId}')">
                             <div class="player-info-left">
                                 <div class="player-name"><i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> ${ev.nama}</div>
-                                <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • ⏱️ ${durasi} Mnt</div>
+                                <div class="player-city">${ev.tanggal} • ${totalPeserta} Peserta • ⏱️ ${durasi} Mnt (${zoomInfoLabel})</div>
                             </div>
                             <span class="elo-tag">Kelola</span>
                         </div>`;
@@ -3075,6 +3083,38 @@
             if(!ev) return;
 
             document.getElementById('wasitMatchSubmenuTitle').innerText = ev.nama;
+
+            // RENDER MENU SUBGRID WASIT BERDASARKAN STATUS ZOOM EVENT
+            const gridContainer = document.getElementById('wasitSubmenuGridContainer');
+            gridContainer.innerHTML = `
+                <button class="submenu-btn" onclick="openDaftarPesertaWasitModal()">
+                    <i class="fa-solid fa-users" style="color: var(--accent-gold);"></i> Daftar peserta
+                </button>
+            `;
+
+            if (ev.useZoom !== 'tidak') {
+                gridContainer.innerHTML += `
+                    <button class="submenu-btn" onclick="openZoomWasitModal()">
+                        <i class="fa-solid fa-video" style="color: var(--accent-gold);"></i> Atur Link Zoom Pengawasan
+                    </button>
+                `;
+            }
+
+            gridContainer.innerHTML += `
+                <button class="submenu-btn" onclick="openPairingWasitModal()">
+                    <i class="fa-solid fa-sitemap" style="color: var(--accent-gold);"></i> Pairing
+                </button>
+                <button class="submenu-btn" onclick="openAturBabakModal()">
+                    <i class="fa-solid fa-sliders" style="color: var(--accent-gold);"></i> Atur babak
+                </button>
+                <button class="submenu-btn" onclick="openAturWaktuModal()">
+                    <i class="fa-solid fa-stopwatch" style="color: var(--accent-gold);"></i> Atur waktu
+                </button>
+                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
+                    <i class="fa-solid fa-square-check" style="color: var(--accent-gold);"></i> Hasil babak / Klasemen
+                </button>
+            `;
+
             openModal('wasitMatchSubmenuModal');
         }
 
@@ -3735,6 +3775,7 @@
             const nama = document.getElementById('eventNameView').value;
             const tanggal = document.getElementById('eventDateView').value;
             const hadiah = document.getElementById('eventRewardView').value;
+            const useZoom = document.getElementById('eventUseZoomView').value; // 'ya' atau 'tidak'
 
             const eventBaru = {
                 id: Date.now(),
@@ -3742,6 +3783,7 @@
                 tanggal: tanggal,
                 hadiah: hadiah,
                 durasiWaktu: 10,
+                useZoom: useZoom,
                 zoomUrl: "",
                 zoomInfo: "",
                 peserta: [],
