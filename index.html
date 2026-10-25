@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production</title>
+    <title>Asr.Catur Online - Master Production (Color Alternation)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1600,7 +1600,7 @@
 
             <div id="actionGeneratePairing" style="margin-bottom: 12px; display: none;">
                 <button class="btn btn-primary" style="width: 100%; padding: 8px;" onclick="generatePairingSistem()">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Pairing Otomatis (Swiss & Sisa Waktu)
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Pairing Otomatis (Swiss & Rotasi Warna)
                 </button>
             </div>
 
@@ -2390,11 +2390,6 @@
             }
         }
 
-        /* 
-          OPTIMALISASI KRUSIAL:
-          HANYA PERANGKAT WASIT AKTIF YANG MELAKUKAN WRITE WAKTU KE FIREBASE.
-          Pemain hanya membaca lewat snapshot untuk mencegah race condition & timer loncat-loncat.
-        */
         function startGlobalWasitTimerTick() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
             globalWasitInterval = setInterval(async () => {
@@ -2836,7 +2831,6 @@
 
             const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
             
-            // SMART DIFFING FEN: Hanya render ulang jika posisi FEN berubah
             if (currentFen !== lastKnownFenOnline) {
                 lastKnownFenOnline = currentFen;
                 chessEngine = new Chess(currentFen);
@@ -3461,7 +3455,7 @@
                 actionGen.style.display = 'block';
                 globalTimer.style.display = 'none';
                 btnSimpan.style.display = 'none';
-                containerMeja.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Klik "Generate Pairing Otomatis (Swiss & Sisa Waktu)".</p>';
+                containerMeja.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Klik "Generate Pairing Otomatis (Swiss & Rotasi Warna)".</p>';
             } else {
                 actionGen.style.display = 'none';
                 globalTimer.style.display = 'flex';
@@ -3525,16 +3519,22 @@
             const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
             if(!babakObj) return;
 
+            // 1. Hitung poin, sisa waktu, dan rekam riwayat warna sebelumnya untuk setiap pemain
             const statsPemainMap = {};
             ev.peserta.forEach(p => {
-                statsPemainMap[p.hp || p.nama] = {
+                const pKey = p.hp || p.nama;
+                statsPemainMap[pKey] = {
                     ...p,
                     poin: 0,
                     sisaWaktuDetik: 0,
-                    menangCount: 0
+                    menangCount: 0,
+                    whiteCount: 0,
+                    blackCount: 0,
+                    lastColorPlayed: null // 'w' atau 'b'
                 };
             });
 
+            // Akumulasi riwayat dari babak sebelumnya
             ev.babakList.forEach(b => {
                 if(b.babakKe < babakKe && b.pairing) {
                     b.pairing.forEach(m => {
@@ -3547,6 +3547,16 @@
                         } else if (m.pemainPutih && m.pemainHitam) {
                             const pPutihKey = m.pemainPutih.hp || m.pemainPutih.nama;
                             const pHitamKey = m.pemainHitam.hp || m.pemainHitam.nama;
+
+                            // Catat riwayat warna
+                            if(statsPemainMap[pPutihKey]) {
+                                statsPemainMap[pPutihKey].whiteCount++;
+                                statsPemainMap[pPutihKey].lastColorPlayed = 'w';
+                            }
+                            if(statsPemainMap[pHitamKey]) {
+                                statsPemainMap[pHitamKey].blackCount++;
+                                statsPemainMap[pHitamKey].lastColorPlayed = 'b';
+                            }
 
                             if (m.skor === '1-0') {
                                 if (statsPemainMap[pPutihKey]) {
@@ -3575,6 +3585,7 @@
                 }
             });
 
+            // Urutkan berdasarkan swiss system (Poin -> Sisa Waktu -> Jumlah Menang)
             let sortedPlayers = Object.values(statsPemainMap).sort((a, b) => {
                 if (b.poin !== a.poin) return b.poin - a.poin;
                 if (b.sisaWaktuDetik !== a.sisaWaktuDetik) return b.sisaWaktuDetik - a.sisaWaktuDetik;
@@ -3601,11 +3612,34 @@
                 });
             }
 
+            // 2. Tentukan Putih vs Hitam dengan Menerapkan Aturan Rotasi Warna
             for(let i = 0; i < sortedPlayers.length; i += 2) {
+                let p1 = sortedPlayers[i];
+                let p2 = sortedPlayers[i+1];
+
+                let pemainPutihObj = p1;
+                let pemainHitamObj = p2;
+
+                // Logika Aturan Alternasi Warna:
+                // Jika p1 pada babak sebelumnya memegang Putih ('w'), maka prioritaskan p2 memegang Putih di babak ini.
+                if (p1.lastColorPlayed === 'w' && p2.lastColorPlayed !== 'w') {
+                    pemainPutihObj = p2;
+                    pemainHitamObj = p1;
+                } else if (p2.lastColorPlayed === 'w' && p1.lastColorPlayed !== 'w') {
+                    pemainPutihObj = p1;
+                    pemainHitamObj = p2;
+                } else {
+                    // Jika riwayat warna seimbang, tentukan berdasarkan total minoritas pemegang warna (Fairness balance)
+                    if (p1.whiteCount > p1.blackCount && p2.whiteCount <= p2.blackCount) {
+                        pemainPutihObj = p2;
+                        pemainHitamObj = p1;
+                    }
+                }
+
                 pairingResult.push({
                     meja: (i / 2) + 1,
-                    pemainPutih: sortedPlayers[i],
-                    pemainHitam: sortedPlayers[i+1],
+                    pemainPutih: pemainPutihObj,
+                    pemainHitam: pemainHitamObj,
                     isBye: false,
                     skor: '0',
                     timePutih: durasiDetik,
@@ -3625,7 +3659,7 @@
                 });
             }
 
-            alert(`Pairing Babak ${babakKe} Berhasil Digenerate!\nPemain dengan Poin Tertinggi dan Sisa Waktu Terbanyak otomatis menempati Meja 1.`);
+            alert(`Pairing Babak ${babakKe} Berhasil Digenerate!\nSistem otomatis menyesuaikan rotasi warna bidak (Babak lalu Putih -> Babak ini Hitam).`);
             renderPairingMejaInfo();
         }
 
@@ -3726,7 +3760,7 @@
                 });
             }
 
-            alert(`Hasil Skor Babak ${babakKe} Disimpan! Data waktu dan poin siap digunakan untuk pairing meja babak berikutnya.`);
+            alert(`Hasil Skor Babak ${babakKe} Disimpan! Rotasi warna bidak siap diproses untuk babak berikutnya.`);
             closeModal('pairingWasitModal');
         }
 
