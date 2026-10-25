@@ -960,7 +960,7 @@
             </button>
         </div>
 
-        <!-- HALAMAN PEMAIN 2.4: PAPAN CATUR ANALISA ENGINE STOCKFISH (DEPTH 10-15) -->
+        <!-- HALAMAN PEMAIN 2.4: PAPAN CATUR ANALISA ENGINE STOCKFISH -->
         <div id="analisaEngineFullView" class="page-view">
             <h1 class="hero-title"><i class="fa-solid fa-microchip"></i> Papan Analisa Engine</h1>
             <p class="hero-subtitle">Master vs Stockfish AI Engine (Depth 10+)</p>
@@ -1474,7 +1474,7 @@
         </div>
     </div>
 
-    <!-- MODAL ATUR ZOOM OLEH WASIT (DITAMBAHKAN TOMBOL PINTASAN BUAT ZOOM) -->
+    <!-- MODAL ATUR ZOOM OLEH WASIT -->
     <div class="modal-overlay" id="aturZoomWasitModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1482,7 +1482,6 @@
                 <button class="close-btn" onclick="closeModal('aturZoomWasitModal')">&times;</button>
             </div>
 
-            <!-- Tombol Pintasan Cepat ke Website Zoom untuk Membuat Meeting -->
             <div class="info-badge-box" style="margin-bottom: 12px; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                     <span style="font-size: 0.75rem; color: #34d399; font-weight: 700;">
@@ -1658,7 +1657,6 @@
         window.setDoc = setDoc;
         window.onSnapshot = onSnapshot;
 
-        // Trigger inisialisasi setelah modul Firebase siap
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
@@ -1721,9 +1719,19 @@
             }
         }
 
-        // Sinkronisasi data real-time dengan Firebase Firestore
-        function initFirebaseListeners() {
+        // Sinkronisasi data real-time dengan Firebase Firestore (Ditambahkan fetch awal)
+        async function initFirebaseListeners() {
             if (!window.db) return;
+
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "pemain"));
+                daftarPemain = [];
+                querySnapshot.forEach((docSnap) => {
+                    daftarPemain.push({ docId: docSnap.id, ...docSnap.data() });
+                });
+            } catch(e) {
+                console.error("Gagal mengambil data awal pemain:", e);
+            }
 
             // Real-time listener Pemain
             window.onSnapshot(window.collection(window.db, "pemain"), (snapshot) => {
@@ -1754,7 +1762,6 @@
                     daftarEvent.push({ docId: docSnap.id, ...docSnap.data() });
                 });
                 
-                // Perbarui tampilan aktif jika sedang dibuka
                 if(document.getElementById('pertandinganPemainFullView').classList.contains('active')) {
                     openPertandinganPemainView();
                 }
@@ -1767,8 +1774,8 @@
             });
         }
 
-        window.addEventListener('firebase-ready', () => {
-            initFirebaseListeners();
+        window.addEventListener('firebase-ready', async () => {
+            await initFirebaseListeners();
         });
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -1794,9 +1801,9 @@
             startGlobalWasitTimerTick();
             initStockfishBlobWorker();
 
-            setTimeout(() => {
-                initFirebaseListeners();
-            }, 1000);
+            setTimeout(async () => {
+                await initFirebaseListeners();
+            }, 500);
 
             if(lastView === 'analisaEngineFullView') {
                 openAnalisaEngineView();
@@ -1817,6 +1824,8 @@
             }
             if(viewId === 'ubahKeamananAdminView') {
                 loadKeamananAdminForm();
+            } else if(viewId === 'kelolaPemainFullView') {
+                renderListPemain();
             }
         }
 
@@ -2323,7 +2332,6 @@
                                 }
                                 updated = true;
                                 
-                                // Simpan ke Firestore secara otomatis saat timer berjalan
                                 if (window.db) {
                                     const eventDocId = ev.docId || ev.id;
                                     await window.updateDoc(window.doc(window.db, "event", String(eventDocId)), {
@@ -2361,32 +2369,54 @@
             if(dotWasit) dotWasit.style.display = hasUnread ? 'block' : 'none';
         }
 
+        // --- PENDAFTARAN PEMAIN YANG DIPERBAIKI ---
         async function handleRegisterPemain(event) {
             event.preventDefault();
-            const hp = document.getElementById('regPemainHp').value;
-            const nama = document.getElementById('regPemainNama').value;
-            const kota = document.getElementById('regPemainKota').value;
+            const hp = document.getElementById('regPemainHp').value.trim();
+            const nama = document.getElementById('regPemainNama').value.trim();
+            const kota = document.getElementById('regPemainKota').value.trim();
             const pass = document.getElementById('regPemainPass').value;
 
-            if(daftarPemain.find(p => p.hp === hp)) {
-                alert("Nomor HP ini sudah terdaftar!");
+            if (window.db) {
+                try {
+                    const snap = await window.getDocs(window.collection(window.db, "pemain"));
+                    daftarPemain = [];
+                    snap.forEach(d => daftarPemain.push({ docId: d.id, ...d.data() }));
+                } catch(err) {
+                    console.error("Gagal memeriksa database:", err);
+                }
+            }
+
+            const sudahAda = daftarPemain.some(p => p.hp === hp);
+            if(sudahAda) {
+                alert("Nomor HP ini sudah terdaftar di sistem!");
                 return;
             }
 
             const pemainBaru = { id: Date.now(), hp, pass, nama, kota, elo: 0, status: "pending" };
             
             if (window.db) {
-                await window.addDoc(window.collection(window.db, "pemain"), pemainBaru);
-            }
+                try {
+                    await window.addDoc(window.collection(window.db, "pemain"), pemainBaru);
+                    alert("Pendaftaran Pemain berhasil! Menunggu persetujuan Admin.");
+                    closeModal('regPemainModal');
+                    event.target.reset();
 
-            alert("Pendaftaran Pemain berhasil! Menunggu persetujuan Admin.");
-            closeModal('regPemainModal');
-            event.target.reset();
+                    const snapRefresh = await window.getDocs(window.collection(window.db, "pemain"));
+                    daftarPemain = [];
+                    snapRefresh.forEach(d => daftarPemain.push({ docId: d.id, ...d.data() }));
+                    renderListPemain();
+                } catch(e) {
+                    alert("Gagal menyimpan ke Firebase: " + e.message);
+                }
+            } else {
+                alert("Koneksi database belum siap.");
+            }
         }
 
         function handlePemainLogin(event) {
             event.preventDefault();
-            const hp = document.getElementById('pemainHp').value;
+            const hp = document.getElementById('pemainHp').value.trim();
             const pass = document.getElementById('pemainPass').value;
             const pemain = daftarPemain.find(p => p.hp === hp && p.pass === pass && p.status === 'approved');
 
@@ -2501,7 +2531,6 @@
             closeModal('pemainMatchSubmenuModal');
         }
 
-        // --- ZOOM VERIFIKASI & MEJA TANDING ---
         function openMejaPemainModal() {
             closeModal('pemainMatchSubmenuModal');
 
@@ -3395,6 +3424,8 @@
         function renderListPemain() {
             const listPending = document.getElementById('listPendingPemain');
             const listApproved = document.getElementById('listApprovedPemain');
+            if(!listPending || !listApproved) return;
+            
             listPending.innerHTML = '';
             listApproved.innerHTML = '';
 
@@ -3435,6 +3466,10 @@
         async function terimaPemain(docId) {
             if (window.db) {
                 await window.updateDoc(window.doc(window.db, "pemain", docId), { status: 'approved' });
+                const snap = await window.getDocs(window.collection(window.db, "pemain"));
+                daftarPemain = [];
+                snap.forEach(d => daftarPemain.push({ docId: d.id, ...d.data() }));
+                renderListPemain();
             }
         }
 
@@ -3442,6 +3477,10 @@
             if(confirm("Tolak dan hapus pendaftaran pemain ini?")) {
                 if (window.db) {
                     await window.deleteDoc(window.doc(window.db, "pemain", docId));
+                    const snap = await window.getDocs(window.collection(window.db, "pemain"));
+                    daftarPemain = [];
+                    snap.forEach(d => daftarPemain.push({ docId: d.id, ...d.data() }));
+                    renderListPemain();
                 }
             }
         }
@@ -3460,6 +3499,10 @@
                 if(confirm("Hapus pemain ini?")) {
                     if (window.db) {
                         await window.deleteDoc(window.doc(window.db, "pemain", docId));
+                        const snap = await window.getDocs(window.collection(window.db, "pemain"));
+                        daftarPemain = [];
+                        snap.forEach(d => daftarPemain.push({ docId: d.id, ...d.data() }));
+                        renderListPemain();
                     }
                     closeModal('detailPemainModal');
                 }
@@ -3474,6 +3517,8 @@
         function renderListWasit() {
             const listPending = document.getElementById('listPendingWasit');
             const listApproved = document.getElementById('listApprovedWasit');
+            if(!listPending || !listApproved) return;
+            
             listPending.innerHTML = '';
             listApproved.innerHTML = '';
 
