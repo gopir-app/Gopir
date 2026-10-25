@@ -1423,19 +1423,8 @@
                 <h3 id="pemainMatchSubmenuTitle"><i class="fa-solid fa-trophy"></i> Menu Pertandingan</h3>
                 <button class="close-btn" onclick="closeModal('pemainMatchSubmenuModal')">&times;</button>
             </div>
-            <div class="submenu-grid">
-                <button class="submenu-btn" id="btnDaftarPertandinganIni" onclick="handleDaftarKePertandingan()">
-                    <i class="fa-solid fa-list-check" style="color: var(--accent-gold);"></i> Daftar pertandingan ini
-                </button>
-                <button class="submenu-btn" onclick="openMejaPemainModal()">
-                    <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> Masuk meja (Cek Zoom)
-                </button>
-                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
-                    <i class="fa-solid fa-square-poll-vertical" style="color: var(--accent-gold);"></i> Klasemen Poin
-                </button>
-                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
-                    <i class="fa-solid fa-award" style="color: var(--accent-gold);"></i> Hasil Akhir
-                </button>
+            <div class="submenu-grid" id="pemainSubmenuGridContainer">
+                <!-- Diset dinamis berdasarkan status Zoom -->
             </div>
         </div>
     </div>
@@ -2575,16 +2564,29 @@
 
             document.getElementById('pemainMatchSubmenuTitle').innerText = ev.nama;
 
-            const btnDaftar = document.getElementById('btnDaftarPertandinganIni');
+            // RENDER DINAMIS SUBMENU PEMAIN BERDASARKAN STATUS ZOOM EVENT
+            const gridContainer = document.getElementById('pemainSubmenuGridContainer');
             const isRegistered = activeUserPemain && ev.peserta && ev.peserta.some(p => p.hp === activeUserPemain.hp);
+            const daftarBtnText = isRegistered ? 'Sudah Terdaftar di Pertandingan Ini' : 'Daftar pertandingan ini';
+            const daftarBtnIcon = isRegistered ? 'fa-circle-check' : 'fa-list-check';
+            const daftarBtnColor = isRegistered ? '#34d399' : 'var(--accent-gold)';
 
-            if(isRegistered) {
-                btnDaftar.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #34d399;"></i> Sudah Terdaftar di Pertandingan Ini`;
-                btnDaftar.style.opacity = '0.8';
-            } else {
-                btnDaftar.innerHTML = `<i class="fa-solid fa-list-check" style="color: var(--accent-gold);"></i> Daftar pertandingan ini`;
-                btnDaftar.style.opacity = '1';
-            }
+            const zoomMenuLabel = ev.useZoom === 'tidak' ? 'Masuk meja (Tanpa Zoom)' : 'Masuk meja (Wajib Zoom)';
+
+            gridContainer.innerHTML = `
+                <button class="submenu-btn" id="btnDaftarPertandinganIni" onclick="handleDaftarKePertandingan()">
+                    <i class="fa-solid ${daftarBtnIcon}" style="color: ${daftarBtnColor};"></i> ${daftarBtnText}
+                </button>
+                <button class="submenu-btn" onclick="openMejaPemainModal()">
+                    <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> ${zoomMenuLabel}
+                </button>
+                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
+                    <i class="fa-solid fa-square-poll-vertical" style="color: var(--accent-gold);"></i> Klasemen Poin
+                </button>
+                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
+                    <i class="fa-solid fa-award" style="color: var(--accent-gold);"></i> Hasil Akhir
+                </button>
+            `;
 
             openModal('pemainMatchSubmenuModal');
         }
@@ -2641,7 +2643,7 @@
                 // Langsung lewati verifikasi zoom dan tampilkan meja
                 tampilkanKontenMejaPemain();
             } else {
-                // Tampilkan popup verifikasi zoom seperti biasa
+                // Tampilkan popup verifikasi zoom jika wajib zoom
                 if(!ev.zoomUrl) {
                     document.getElementById('zoomLinkInfoText').innerHTML = `⚠️ Wasit belum mengatur Link Zoom untuk turnamen <b>${ev.nama}</b>.`;
                     document.getElementById('btnBukaZoomLink').style.display = 'none';
@@ -2718,7 +2720,7 @@
                 const lawan = rolePemain.includes('Putih') ? mejaPemain.pemainHitam : mejaPemain.pemainPutih;
                 const durasi = ev.durasiWaktu || 10;
                 const zoomStatusBadge = ev.useZoom === 'tidak' 
-                    ? `<i class="fa-solid fa-circle-info" style="color: var(--accent-gold);"></i> Mode Turnamen: <b>Tanpa Zoom</b>` 
+                    ? `<i class="fa-solid fa-circle-info" style="color: var(--accent-gold);"></i> Mode Turnamen: <b>Tanpa Zoom (Bebas)</b>` 
                     : `<i class="fa-solid fa-video" style="color: #34d399;"></i> Terhubung Zoom Wasit: <b>Aktif</b>`;
 
                 container.innerHTML = `
