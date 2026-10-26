@@ -2023,8 +2023,11 @@
         }
 
         function selectStatistikEvent(eventId) {
+            closeModal('pemainMatchSubmenuModal');
+            closeModal('wasitMatchSubmenuModal');
             currentStatistikEventId = eventId;
             currentStatistikViewLevel = 'babakList';
+            switchView('statistikPertandinganFullView');
             renderStatistikPertandingan();
         }
 
@@ -2118,10 +2121,10 @@
                 container.innerHTML += `
                     <div class="player-item" style="${highlightClass}">
                         <div class="player-info-left">
-                            <div class="player-name">${medal}${p.nama}</div>
+                            <div class="player-name">${medal}${p.nama} — <span style="color: var(--accent-gold);">${p.poin} Poin</span></div>
                             <div class="player-city">${p.kota} • Sisa Waktu: ${formatTime(p.sisaWaktuDetik)}</div>
                         </div>
-                        <span class="elo-tag" style="font-size: 0.85rem;">${p.poin} Poin</span>
+                        <span class="elo-tag" style="font-size: 0.85rem;">Rank #${idx + 1}</span>
                     </div>`;
             });
         }
@@ -2133,6 +2136,7 @@
             } else {
                 const role = localStorage.getItem('asr_active_role');
                 if (role === 'wasit') switchView('wasitDashboardView');
+                else if (role === 'pemain') switchView('pemainDashboardView');
                 else switchView('dashboardView');
             }
         }
@@ -2595,10 +2599,10 @@
                 <button class="submenu-btn" onclick="openMejaPemainModal()">
                     <i class="fa-solid fa-chess-board" style="color: var(--accent-gold);"></i> ${mejaMenuLabel}
                 </button>
-                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
+                <button class="submenu-btn" onclick="selectStatistikEvent('${ev.id || ev.docId}')">
                     <i class="fa-solid fa-square-poll-vertical" style="color: var(--accent-gold);"></i> Klasemen Poin
                 </button>
-                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
+                <button class="submenu-btn" onclick="selectStatistikEvent('${ev.id || ev.docId}')">
                     <i class="fa-solid fa-award" style="color: var(--accent-gold);"></i> Hasil Akhir
                 </button>
             `;
@@ -3217,7 +3221,7 @@
                 <button class="submenu-btn" onclick="openAturWaktuModal()">
                     <i class="fa-solid fa-stopwatch" style="color: var(--accent-gold);"></i> Atur waktu
                 </button>
-                <button class="submenu-btn" onclick="openStatistikPertandinganView()">
+                <button class="submenu-btn" onclick="selectStatistikEvent('${ev.id || ev.docId}')">
                     <i class="fa-solid fa-square-check" style="color: var(--accent-gold);"></i> Hasil babak / Klasemen
                 </button>
             `;
@@ -3519,7 +3523,6 @@
             const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
             if(!babakObj) return;
 
-            // 1. Hitung poin, sisa waktu, dan rekam riwayat warna sebelumnya untuk setiap pemain
             const statsPemainMap = {};
             ev.peserta.forEach(p => {
                 const pKey = p.hp || p.nama;
@@ -3530,11 +3533,10 @@
                     menangCount: 0,
                     whiteCount: 0,
                     blackCount: 0,
-                    lastColorPlayed: null // 'w' atau 'b'
+                    lastColorPlayed: null
                 };
             });
 
-            // Akumulasi riwayat dari babak sebelumnya
             ev.babakList.forEach(b => {
                 if(b.babakKe < babakKe && b.pairing) {
                     b.pairing.forEach(m => {
@@ -3548,7 +3550,6 @@
                             const pPutihKey = m.pemainPutih.hp || m.pemainPutih.nama;
                             const pHitamKey = m.pemainHitam.hp || m.pemainHitam.nama;
 
-                            // Catat riwayat warna
                             if(statsPemainMap[pPutihKey]) {
                                 statsPemainMap[pPutihKey].whiteCount++;
                                 statsPemainMap[pPutihKey].lastColorPlayed = 'w';
@@ -3585,7 +3586,6 @@
                 }
             });
 
-            // Urutkan berdasarkan swiss system (Poin -> Sisa Waktu -> Jumlah Menang)
             let sortedPlayers = Object.values(statsPemainMap).sort((a, b) => {
                 if (b.poin !== a.poin) return b.poin - a.poin;
                 if (b.sisaWaktuDetik !== a.sisaWaktuDetik) return b.sisaWaktuDetik - a.sisaWaktuDetik;
@@ -3612,7 +3612,6 @@
                 });
             }
 
-            // 2. Tentukan Putih vs Hitam dengan Menerapkan Aturan Rotasi Warna
             for(let i = 0; i < sortedPlayers.length; i += 2) {
                 let p1 = sortedPlayers[i];
                 let p2 = sortedPlayers[i+1];
@@ -3620,8 +3619,6 @@
                 let pemainPutihObj = p1;
                 let pemainHitamObj = p2;
 
-                // Logika Aturan Alternasi Warna:
-                // Jika p1 pada babak sebelumnya memegang Putih ('w'), maka prioritaskan p2 memegang Putih di babak ini.
                 if (p1.lastColorPlayed === 'w' && p2.lastColorPlayed !== 'w') {
                     pemainPutihObj = p2;
                     pemainHitamObj = p1;
@@ -3629,7 +3626,6 @@
                     pemainPutihObj = p1;
                     pemainHitamObj = p2;
                 } else {
-                    // Jika riwayat warna seimbang, tentukan berdasarkan total minoritas pemegang warna (Fairness balance)
                     if (p1.whiteCount > p1.blackCount && p2.whiteCount <= p2.blackCount) {
                         pemainPutihObj = p2;
                         pemainHitamObj = p1;
@@ -3659,7 +3655,7 @@
                 });
             }
 
-            alert(`Pairing Babak ${babakKe} Berhasil Digenerate!\nSistem otomatis menyesuaikan rotasi warna bidak (Babak lalu Putih -> Babak ini Hitam).`);
+            alert(`Pairing Babak ${babakKe} Berhasil Digenerate!\nSistem otomatis menyesuaikan rotasi warna bidak.`);
             renderPairingMejaInfo();
         }
 
@@ -4002,7 +3998,7 @@
                 await window.addDoc(window.collection(window.db, "event"), eventBaru);
             }
 
-            localStorage.setItem('asr_unread_match', JSON.stringify(true));
+ResponseWriter.setItem('asr_unread_match', JSON.stringify(true));
 
             alert("Pertandingan Berhasil Dibuat dan Disimpan ke Firebase!");
             event.target.reset();
