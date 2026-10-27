@@ -1734,7 +1734,8 @@
         let currentStatistikViewLevel = 'eventList'; 
         let currentStatistikEventId = null;
 
-        let lastTimerTickTime = Date.now(); // PENAMBAHAN: Variabel acuan waktu akurat 1 detik
+        let lastTimerTickTime = Date.now();
+        let localTimerValues = {}; // PENAMBAHAN: Menyimpan hitungan timer lokal per meja agar stabil & tidak melompat
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -2453,10 +2454,9 @@
             globalWasitInterval = setInterval(async () => {
                 if (!activeUserWasit && !activeUserPemain) return;
 
-                // PENYESUAIAN WAKTU PRESISI: Memastikan jeda waktu benar-benar tepat 1 detik (mengantisipasi drift)
                 const now = Date.now();
                 const elapsed = now - lastTimerTickTime;
-                if (elapsed < 900) return; // Mencegah eksekusi terlalu cepat jika interval ter-trigger ganda
+                if (elapsed < 950) return; // Toleransi waktu agar pas 1000ms (1 detik)
                 lastTimerTickTime = now;
 
                 let updated = false;
@@ -2468,11 +2468,22 @@
                                 if(b.pairing) {
                                     b.pairing.forEach(m => {
                                         if(!m.isBye && !m.isFinished) {
+                                            const matchKey = `${ev.docId || ev.id}_meja_${m.meja}`;
+                                            
+                                            // Inisialisasi waktu lokal jika belum ada
+                                            if (!localTimerValues[matchKey]) {
+                                                localTimerValues[matchKey] = {
+                                                    putih: m.timePutih !== undefined ? m.timePutih : 600,
+                                                    hitam: m.timeHitam !== undefined ? m.timeHitam : 600
+                                                };
+                                            }
+
                                             const engineChecker = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
                                             
                                             if(engineChecker.turn() === 'w') {
-                                                if(m.timePutih > 0) {
-                                                    m.timePutih--;
+                                                if(localTimerValues[matchKey].putih > 0) {
+                                                    localTimerValues[matchKey].putih--;
+                                                    m.timePutih = localTimerValues[matchKey].putih;
                                                     updated = true;
                                                 } else {
                                                     m.isFinished = true;
@@ -2482,8 +2493,9 @@
                                                     updated = true;
                                                 }
                                             } else {
-                                                if(m.timeHitam > 0) {
-                                                    m.timeHitam--;
+                                                if(localTimerValues[matchKey].hitam > 0) {
+                                                    localTimerValues[matchKey].hitam--;
+                                                    m.timeHitam = localTimerValues[matchKey].hitam;
                                                     updated = true;
                                                 } else {
                                                     m.isFinished = true;
@@ -2497,7 +2509,7 @@
                                     });
                                 }
                                 
-                                if (window.db && updated) {
+                                if (window.db && updated && activeUserWasit) {
                                     const eventDocId = ev.docId || ev.id;
                                     await window.updateDoc(window.doc(window.db, "event", String(eventDocId)), {
                                         babakList: ev.babakList
@@ -2508,10 +2520,30 @@
                     }
                 }
 
+                // Perbarui tampilan timer di layar secara instan tanpa menunggu refresh database
+                updateTimerDisplayUI();
+
                 if(updated && document.getElementById('pairingWasitModal').classList.contains('active')) {
                     renderPairingMejaInfo();
                 }
             }, 1000);
+        }
+
+        function updateTimerDisplayUI() {
+            if (document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
+                const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+                if(!ev || !ev.babakList) return;
+                const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+                if(!babakObj || !babakObj.pairing) return;
+                const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+                if(!meja) return;
+
+                const elPutih = document.getElementById('timerPutih');
+                const elHitam = document.getElementById('timerHitam');
+
+                if(elPutih) elPutih.innerText = formatTime(meja.timePutih || 0);
+                if(elHitam) elHitam.innerText = formatTime(meja.timeHitam || 0);
+            }
         }
 
         function openModal(id) {
