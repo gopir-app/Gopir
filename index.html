@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Color Alternation)</title>
+    <title>Asr.Catur Online - Master Production (Automatic Scoring & Finish Round)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -620,6 +620,7 @@
             flex-direction: column;
             gap: 10px;
             align-items: center;
+            position: relative;
         }
 
         .clock-container {
@@ -649,6 +650,52 @@
             color: #fff;
             font-family: monospace;
             margin-top: 2px;
+        }
+
+        /* OVERLAY COUNTDOWN & TEKS MULAI BESAR DI ARENA */
+        .arena-countdown-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.88);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            border-radius: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease;
+        }
+
+        .arena-countdown-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .countdown-big-number {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--accent-gold);
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+            animation: pulse-num 0.9s infinite alternate;
+        }
+
+        .countdown-big-text {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--accent-green);
+            text-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+            letter-spacing: 2px;
+        }
+
+        @keyframes pulse-num {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
         }
 
         .chessboard-grid {
@@ -937,6 +984,11 @@
             <p class="hero-subtitle" id="arenaMatchSubtitle">Meja Pertandingan Resmi</p>
 
             <div class="match-arena-box">
+                <!-- OVERLAY HITUNG MUNDUR & TEKS MULAI -->
+                <div id="arenaCountdownOverlay" class="arena-countdown-overlay">
+                    <div id="countdownNumberDisplay" class="countdown-big-number">10</div>
+                </div>
+
                 <div class="clock-container">
                     <div class="player-clock-card" id="clockHitamBox">
                         <div style="font-size: 0.72rem; color: var(--text-muted);" id="namaLawanClock">Lawan (Hitam)</div>
@@ -1585,7 +1637,7 @@
     <div class="modal-overlay" id="pairingWasitModal">
         <div class="modal-box">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-sitemap"></i> Pairing & Kontrol Timer</h3>
+                <h3><i class="fa-solid fa-sitemap"></i> Pairing & Kontrol Wasit</h3>
                 <button class="close-btn" onclick="closeModal('pairingWasitModal')">&times;</button>
             </div>
             
@@ -1595,7 +1647,7 @@
             </div>
 
             <div class="info-badge-box" id="infoPairingStatus">
-                Pilih babak di atas untuk melihat susunan meja dan mengontrol timer.
+                Pilih babak di atas untuk melihat susunan meja dan mengontrol turnamen.
             </div>
 
             <div id="actionGeneratePairing" style="margin-bottom: 12px; display: none;">
@@ -1604,12 +1656,10 @@
                 </button>
             </div>
 
-            <div id="wasitGlobalTimerControls" style="display: none; margin-bottom: 12px; display: flex; gap: 6px;">
-                <button class="btn btn-success" style="flex: 1; padding: 8px;" onclick="startAllTimersWasit()">
-                    <i class="fa-solid fa-play"></i> Start Timer All
-                </button>
-                <button class="btn btn-danger" style="flex: 1; padding: 8px;" onclick="stopAllTimersWasit()">
-                    <i class="fa-solid fa-pause"></i> Pause Timer All
+            <!-- TOMBOL KONTROL UTAMA WASIT: MULAI & SELESAIKAN -->
+            <div id="wasitControlActionRow" style="margin-bottom: 12px; display: flex; gap: 6px; display: none;">
+                <button class="btn btn-success" style="flex: 1; padding: 9px;" onclick="triggerMulaiPertandinganWasit()">
+                    <i class="fa-solid fa-play"></i> Mulai Pertandingan
                 </button>
             </div>
 
@@ -1617,10 +1667,10 @@
                 <i class="fa-solid fa-chess-board"></i> Meja & Kontrol Waktu / Penalti
             </div>
 
-            <div id="listMejaPairing" style="max-height: 260px; overflow-y: auto;"></div>
+            <div id="listMejaPairing" style="max-height: 220px; overflow-y: auto;"></div>
 
-            <button class="btn btn-primary" id="btnSimpanSkorBabak" style="width: 100%; margin-top: 10px; padding: 8px; display: none;" onclick="simpanHasilSkorBabak()">
-                <i class="fa-solid fa-floppy-disk"></i> Simpan Hasil Skor Babak Ini
+            <button class="btn btn-success" id="btnSelesaikanBabak" style="width: 100%; margin-top: 12px; padding: 9px; display: none;" onclick="selesaikanBabakAktif()">
+                <i class="fa-solid fa-circle-check"></i> Selesaikan Babak Ini
             </button>
         </div>
     </div>
@@ -1670,6 +1720,7 @@
         let selectedSquareSquareNotation = null;
         let validMovesForSelectedSquare = [];
         let lastKnownFenOnline = "";
+        let lastKnownCountdownState = false;
 
         let chessEngineAnalisa = new Chess();
         let selectedSquareAnalisa = null;
@@ -2034,7 +2085,7 @@
         function renderKlasemenPoin(eventId, targetBabak) {
             const ev = daftarEvent.find(e => (e.id == eventId || e.docId == eventId));
             if (!ev || !ev.peserta || ev.peserta.length === 0) {
-                alert("Belum ada peserta/data dalam pertandingan ini.");
+                alert("Belum ada peserta atau data dalam pertandingan ini.");
                 return;
             }
 
@@ -2043,7 +2094,8 @@
 
             const statsPemainMap = {};
             ev.peserta.forEach(p => {
-                statsPemainMap[p.hp || p.nama] = {
+                const pKey = p.hp || p.nama;
+                statsPemainMap[pKey] = {
                     nama: p.nama,
                     kota: p.kota || '-',
                     poin: 0,
@@ -2065,7 +2117,7 @@
                                 statsPemainMap[pKey].poin += 1.0;
                                 statsPemainMap[pKey].menangCount += 1;
                             }
-                        } else if (m.pemainPutih && m.pemainHitam) {
+                        } else if (m.pemainPutih && m.pemainHitam && m.isFinished) {
                             const pPutihKey = m.pemainPutih.hp || m.pemainPutih.nama;
                             const pHitamKey = m.pemainHitam.hp || m.pemainHitam.nama;
 
@@ -2097,16 +2149,12 @@
             });
 
             const standings = Object.values(statsPemainMap).sort((a, b) => {
-                if (b.poin !== a.poin) {
-                    return b.poin - a.poin; 
-                }
-                if (b.sisaWaktuDetik !== a.sisaWaktuDetik) {
-                    return b.sisaWaktuDetik - a.sisaWaktuDetik; 
-                }
+                if (b.poin !== a.poin) return b.poin - a.poin;
+                if (b.sisaWaktuDetik !== a.sisaWaktuDetik) return b.sisaWaktuDetik - a.sisaWaktuDetik;
                 return b.menangCount - a.menangCount;
             });
 
-            const babakJudul = targetBabak === 'all' ? 'Klasemen Akhir Turnamen' : `Hasil / Standings Babak ${targetBabak}`;
+            const babakJudul = targetBabak === 'all' ? 'Klasemen Akhir Turnamen' : `Standings Babak ${targetBabak}`;
 
             container.innerHTML += `
                 <div class="info-badge-box" style="margin-bottom: 12px; font-weight: 700; text-align: center;">
@@ -2122,7 +2170,7 @@
                     <div class="player-item" style="${highlightClass}">
                         <div class="player-info-left">
                             <div class="player-name">${medal}${p.nama} — <span style="color: var(--accent-gold);">${p.poin} Poin</span></div>
-                            <div class="player-city">${p.kota} • Sisa Waktu: ${formatTime(p.sisaWaktuDetik)}</div>
+                            <div class="player-city">${p.kota} • Akumulasi Waktu: ${formatTime(p.sisaWaktuDetik)}</div>
                         </div>
                         <span class="elo-tag" style="font-size: 0.85rem;">Rank #${idx + 1}</span>
                     </div>`;
@@ -2397,7 +2445,7 @@
         function startGlobalWasitTimerTick() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
             globalWasitInterval = setInterval(async () => {
-                if (!activeUserWasit) return;
+                if (!activeUserWasit && !activeUserPemain) return;
 
                 let updated = false;
 
@@ -2416,8 +2464,9 @@
                                                     updated = true;
                                                 } else {
                                                     m.isFinished = true;
-                                                    m.skor = '0-1';
+                                                    m.skor = '0-1'; 
                                                     m.alasanSelesai = `Waktu Habis (${m.pemainHitam.nama} Menang)`;
+                                                    b.status = 'Selesai';
                                                     updated = true;
                                                 }
                                             } else {
@@ -2426,8 +2475,9 @@
                                                     updated = true;
                                                 } else {
                                                     m.isFinished = true;
-                                                    m.skor = '1-0';
+                                                    m.skor = '1-0'; 
                                                     m.alasanSelesai = `Waktu Habis (${m.pemainPutih.nama} Menang)`;
+                                                    b.status = 'Selesai';
                                                     updated = true;
                                                 }
                                             }
@@ -2799,6 +2849,7 @@
             selectedSquareSquareNotation = null;
             validMovesForSelectedSquare = [];
             lastKnownFenOnline = "";
+            lastKnownCountdownState = false;
 
             syncRealtimeArenaState();
         }
@@ -2844,7 +2895,36 @@
             document.getElementById('timerPutih').innerText = formatTime(meja.timePutih || 600);
             document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam || 600);
 
+            // CEK TRIGGER COUNTDOWN / MULAI DARI WASIT
+            const countdownOverlay = document.getElementById('arenaCountdownOverlay');
+            const countdownNumDisplay = document.getElementById('countdownNumberDisplay');
+
+            if (meja.triggerMulai === true && lastKnownCountdownState === false) {
+                lastKnownCountdownState = true;
+                jalankanAnimasiHitungMundurArena(countdownOverlay, countdownNumDisplay);
+            }
+
             updateChessGameStatusInfoOnline(meja, myRoleColor);
+        }
+
+        function jalankanAnimasiHitungMundurArena(overlayEl, numDisplayEl) {
+            overlayEl.classList.add('active');
+            let counter = 10;
+            numDisplayEl.className = 'countdown-big-number';
+            numDisplayEl.innerText = counter;
+
+            const intervalId = setInterval(() => {
+                counter--;
+                if (counter > 0) {
+                    numDisplayEl.innerText = counter;
+                } else if (counter === 0) {
+                    numDisplayEl.className = 'countdown-big-text';
+                    numDisplayEl.innerText = 'MULAI!';
+                } else {
+                    clearInterval(intervalId);
+                    overlayEl.classList.remove('active');
+                }
+            }, 1000);
         }
 
         function renderChessboardOnline(myRoleColor) {
@@ -2914,6 +2994,15 @@
 
         async function onSquareClickOnline(squareNotation, myRoleColor) {
             if (chessEngine.game_over()) return;
+
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            const babakObj = ev ? ev.babakList.find(b => b.babakKe === activeBabakKe) : null;
+            const mejaObj = babakObj ? babakObj.pairing.find(m => m.meja === activeMejaNo) : null;
+
+            if (!mejaObj || !mejaObj.isTimerRunning) {
+                alert("Pertandingan belum dimulai oleh wasit!");
+                return;
+            }
 
             if (chessEngine.turn() !== myRoleColor) {
                 alert("Bukan giliran Anda! Tunggu lawan melangkah.");
@@ -2985,19 +3074,17 @@
             if (chessEngine.game_over()) {
                 meja.isFinished = true;
                 babakObj.isTimerRunning = false;
-
-                const sisaWaktuPemenangDetik = chessEngine.turn() === 'b' ? meja.timePutih : meja.timeHitam;
-                const sisaWaktuFormat = formatTime(sisaWaktuPemenangDetik);
+                babakObj.status = 'Selesai';
 
                 if (chessEngine.in_checkmate()) {
                     const pemenang = chessEngine.turn() === 'w' ? meja.pemainHitam.nama : meja.pemainPutih.nama;
                     meja.skor = chessEngine.turn() === 'w' ? '0-1' : '1-0';
                     meja.alasanSelesai = `Skakmat`;
-                    tampilkanPesanHasilOtomatis(`${pemenang} ${meja.skor === '1-0' ? '1 - ' + meja.pemainHitam.nama + ' 0' : meja.pemainPutih.nama + ' 0 - ' + pemenang + ' 1'} skak mati ${sisaWaktuFormat}`);
+                    tampilkanPesanHasilOtomatis(`Skakmat! Pemenang Otomatis: ${pemenang}`);
                 } else if (chessEngine.in_draw()) {
                     meja.skor = '0.5-0.5';
                     meja.alasanSelesai = 'Remis / Draw';
-                    tampilkanPesanHasilOtomatis(`${meja.pemainPutih.nama} ½ - ½ ${meja.pemainHitam.nama} (Remis)`);
+                    tampilkanPesanHasilOtomatis(`Pertandingan Remis (Draw)!`);
                 }
             }
 
@@ -3013,8 +3100,14 @@
             const turnText = chessEngine.turn() === 'w' ? 'Putih (⚪)' : 'Hitam (⚫)';
             const isMyTurn = chessEngine.turn() === myRoleColor;
 
+            if (!meja.isTimerRunning && !meja.isFinished) {
+                statusEl.innerHTML = `<i class="fa-solid fa-clock"></i> <b>Menunggu Wasit Menekan Tombol Mulai...</b>`;
+                statusEl.style.color = 'var(--accent-gold)';
+                return;
+            }
+
             if (meja.isFinished) {
-                statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>Pertandingan Selesai!</b> Skor: ${meja.skor}`;
+                statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>Pertandingan Selesai Otomatis!</b> Skor: ${meja.skor}`;
                 statusEl.style.color = '#10b981';
             } else if (chessEngine.in_checkmate()) {
                 const winner = chessEngine.turn() === 'w' ? 'Hitam' : 'Putih';
@@ -3213,7 +3306,7 @@
 
             gridContainer.innerHTML += `
                 <button class="submenu-btn" onclick="openPairingWasitModal()">
-                    <i class="fa-solid fa-sitemap" style="color: var(--accent-gold);"></i> Pairing
+                    <i class="fa-solid fa-sitemap" style="color: var(--accent-gold);"></i> Pairing & Pantau Meja
                 </button>
                 <button class="submenu-btn" onclick="openAturBabakModal()">
                     <i class="fa-solid fa-sliders" style="color: var(--accent-gold);"></i> Atur babak
@@ -3377,6 +3470,7 @@
                     babakKe: i,
                     status: i === 1 ? 'Siap Pairing' : 'Belum Dimulai',
                     isTimerRunning: false,
+                    triggerMulai: false,
                     pairing: []
                 });
             }
@@ -3424,9 +3518,9 @@
                 selectBabak.innerHTML = '<option value="">-- Atur Babak Terlebih Dahulu --</option>';
                 document.getElementById('infoPairingStatus').innerHTML = 'Silakan atur babak di menu "Atur babak" sebelum membuat pairing.';
                 document.getElementById('actionGeneratePairing').style.display = 'none';
-                document.getElementById('wasitGlobalTimerControls').style.display = 'none';
+                document.getElementById('wasitControlActionRow').style.display = 'none';
                 document.getElementById('listMejaPairing').innerHTML = '';
-                document.getElementById('btnSimpanSkorBabak').style.display = 'none';
+                document.getElementById('btnSelesaikanBabak').style.display = 'none';
                 openModal('pairingWasitModal');
                 return;
             }
@@ -3447,8 +3541,8 @@
             const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
             const containerMeja = document.getElementById('listMejaPairing');
             const actionGen = document.getElementById('actionGeneratePairing');
-            const globalTimer = document.getElementById('wasitGlobalTimerControls');
-            const btnSimpan = document.getElementById('btnSimpanSkorBabak');
+            const wasitControlRow = document.getElementById('wasitControlActionRow');
+            const btnSelesaiBabak = document.getElementById('btnSelesaikanBabak');
             const infoBox = document.getElementById('infoPairingStatus');
 
             containerMeja.innerHTML = '';
@@ -3457,22 +3551,24 @@
             if(!babakObj.pairing || babakObj.pairing.length === 0) {
                 infoBox.innerHTML = `Babak ${babakKe} belum memiliki susunan pairing meja.`;
                 actionGen.style.display = 'block';
-                globalTimer.style.display = 'none';
-                btnSimpan.style.display = 'none';
+                wasitControlRow.style.display = 'none';
+                btnSelesaiBabak.style.display = 'none';
                 containerMeja.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Klik "Generate Pairing Otomatis (Swiss & Rotasi Warna)".</p>';
             } else {
                 actionGen.style.display = 'none';
-                globalTimer.style.display = 'flex';
-                btnSimpan.style.display = 'block';
-                infoBox.innerHTML = `Pairing Babak ${babakKe} Aktif. Timer: <b>${babakObj.isTimerRunning ? 'BERJALAN' : 'BERHENTI'}</b>`;
+                wasitControlRow.style.display = 'flex';
+                btnSelesaiBabak.style.display = 'block';
+                infoBox.innerHTML = `Pairing Babak ${babakKe} Aktif. Status Pertandingan: <b>${babakObj.isTimerRunning ? 'BERJALAN' : 'MENUNGGU DIMULAI'}</b>`;
 
                 babakObj.pairing.forEach((m, idx) => {
+                    const statusSkorText = m.isFinished ? `<span style="color: #34d399; font-weight: 700;">Selesai [Skor: ${m.skor}]</span>` : `<span style="color: var(--accent-gold);">Sedang Berlangsung</span>`;
+
                     if(m.isBye) {
                         containerMeja.innerHTML += `
                             <div class="pairing-card">
                                 <div class="pairing-header">
                                     <span>Meja ${m.meja || idx + 1}</span>
-                                    <span style="color: #34d399;">BYE (+1 Poin)</span>
+                                    <span style="color: #34d399;">BYE (+1 Poin Otomatis)</span>
                                 </div>
                                 <div class="pairing-row">
                                     <span class="player-p">${m.pemainPutih.nama}</span>
@@ -3485,31 +3581,56 @@
                             <div class="pairing-card">
                                 <div class="pairing-header">
                                     <span>Meja ${m.meja || idx + 1}</span>
-                                    <span>⏱️ Putih: ${formatTime(m.timePutih)} | Hitam: ${formatTime(m.timeHitam)}</span>
+                                    <span>${statusSkorText}</span>
                                 </div>
                                 <div class="pairing-row" style="margin-bottom: 6px;">
-                                    <span class="player-p">⚪ ${m.pemainPutih.nama}</span>
+                                    <span class="player-p">⚪ ${m.pemainPutih.nama} (${formatTime(m.timePutih)})</span>
                                     <span class="vs-tag">VS</span>
-                                    <span class="player-h">⚫ ${m.pemainHitam.nama}</span>
+                                    <span class="player-h">⚫ ${m.pemainHitam.nama} (${formatTime(m.timeHitam)})</span>
                                 </div>
 
                                 <div class="timer-control-row">
                                     <button class="btn-small-penalty" onclick="tambahWaktuPenalti(${babakKe}, ${idx}, 'w', 60)">+1 Mnt Putih</button>
                                     <button class="btn-small-penalty" onclick="tambahWaktuPenalti(${babakKe}, ${idx}, 'b', 60)">+1 Mnt Hitam</button>
                                 </div>
-
-                                <div class="input-group" style="margin-bottom: 0;">
-                                    <select id="skorMeja_${idx}">
-                                        <option value="0" ${m.skor === '0' ? 'selected' : ''}>-- Pilih Hasil Skor --</option>
-                                        <option value="1-0" ${m.skor === '1-0' ? 'selected' : ''}>1 - 0 (Putih Menang)</option>
-                                        <option value="0.5-0.5" ${m.skor === '0.5-0.5' ? 'selected' : ''}>½ - ½ (Remis)</option>
-                                        <option value="0-1" ${m.skor === '0-1' ? 'selected' : ''}>0 - 1 (Hitam Menang)</option>
-                                    </select>
-                                </div>
                             </div>`;
                     }
                 });
             }
+        }
+
+        async function selesaikanBabakAktif() {
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
+            if(!ev) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
+            if(!babakObj || !babakObj.pairing) return;
+
+            babakObj.status = 'Selesai';
+            babakObj.isTimerRunning = false;
+
+            babakObj.pairing.forEach(m => {
+                if(!m.isFinished) {
+                    m.isFinished = true;
+                    if(!m.skor) m.skor = '0.5-0.5';
+                }
+            });
+
+            const nextBabak = ev.babakList.find(b => b.babakKe === babakKe + 1);
+            if(nextBabak && nextBabak.status === 'Belum Dimulai') {
+                nextBabak.status = 'Siap Pairing';
+            }
+
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
+
+            alert(`Babak ${babakKe} berhasil diselesaikan secara resmi! Statistik & klasemen poin telah diperbarui.`);
+            closeModal('pairingWasitModal');
+            openStatistikPertandinganView();
         }
 
         async function generatePairingSistem() {
@@ -3641,6 +3762,7 @@
                     timePutih: durasiDetik,
                     timeHitam: durasiDetik,
                     isFinished: false,
+                    triggerMulai: false,
                     fen: startingFen
                 });
             }
@@ -3659,7 +3781,7 @@
             renderPairingMejaInfo();
         }
 
-        async function startAllTimersWasit() {
+        async function triggerMulaiPertandinganWasit() {
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
             if(!ev) return;
@@ -3668,6 +3790,11 @@
             if(!babakObj) return;
 
             babakObj.isTimerRunning = true;
+            if(babakObj.pairing) {
+                babakObj.pairing.forEach(m => {
+                    m.triggerMulai = true;
+                });
+            }
 
             if (window.db) {
                 await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
@@ -3675,27 +3802,7 @@
                 });
             }
 
-            alert(`Timer Babak ${babakKe} DIMULAI secara resmi oleh Wasit! Waktu berjalan otomatis.`);
-            renderPairingMejaInfo();
-        }
-
-        async function stopAllTimersWasit() {
-            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-            const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
-            if(!ev) return;
-
-            const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
-            if(!babakObj) return;
-
-            babakObj.isTimerRunning = false;
-
-            if (window.db) {
-                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                    babakList: ev.babakList
-                });
-            }
-
-            alert(`Timer Babak ${babakKe} DIHENTIKAN/PAUSE oleh Wasit!`);
+            alert(`Pertandingan Babak ${babakKe} DIMULAI! Hitungan mundur dikirim ke seluruh meja.`);
             renderPairingMejaInfo();
         }
 
@@ -3722,42 +3829,6 @@
                 }
                 renderPairingMejaInfo();
             }
-        }
-
-        async function simpanHasilSkorBabak() {
-            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-            const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
-            if(!ev) return;
-
-            const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
-            if(!babakObj || !babakObj.pairing) return;
-
-            babakObj.pairing.forEach((m, idx) => {
-                if(!m.isBye) {
-                    const elSelect = document.getElementById(`skorMeja_${idx}`);
-                    if(elSelect) {
-                        m.skor = elSelect.value;
-                        m.isFinished = true;
-                    }
-                }
-            });
-
-            babakObj.status = 'Selesai';
-            babakObj.isTimerRunning = false;
-
-            const nextBabak = ev.babakList.find(b => b.babakKe === babakKe + 1);
-            if(nextBabak && nextBabak.status === 'Belum Dimulai') {
-                nextBabak.status = 'Siap Pairing';
-            }
-
-            if (window.db) {
-                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                    babakList: ev.babakList
-                });
-            }
-
-            alert(`Hasil Skor Babak ${babakKe} Disimpan! Rotasi warna bidak siap diproses untuk babak berikutnya.`);
-            closeModal('pairingWasitModal');
         }
 
         function openKelolaPemainView() {
@@ -3998,7 +4069,7 @@
                 await window.addDoc(window.collection(window.db, "event"), eventBaru);
             }
 
-ResponseWriter.setItem('asr_unread_match', JSON.stringify(true));
+            localStorage.setItem('asr_unread_match', JSON.stringify(true));
 
             alert("Pertandingan Berhasil Dibuat dan Disimpan ke Firebase!");
             event.target.reset();
