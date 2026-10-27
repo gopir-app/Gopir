@@ -948,20 +948,7 @@
                     </div>
                 </div>
 
-                <!-- OVERLAY HITUNG MUNDUR & MULAI -->
-                <div id="arenaCountdownOverlay" style="display: none; width: 100%; max-width: 360px; padding: 20px; background: rgba(15, 23, 42, 0.95); border: 2px solid var(--accent-gold); border-radius: 6px; text-align: center; margin-bottom: 5px;">
-                    <div id="countdownTextDisplay" style="font-size: 2.2rem; font-weight: 800; color: var(--accent-gold); margin-bottom: 8px;">3</div>
-                    <p style="font-size: 0.75rem; color: var(--text-muted);">Menunggu pertandingan dimulai oleh Wasit...</p>
-                </div>
-
                 <div id="chessboard" class="chessboard-grid"></div>
-
-                <!-- TOMBOL MULAI WAKTU KHUSUS PEMAIN PUTIH -->
-                <div id="actionMulaiWaktuContainer" style="display: none; width: 100%; margin-top: 6px;">
-                    <button class="btn btn-success" style="width: 100%; padding: 10px; font-weight: 800; font-size: 0.85rem;" onclick="pemainPutihMulaiWaktu()">
-                        <i class="fa-solid fa-play"></i> TEKAN DISINI: MULAI WAKTU PERTANDINGAN
-                    </button>
-                </div>
 
                 <div class="info-badge-box" id="chessGameStatus" style="width: 100%; text-align: center; margin-top: 5px;">
                     <i class="fa-solid fa-circle-info"></i> Menghubungkan ke meja online...
@@ -1598,7 +1585,7 @@
     <div class="modal-overlay" id="pairingWasitModal">
         <div class="modal-box">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-sitemap"></i> Pairing & Kontrol Wasit</h3>
+                <h3><i class="fa-solid fa-sitemap"></i> Pairing & Kontrol Timer</h3>
                 <button class="close-btn" onclick="closeModal('pairingWasitModal')">&times;</button>
             </div>
             
@@ -1608,7 +1595,7 @@
             </div>
 
             <div class="info-badge-box" id="infoPairingStatus">
-                Pilih babak di atas untuk melihat susunan meja dan mengontrol pertandingan.
+                Pilih babak di atas untuk melihat susunan meja dan mengontrol timer.
             </div>
 
             <div id="actionGeneratePairing" style="margin-bottom: 12px; display: none;">
@@ -1618,8 +1605,11 @@
             </div>
 
             <div id="wasitGlobalTimerControls" style="display: none; margin-bottom: 12px; display: flex; gap: 6px;">
-                <button class="btn btn-success" style="flex: 1; padding: 8px; font-weight: 700;" onclick="startAllWasitMulaiMatch()">
-                    <i class="fa-solid fa-play"></i> Mulai Pertandingan (Kirim Sinyal)
+                <button class="btn btn-success" style="flex: 1; padding: 8px;" onclick="startAllTimersWasit()">
+                    <i class="fa-solid fa-play"></i> Start Timer All
+                </button>
+                <button class="btn btn-danger" style="flex: 1; padding: 8px;" onclick="stopAllTimersWasit()">
+                    <i class="fa-solid fa-pause"></i> Pause Timer All
                 </button>
             </div>
 
@@ -1680,7 +1670,6 @@
         let selectedSquareSquareNotation = null;
         let validMovesForSelectedSquare = [];
         let lastKnownFenOnline = "";
-        let countdownHasPlayed = false;
 
         let chessEngineAnalisa = new Chess();
         let selectedSquareAnalisa = null;
@@ -2405,44 +2394,48 @@
             }
         }
 
-        /* --- SISTEM TIMER ABSOLUT (TIMESTAMP) & SYNC REALTIME --- */
         function startGlobalWasitTimerTick() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
             globalWasitInterval = setInterval(async () => {
+                if (!activeUserWasit) return;
+
                 let updated = false;
-                const now = Date.now();
 
                 for (let ev of daftarEvent) {
                     if(ev.babakList) {
                         for (let b of ev.babakList) {
-                            if(b.status === 'Berjalan' && b.isTimerRunning && b.pairing) {
-                                b.pairing.forEach(m => {
-                                    if(!m.isBye && !m.isFinished && m.activeTurnColor && m.lastTimestamp) {
-                                        const elapsedSec = Math.floor((now - m.lastTimestamp) / 1000);
-                                        if (elapsedSec > 0) {
-                                            if (m.activeTurnColor === 'w') {
-                                                m.timePutih = Math.max(0, (m.baseTimePutih || m.timePutih) - elapsedSec);
-                                                if (m.timePutih === 0) {
+                            if(b.status === 'Berjalan' && b.isTimerRunning) {
+                                if(b.pairing) {
+                                    b.pairing.forEach(m => {
+                                        if(!m.isBye && !m.isFinished) {
+                                            const engineChecker = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+                                            
+                                            if(engineChecker.turn() === 'w') {
+                                                if(m.timePutih > 0) {
+                                                    m.timePutih--;
+                                                    updated = true;
+                                                } else {
                                                     m.isFinished = true;
                                                     m.skor = '0-1';
                                                     m.alasanSelesai = `Waktu Habis (${m.pemainHitam.nama} Menang)`;
                                                     updated = true;
                                                 }
                                             } else {
-                                                m.timeHitam = Math.max(0, (m.baseTimeHitam || m.timeHitam) - elapsedSec);
-                                                if (m.timeHitam === 0) {
+                                                if(m.timeHitam > 0) {
+                                                    m.timeHitam--;
+                                                    updated = true;
+                                                } else {
                                                     m.isFinished = true;
                                                     m.skor = '1-0';
                                                     m.alasanSelesai = `Waktu Habis (${m.pemainPutih.nama} Menang)`;
                                                     updated = true;
                                                 }
                                             }
-                                            updated = true;
                                         }
-                                    }
-                                });
+                                    });
+                                }
                                 
-                                if (window.db && updated && activeUserWasit) {
+                                if (window.db && updated) {
                                     const eventDocId = ev.docId || ev.id;
                                     await window.updateDoc(window.doc(window.db, "event", String(eventDocId)), {
                                         babakList: ev.babakList
@@ -2456,10 +2449,7 @@
                 if(updated && document.getElementById('pairingWasitModal').classList.contains('active')) {
                     renderPairingMejaInfo();
                 }
-                if(updated && document.getElementById('papanCaturFullView').classList.contains('active')) {
-                    syncRealtimeArenaState();
-                }
-            }, 500);
+            }, 1000);
         }
 
         function openModal(id) {
@@ -2802,7 +2792,6 @@
             document.getElementById('arenaMatchTitle').innerText = `Meja ${noMeja} - Babak ${babakKe}`;
             document.getElementById('arenaMatchSubtitle').innerText = `${namaEvent} vs ${namaLawan}`;
 
-            countdownHasPlayed = false;
             resetMatchArenaPemain(noMeja, babakKe);
         }
 
@@ -2855,72 +2844,7 @@
             document.getElementById('timerPutih').innerText = formatTime(meja.timePutih || 600);
             document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam || 600);
 
-            // LOGIKA HITUNG MUNDUR & TOMBOL MULAI WAKTU
-            const overlayEl = document.getElementById('arenaCountdownOverlay');
-            const countdownDisp = document.getElementById('countdownTextDisplay');
-            const startWaktuBtn = document.getElementById('actionMulaiWaktuContainer');
-
-            if (meja.isTriggeredByWasit && !meja.isTimerRunning && !meja.hasWhiteStartedTimer) {
-                if (!countdownHasPlayed) {
-                    countdownHasPlayed = true;
-                    overlayEl.style.display = 'block';
-                    
-                    let count = 3;
-                    countdownDisp.innerText = count;
-                    
-                    let timerInterval = setInterval(() => {
-                        count--;
-                        if (count > 0) {
-                            countdownDisp.innerText = count;
-                        } else if (count === 0) {
-                            countdownDisp.innerText = "MULAI!";
-                            countdownDisp.style.fontSize = "2.8rem";
-                        } else {
-                            clearInterval(timerInterval);
-                            overlayEl.style.display = 'none';
-                            if (myRoleColor === 'w') {
-                                startWaktuBtn.style.display = 'block';
-                            }
-                        }
-                    }, 1000);
-                }
-            } else if (meja.isTimerRunning) {
-                overlayEl.style.display = 'none';
-                startWaktuBtn.style.display = 'none';
-            } else {
-                overlayEl.style.display = 'none';
-                startWaktuBtn.style.display = 'none';
-            }
-
             updateChessGameStatusInfoOnline(meja, myRoleColor);
-        }
-
-        async function pemainPutihMulaiWaktu() {
-            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-            if(!ev || !ev.babakList) return;
-
-            const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
-            if(!babakObj || !babakObj.pairing) return;
-
-            const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
-            if(!meja) return;
-
-            const now = Date.now();
-            meja.isTimerRunning = true;
-            meja.hasWhiteStartedTimer = true;
-            meja.activeTurnColor = chessEngine.turn();
-            meja.lastTimestamp = now;
-            meja.baseTimePutih = meja.timePutih;
-            meja.baseTimeHitam = meja.timeHitam;
-
-            if (window.db) {
-                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                    babakList: ev.babakList
-                });
-            }
-
-            document.getElementById('actionMulaiWaktuContainer').style.display = 'none';
-            alert("Waktu pertandingan resmi berjalan!");
         }
 
         function renderChessboardOnline(myRoleColor) {
@@ -2991,15 +2915,6 @@
         async function onSquareClickOnline(squareNotation, myRoleColor) {
             if (chessEngine.game_over()) return;
 
-            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-            const babakObj = ev?.babakList?.find(b => b.babakKe === activeBabakKe);
-            const meja = babakObj?.pairing?.find(m => m.meja === activeMejaNo);
-
-            if (!meja || !meja.isTimerRunning) {
-                alert("Pertandingan belum dimulai atau waktu belum dijalankan oleh Pemain Putih!");
-                return;
-            }
-
             if (chessEngine.turn() !== myRoleColor) {
                 alert("Bukan giliran Anda! Tunggu lawan melangkah.");
                 return;
@@ -3065,25 +2980,11 @@
             const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
             if(!meja) return;
 
-            const now = Date.now();
-            const elapsed = Math.floor((now - meja.lastTimestamp) / 1000);
-
-            if (meja.activeTurnColor === 'w') {
-                meja.timePutih = Math.max(0, meja.timePutih - elapsed);
-            } else {
-                meja.timeHitam = Math.max(0, meja.timeHitam - elapsed);
-            }
-
             meja.fen = chessEngine.fen();
-            meja.activeTurnColor = chessEngine.turn();
-            meja.lastTimestamp = now;
-            meja.baseTimePutih = meja.timePutih;
-            meja.baseTimeHitam = meja.timeHitam;
 
             if (chessEngine.game_over()) {
                 meja.isFinished = true;
                 babakObj.isTimerRunning = false;
-                meja.isTimerRunning = false;
 
                 const sisaWaktuPemenangDetik = chessEngine.turn() === 'b' ? meja.timePutih : meja.timeHitam;
                 const sisaWaktuFormat = formatTime(sisaWaktuPemenangDetik);
@@ -3115,9 +3016,6 @@
             if (meja.isFinished) {
                 statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>Pertandingan Selesai!</b> Skor: ${meja.skor}`;
                 statusEl.style.color = '#10b981';
-            } else if (!meja.isTimerRunning) {
-                statusEl.innerHTML = `<i class="fa-solid fa-clock"></i> <b>Menunggu Pemain Putih menekan tombol "Mulai Waktu"...</b>`;
-                statusEl.style.color = 'var(--accent-gold)';
             } else if (chessEngine.in_checkmate()) {
                 const winner = chessEngine.turn() === 'w' ? 'Hitam' : 'Putih';
                 statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>SKAKMATI!</b> ${winner} Menang!`;
@@ -3275,6 +3173,7 @@
             } else {
                 daftarEvent.forEach(ev => {
                     const totalPeserta = ev.peserta ? ev.peserta.length : 0;
+                    const totalBabak = ev.totalBabak ? `${ev.totalBabak} Babak` : 'Belum diatur';
                     const durasi = ev.durasiWaktu || 10;
                     const zoomInfoLabel = ev.useZoom === 'tidak' ? 'Tanpa Zoom' : 'Wajib Zoom';
                     container.innerHTML += `
@@ -3565,7 +3464,7 @@
                 actionGen.style.display = 'none';
                 globalTimer.style.display = 'flex';
                 btnSimpan.style.display = 'block';
-                infoBox.innerHTML = `Pairing Babak ${babakKe} Aktif. Status: <b>${babakObj.status}</b>`;
+                infoBox.innerHTML = `Pairing Babak ${babakKe} Aktif. Timer: <b>${babakObj.isTimerRunning ? 'BERJALAN' : 'BERHENTI'}</b>`;
 
                 babakObj.pairing.forEach((m, idx) => {
                     if(m.isBye) {
@@ -3742,9 +3641,6 @@
                     timePutih: durasiDetik,
                     timeHitam: durasiDetik,
                     isFinished: false,
-                    isTriggeredByWasit: false,
-                    isTimerRunning: false,
-                    hasWhiteStartedTimer: false,
                     fen: startingFen
                 });
             }
@@ -3759,23 +3655,19 @@
                 });
             }
 
-            alert(`Pairing Babak ${babakKe} Berhasil Digenerate!`);
+            alert(`Pairing Babak ${babakKe} Berhasil Digenerate!\nSistem otomatis menyesuaikan rotasi warna bidak.`);
             renderPairingMejaInfo();
         }
 
-        async function startAllWasitMulaiMatch() {
+        async function startAllTimersWasit() {
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
             if(!ev) return;
 
             const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
-            if(!babakObj || !babakObj.pairing) return;
+            if(!babakObj) return;
 
-            babakObj.pairing.forEach(m => {
-                if(!m.isBye) {
-                    m.isTriggeredByWasit = true;
-                }
-            });
+            babakObj.isTimerRunning = true;
 
             if (window.db) {
                 await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
@@ -3783,7 +3675,27 @@
                 });
             }
 
-            alert(`Sinyal Mulai Pertandingan Babak ${babakKe} Berhasil Dikirim ke Seluruh Meja Pemain!`);
+            alert(`Timer Babak ${babakKe} DIMULAI secara resmi oleh Wasit! Waktu berjalan otomatis.`);
+            renderPairingMejaInfo();
+        }
+
+        async function stopAllTimersWasit() {
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
+            if(!ev) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
+            if(!babakObj) return;
+
+            babakObj.isTimerRunning = false;
+
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
+
+            alert(`Timer Babak ${babakKe} DIHENTIKAN/PAUSE oleh Wasit!`);
             renderPairingMejaInfo();
         }
 
@@ -3798,11 +3710,10 @@
             if(meja) {
                 if(rolePemain === 'w') {
                     meja.timePutih += detikTambahan;
-                    meja.baseTimePutih = meja.timePutih;
                 } else {
                     meja.timeHitam += detikTambahan;
-                    meja.baseTimeHitam = meja.timeHitam;
                 }
+                meja.isFinished = false; 
 
                 if (window.db) {
                     await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
@@ -3845,7 +3756,7 @@
                 });
             }
 
-            alert(`Hasil Skor Babak ${babakKe} Disimpan!`);
+            alert(`Hasil Skor Babak ${babakKe} Disimpan! Rotasi warna bidak siap diproses untuk babak berikutnya.`);
             closeModal('pairingWasitModal');
         }
 
@@ -4087,7 +3998,7 @@
                 await window.addDoc(window.collection(window.db, "event"), eventBaru);
             }
 
-            localStorage.setItem('asr_unread_match', JSON.stringify(true));
+ResponseWriter.setItem('asr_unread_match', JSON.stringify(true));
 
             alert("Pertandingan Berhasil Dibuat dan Disimpan ke Firebase!");
             event.target.reset();
