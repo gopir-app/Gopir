@@ -990,13 +990,15 @@
                 </div>
 
                 <div class="clock-container">
-                    <div class="player-clock-card" id="clockHitamBox">
-                        <div style="font-size: 0.72rem; color: var(--text-muted);" id="namaLawanClock">Lawan (Hitam)</div>
-                        <div class="clock-time" id="timerHitam">10:00</div>
-                    </div>
+                    <!-- TIMER KIRI (SELALU PEMEGANG BUAH PUTIH) -->
                     <div class="player-clock-card active-turn" id="clockPutihBox">
-                        <div style="font-size: 0.72rem; color: var(--accent-gold);" id="namaSayaClock">Saya (Putih)</div>
+                        <div style="font-size: 0.72rem; color: var(--accent-gold);" id="namaPutihClock">Putih (⚪)</div>
                         <div class="clock-time" id="timerPutih">10:00</div>
+                    </div>
+                    <!-- TIMER KANAN ATAS (SELALU PEMEGANG BUAH HITAM) -->
+                    <div class="player-clock-card" id="clockHitamBox">
+                        <div style="font-size: 0.72rem; color: var(--text-muted);" id="namaHitamClock">Hitam (⚫)</div>
+                        <div class="clock-time" id="timerHitam">10:00</div>
                     </div>
                 </div>
 
@@ -2839,8 +2841,9 @@
             localStorage.setItem('asr_active_meja', JSON.stringify(noMeja));
             localStorage.setItem('asr_active_babak', JSON.stringify(babakKe));
 
+            // Judul di atas papan catur tetap menampilkan informasi meja & babak (tanpa teks keliru "DDCUP vs Asrul")
             document.getElementById('arenaMatchTitle').innerText = `Meja ${noMeja} - Babak ${babakKe}`;
-            document.getElementById('arenaMatchSubtitle').innerText = `${namaEvent} vs ${namaLawan}`;
+            document.getElementById('arenaMatchSubtitle').innerText = `${namaEvent}`;
 
             resetMatchArenaPemain(noMeja, babakKe);
         }
@@ -2867,22 +2870,26 @@
             if(!meja) return;
 
             let myRoleColor = 'w';
-            let namaLawan = 'Lawan';
+            let namaPemainPutih = meja.pemainPutih ? meja.pemainPutih.nama : 'Putih';
+            let namaPemainHitam = meja.pemainHitam ? meja.pemainHitam.nama : 'Hitam';
 
             const isPemainPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
             const isPemainHitam = meja.pemainHitam && (meja.pemainHitam.hp === activeUserPemain.hp || meja.pemainHitam.nama === activeUserPemain.nama);
 
             if(isPemainPutih) {
                 myRoleColor = 'w';
-                namaLawan = meja.pemainHitam ? meja.pemainHitam.nama : 'Bot / Kosong';
-                document.getElementById('namaSayaClock').innerText = `${activeUserPemain.nama} (Putih ⚪)`;
-                document.getElementById('namaLawanClock').innerText = `${namaLawan} (Hitam ⚫)`;
             } else if(isPemainHitam) {
                 myRoleColor = 'b';
-                namaLawan = meja.pemainPutih ? meja.pemainPutih.nama : 'Bot / Kosong';
-                document.getElementById('namaSayaClock').innerText = `${activeUserPemain.nama} (Hitam ⚫)`;
-                document.getElementById('namaLawanClock').innerText = `${namaLawan} (Putih ⚪)`;
             }
+
+            // PENYESUAIAN POSISI NAMA & TIMER YANG BENAR:
+            // Timer Kiri (clockPutihBox) -> PEMEGANG BUAH PUTIH
+            // Timer Kanan Atas (clockHitamBox) -> PEMEGANG BUAH HITAM
+            document.getElementById('namaPutihClock').innerText = `${namaPemainPutih} (Putih ⚪)`;
+            document.getElementById('namaHitamClock').innerText = `${namaPemainHitam} (Hitam ⚫)`;
+
+            document.getElementById('timerPutih').innerText = formatTime(meja.timePutih || 600);
+            document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam || 600);
 
             const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
             
@@ -2891,9 +2898,6 @@
                 chessEngine = new Chess(currentFen);
                 renderChessboardOnline(myRoleColor);
             }
-
-            document.getElementById('timerPutih').innerText = formatTime(meja.timePutih || 600);
-            document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam || 600);
 
             // CEK TRIGGER COUNTDOWN / MULAI DARI WASIT
             const countdownOverlay = document.getElementById('arenaCountdownOverlay');
@@ -2983,6 +2987,7 @@
             const clockPutihBox = document.getElementById('clockPutihBox');
             const clockHitamBox = document.getElementById('clockHitamBox');
 
+            // Kotak timer menyala sesuai giliran warna bidak yang aktif
             if(currentTurn === 'w') {
                 clockPutihBox.classList.add('active-turn');
                 clockHitamBox.classList.remove('active-turn');
