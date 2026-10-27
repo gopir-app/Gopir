@@ -2841,7 +2841,7 @@
             localStorage.setItem('asr_active_meja', JSON.stringify(noMeja));
             localStorage.setItem('asr_active_babak', JSON.stringify(babakKe));
 
-            // Judul di atas papan catur tetap menampilkan informasi meja & babak (tanpa teks keliru "DDCUP vs Asrul")
+            // Judul di atas papan catur menampilkan informasi meja & babak
             document.getElementById('arenaMatchTitle').innerText = `Meja ${noMeja} - Babak ${babakKe}`;
             document.getElementById('arenaMatchSubtitle').innerText = `${namaEvent}`;
 
@@ -3004,7 +3004,8 @@
             const babakObj = ev ? ev.babakList.find(b => b.babakKe === activeBabakKe) : null;
             const mejaObj = babakObj ? babakObj.pairing.find(m => m.meja === activeMejaNo) : null;
 
-            if (!mejaObj || !mejaObj.isTimerRunning) {
+            // PERBAIKAN: Diperlonggar agar jika wasit sudah menekan triggerMulai atau babak berjalan, pemain bisa melangkah
+            if (!mejaObj || (!mejaObj.isTimerRunning && !mejaObj.triggerMulai && babakObj.status !== 'Berjalan')) {
                 alert("Pertandingan belum dimulai oleh wasit!");
                 return;
             }
@@ -3105,7 +3106,7 @@
             const turnText = chessEngine.turn() === 'w' ? 'Putih (⚪)' : 'Hitam (⚫)';
             const isMyTurn = chessEngine.turn() === myRoleColor;
 
-            if (!meja.isTimerRunning && !meja.isFinished) {
+            if (!meja.isTimerRunning && !meja.triggerMulai && meja.isFinished !== true) {
                 statusEl.innerHTML = `<i class="fa-solid fa-clock"></i> <b>Menunggu Wasit Menekan Tombol Mulai...</b>`;
                 statusEl.style.color = 'var(--accent-gold)';
                 return;
@@ -3795,6 +3796,7 @@
             if(!babakObj) return;
 
             babakObj.isTimerRunning = true;
+            babakObj.status = 'Berjalan'; // Memastikan status babak juga terupdate
             if(babakObj.pairing) {
                 babakObj.pairing.forEach(m => {
                     m.triggerMulai = true;
