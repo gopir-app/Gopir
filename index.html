@@ -7,7 +7,7 @@
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- ENGINE CHESS LOGIC LIBRARY (chess.js v0.10.3) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
@@ -1618,7 +1618,7 @@
                 <h3><i class="fa-solid fa-sitemap"></i> Pairing & Kontrol Timer</h3>
                 <button class="close-btn" onclick="closeModal('pairingWasitModal')">&times;</button>
             </div>
-            
+
             <div class="input-group">
                 <label>Pilih Babak untuk Pairing</label>
                 <select id="selectBabakPairing" onchange="renderPairingMejaInfo()"></select>
@@ -1786,7 +1786,7 @@
                 snapshot.forEach((docSnap) => {
                     daftarEvent.push({ docId: docSnap.id, ...docSnap.data() });
                 });
-                
+
                 if(document.getElementById('pertandinganPemainFullView').classList.contains('active')) {
                     openPertandinganPemainView();
                 }
@@ -1815,7 +1815,7 @@
 
             const lastView = localStorage.getItem('asr_current_view') || 'landingView';
             const activeRole = localStorage.getItem('asr_active_role');
-            
+
             switchView(lastView, false);
 
             if(activeRole === 'pemain') {
@@ -2257,7 +2257,7 @@
 
             const fillBar = document.getElementById('evalBarFill');
             const fillText = document.getElementById('evalText');
-            
+
             let percent = 50 + (parseFloat(evalPoint) * 5);
             if (percent > 98) percent = 98;
             if (percent < 2) percent = 2;
@@ -2460,9 +2460,9 @@
                                         if(!m.isBye && !m.isFinished && m.lastMoveTimestamp) {
                                             const detikBerjalan = Math.floor((now - m.lastMoveTimestamp) / 1000);
                                             const engineChecker = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-                                            
+
                                             if(engineChecker.turn() === 'w') {
-                                                const sisaAsli = m.timePutih - detikBerjalan;
+                                                const sisaAsli = (m.timePutih || 600) - detikBerjalan;
                                                 if(sisaAsli <= 0) {
                                                     m.timePutih = 0;
                                                     m.isFinished = true;
@@ -2471,7 +2471,7 @@
                                                     updated = true;
                                                 }
                                             } else {
-                                                const sisaAsli = m.timeHitam - detikBerjalan;
+                                                const sisaAsli = (m.timeHitam || 600) - detikBerjalan;
                                                 if(sisaAsli <= 0) {
                                                     m.timeHitam = 0;
                                                     m.isFinished = true;
@@ -2483,7 +2483,7 @@
                                         }
                                     });
                                 }
-                                
+
                                 if (window.db && updated) {
                                     const eventDocId = ev.docId || ev.id;
                                     await window.updateDoc(window.doc(window.db, "event", String(eventDocId)), {
@@ -2545,7 +2545,7 @@
             }
 
             const pemainBaru = { id: Date.now(), hp, pass, nama, kota, elo: 0, status: "pending" };
-            
+
             if (window.db) {
                 try {
                     await window.addDoc(window.collection(window.db, "pemain"), pemainBaru);
@@ -2578,7 +2578,7 @@
 
                 closeModal('loginPemainModal');
                 switchView('pemainDashboardView');
-                
+
                 document.getElementById('roleBadge').style.display = 'inline-flex';
                 document.getElementById('roleBadge').innerHTML = '<i class="fa-solid fa-chess-pawn"></i> <span>Pemain</span>';
                 document.getElementById('pemainHp').value = '';
@@ -2709,7 +2709,6 @@
             if (ev.useZoom === 'tidak') {
                 tampilkanKontenMejaPemain();
             } else {
-                // Cek apakah pemain masuk lewat jatah meja wasit asisten tertentu yang punya link zoom khusus
                 let zoomTargetUrl = ev.zoomUrl;
                 let zoomTargetInfo = ev.zoomInfo || 'Zoom Pengawasan Resmi';
 
@@ -2901,16 +2900,17 @@
             }
 
             const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-            
+
             if (currentFen !== lastKnownFenOnline) {
                 lastKnownFenOnline = currentFen;
                 chessEngine = new Chess(currentFen);
                 renderChessboardOnline(myRoleColor);
             }
 
-            let sisaPutih = meja.timePutih || 600;
-            let sisaHitam = meja.timeHitam || 600;
+            let sisaPutih = meja.timePutih !== undefined ? meja.timePutih : 600;
+            let sisaHitam = meja.timeHitam !== undefined ? meja.timeHitam : 600;
 
+            // PERBAIKAN TIMER: Hanya hitung mundur real-time jika timer aktif dan pertandingan belum selesai
             if (babakObj.isTimerRunning && !meja.isFinished && meja.lastMoveTimestamp) {
                 const detikBerjalan = Math.floor((Date.now() - meja.lastMoveTimestamp) / 1000);
                 const turnSekarang = chessEngine.turn();
@@ -3064,9 +3064,9 @@
             const turnSebelumnya = chessEngine.turn() === 'w' ? 'b' : 'w';
 
             if (turnSebelumnya === 'w') {
-                meja.timePutih = Math.max(0, meja.timePutih - detikTerpakai);
+                meja.timePutih = Math.max(0, (meja.timePutih || 600) - detikTerpakai);
             } else {
-                meja.timeHitam = Math.max(0, meja.timeHitam - detikTerpakai);
+                meja.timeHitam = Math.max(0, (meja.timeHitam || 600) - detikTerpakai);
             }
 
             meja.lastMoveTimestamp = Date.now();
@@ -3197,7 +3197,7 @@
 
                 closeModal('loginWasitModal');
                 switchView('wasitDashboardView');
-                
+
                 document.getElementById('roleBadge').style.display = 'inline-flex';
                 document.getElementById('roleBadge').innerHTML = '<i class="fa-solid fa-clipboard-check"></i> <span>Wasit</span>';
                 document.getElementById('wasitHp').value = '';
@@ -3589,7 +3589,7 @@
             }
 
             ev.totalBabak = jumlahBabak;
-            
+
             ev.babakList = [];
             for(let i = 1; i <= jumlahBabak; i++) {
                 ev.babakList.push({
@@ -3673,7 +3673,6 @@
             containerMeja.innerHTML = '';
             if(!babakObj) return;
 
-            // Jika yang login adalah Wasit Asisten, filter meja yang ditampilkan sesuai jatah tugasnya
             const isWasitUtama = activeUserWasit && ev.wasitUtamaHp === activeUserWasit.hp;
             let jatahMejaMin = 1;
             let jatahMejaMax = 999;
@@ -3696,7 +3695,7 @@
                 actionGen.style.display = 'none';
                 globalTimer.style.display = isWasitUtama ? 'flex' : 'none';
                 btnSimpan.style.display = 'block';
-                
+
                 let jatahInfoText = isWasitUtama ? 'Semua Meja' : `Meja Jatah Anda (${jatahMejaMin} s.d. ${jatahMejaMax})`;
                 infoBox.innerHTML = `Pairing Babak ${babakKe} Aktif. Pengawasan: <b>${jatahInfoText}</b>`;
 
@@ -3708,10 +3707,11 @@
                     return;
                 }
 
-                filteredPairing.forEach((m, idxFiltered) => {
+                filteredPairing.forEach((m) => {
                     let realIdx = babakObj.pairing.findIndex(item => item.meja === m.meja);
-                    let sPutih = m.timePutih || 600;
-                    let sHitam = m.timeHitam || 600;
+                    let sPutih = m.timePutih !== undefined ? m.timePutih : 600;
+                    let sHitam = m.timeHitam !== undefined ? m.timeHitam : 600;
+                    
                     if (babakObj.isTimerRunning && !m.isFinished && m.lastMoveTimestamp) {
                         const df = Math.floor((now - m.lastMoveTimestamp) / 1000);
                         const ec = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
@@ -3956,8 +3956,8 @@
                     if(!m.isBye && !m.isFinished && m.lastMoveTimestamp) {
                         const df = Math.floor((now - m.lastMoveTimestamp) / 1000);
                         const ec = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-                        if(ec.turn() === 'w') m.timePutih = Math.max(0, m.timePutih - df);
-                        else m.timeHitam = Math.max(0, m.timeHitam - df);
+                        if(ec.turn() === 'w') m.timePutih = Math.max(0, (m.timePutih || 600) - df);
+                        else m.timeHitam = Math.max(0, (m.timeHitam || 600) - df);
                     }
                 });
             }
@@ -3986,14 +3986,14 @@
                 if (babakObj.isTimerRunning && !meja.isFinished && meja.lastMoveTimestamp) {
                     const df = Math.floor((Date.now() - meja.lastMoveTimestamp) / 1000);
                     const ec = new Chess(meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-                    if(ec.turn() === 'w') meja.timePutih = Math.max(0, meja.timePutih - df);
-                    else meja.timeHitam = Math.max(0, meja.timeHitam - df);
+                    if(ec.turn() === 'w') meja.timePutih = Math.max(0, (meja.timePutih || 600) - df);
+                    else meja.timeHitam = Math.max(0, (meja.timeHitam || 600) - df);
                 }
 
                 if(rolePemain === 'w') {
-                    meja.timePutih += detikTambahan;
+                    meja.timePutih = (meja.timePutih || 600) + detikTambahan;
                 } else {
-                    meja.timeHitam += detikTambahan;
+                    meja.timeHitam = (meja.timeHitam || 600) + detikTambahan;
                 }
                 meja.isFinished = false; 
                 meja.lastMoveTimestamp = Date.now();
@@ -4037,7 +4037,6 @@
                 }
             });
 
-            // Cek apakah semua meja sudah selesai
             let allFinished = babakObj.pairing.every(m => m.isFinished);
             if(allFinished) {
                 babakObj.status = 'Selesai';
@@ -4067,7 +4066,7 @@
             const listPending = document.getElementById('listPendingPemain');
             const listApproved = document.getElementById('listApprovedPemain');
             if(!listPending || !listApproved) return;
-            
+
             listPending.innerHTML = '';
             listApproved.innerHTML = '';
 
@@ -4160,7 +4159,7 @@
             const listPending = document.getElementById('listPendingWasit');
             const listApproved = document.getElementById('listApprovedWasit');
             if(!listPending || !listApproved) return;
-            
+
             listPending.innerHTML = '';
             listApproved.innerHTML = '';
 
@@ -4261,7 +4260,7 @@
                 localStorage.setItem('asr_active_role', 'admin');
                 closeModal('adminModal');
                 switchView('dashboardView');
-                
+
                 document.getElementById('roleBadge').style.display = 'inline-flex';
                 document.getElementById('roleBadge').innerHTML = '<i class="fa-solid fa-user-shield"></i> <span>Admin</span>';
                 document.getElementById('username').value = '';
@@ -4273,7 +4272,7 @@
 
         async function handleCreateEvent(event) {
             event.preventDefault();
-            
+
             const nama = document.getElementById('eventNameView').value;
             const tanggal = document.getElementById('eventDateView').value;
             const hadiah = document.getElementById('eventRewardView').value;
