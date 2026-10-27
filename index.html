@@ -1734,6 +1734,8 @@
         let currentStatistikViewLevel = 'eventList'; 
         let currentStatistikEventId = null;
 
+        let lastTimerTickTime = Date.now(); // PENAMBAHAN: Variabel acuan waktu akurat 1 detik
+
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
             'R': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
@@ -2446,8 +2448,16 @@
 
         function startGlobalWasitTimerTick() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
+            lastTimerTickTime = Date.now();
+
             globalWasitInterval = setInterval(async () => {
                 if (!activeUserWasit && !activeUserPemain) return;
+
+                // PENYESUAIAN WAKTU PRESISI: Memastikan jeda waktu benar-benar tepat 1 detik (mengantisipasi drift)
+                const now = Date.now();
+                const elapsed = now - lastTimerTickTime;
+                if (elapsed < 900) return; // Mencegah eksekusi terlalu cepat jika interval ter-trigger ganda
+                lastTimerTickTime = now;
 
                 let updated = false;
 
@@ -2841,7 +2851,6 @@
             localStorage.setItem('asr_active_meja', JSON.stringify(noMeja));
             localStorage.setItem('asr_active_babak', JSON.stringify(babakKe));
 
-            // Judul di atas papan catur menampilkan informasi meja & babak
             document.getElementById('arenaMatchTitle').innerText = `Meja ${noMeja} - Babak ${babakKe}`;
             document.getElementById('arenaMatchSubtitle').innerText = `${namaEvent}`;
 
@@ -2882,9 +2891,6 @@
                 myRoleColor = 'b';
             }
 
-            // PENYESUAIAN POSISI NAMA & TIMER YANG BENAR:
-            // Timer Kiri (clockPutihBox) -> PEMEGANG BUAH PUTIH
-            // Timer Kanan Atas (clockHitamBox) -> PEMEGANG BUAH HITAM
             document.getElementById('namaPutihClock').innerText = `${namaPemainPutih} (Putih ⚪)`;
             document.getElementById('namaHitamClock').innerText = `${namaPemainHitam} (Hitam ⚫)`;
 
@@ -2899,7 +2905,6 @@
                 renderChessboardOnline(myRoleColor);
             }
 
-            // CEK TRIGGER COUNTDOWN / MULAI DARI WASIT
             const countdownOverlay = document.getElementById('arenaCountdownOverlay');
             const countdownNumDisplay = document.getElementById('countdownNumberDisplay');
 
@@ -2987,7 +2992,6 @@
             const clockPutihBox = document.getElementById('clockPutihBox');
             const clockHitamBox = document.getElementById('clockHitamBox');
 
-            // Kotak timer menyala sesuai giliran warna bidak yang aktif
             if(currentTurn === 'w') {
                 clockPutihBox.classList.add('active-turn');
                 clockHitamBox.classList.remove('active-turn');
@@ -3004,7 +3008,6 @@
             const babakObj = ev ? ev.babakList.find(b => b.babakKe === activeBabakKe) : null;
             const mejaObj = babakObj ? babakObj.pairing.find(m => m.meja === activeMejaNo) : null;
 
-            // PERBAIKAN: Diperlonggar agar jika wasit sudah menekan triggerMulai atau babak berjalan, pemain bisa melangkah
             if (!mejaObj || (!mejaObj.isTimerRunning && !mejaObj.triggerMulai && babakObj.status !== 'Berjalan')) {
                 alert("Pertandingan belum dimulai oleh wasit!");
                 return;
@@ -3796,7 +3799,7 @@
             if(!babakObj) return;
 
             babakObj.isTimerRunning = true;
-            babakObj.status = 'Berjalan'; // Memastikan status babak juga terupdate
+            babakObj.status = 'Berjalan';
             if(babakObj.pairing) {
                 babakObj.pairing.forEach(m => {
                     m.triggerMulai = true;
