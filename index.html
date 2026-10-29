@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Timer on White's First Move & Full Custom Popup)</title>
+    <title>Asr.Catur Online - Master Production (Clean Countdown & Real-Time Penalty)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1826,7 +1826,6 @@
         let selectedSquareSquareNotation = null;
         let validMovesForSelectedSquare = [];
         let lastKnownFenOnline = "";
-        let lastKnownCountdownState = false;
         let pendingPromotionMove = null;
 
         let chessEngineAnalisa = new Chess();
@@ -3017,7 +3016,6 @@
             selectedSquareSquareNotation = null;
             validMovesForSelectedSquare = [];
             lastKnownFenOnline = "";
-            lastKnownCountdownState = false;
 
             syncRealtimeArenaState();
         }
@@ -3061,11 +3059,14 @@
                 renderChessboardOnline(myRoleColor);
             }
 
+            // HANYA MUNCUL KETIKA WASIT BARU SAJA KLIK MULAI (triggerMulai === true dan belum ditandai seen di session/localStorage)
             const countdownOverlay = document.getElementById('arenaCountdownOverlay');
             const countdownNumDisplay = document.getElementById('countdownNumberDisplay');
+            const countdownStorageKey = `asr_countdown_seen_${selectedMatchId}_b${activeBabakKe}_m${activeMejaNo}`;
+            const isAlreadySeen = sessionStorage.getItem(countdownStorageKey);
 
-            if (meja.triggerMulai === true && lastKnownCountdownState === false) {
-                lastKnownCountdownState = true;
+            if (meja.triggerMulai === true && !isAlreadySeen) {
+                sessionStorage.setItem(countdownStorageKey, 'true');
                 jalankanAnimasiHitungMundurArena(countdownOverlay, countdownNumDisplay);
             }
 
@@ -3359,7 +3360,6 @@
 
             meja.fen = chessEngine.fen();
 
-            // KETIKA PUTIH MENJALANKAN LANGKAH PERTAMA, TIMER RESMI DIJALANKAN (isTimerRunning = true)
             if (!meja.isTimerRunning) {
                 meja.isTimerRunning = true;
             }
@@ -4144,7 +4144,7 @@
                 babakObj.pairing.forEach(m => {
                     if(!m.isBye) {
                         m.isStarted = true;
-                        m.isTimerRunning = false; // Belum jalan sampai putih langkah pertama
+                        m.isTimerRunning = false; 
                         m.triggerMulai = true;
                     }
                 });
@@ -4174,7 +4174,6 @@
                 } else {
                     meja.timeHitam += detikTambahan;
                 }
-                meja.isFinished = false; 
 
                 if (window.db) {
                     await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
