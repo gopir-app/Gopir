@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Auto Surrender on Exit & Finish Round)</title>
+    <title>Asr.Catur Online - Master Production (Synced Timer & Match Start Flow)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1801,7 +1801,6 @@
         let currentStatistikEventId = null;
 
         let lastTimerTickTime = Date.now();
-        let localTimerValues = {};
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -1922,7 +1921,7 @@
             }
 
             checkNotifDots();
-            startGlobalWasitTimerTick();
+            startGlobalTimerSyncEngine();
             initStockfishBlobWorker();
 
             setTimeout(async () => {
@@ -2513,13 +2512,11 @@
             }
         }
 
-        function startGlobalWasitTimerTick() {
+        function startGlobalTimerSyncEngine() {
             if(globalWasitInterval) clearInterval(globalWasitInterval);
             lastTimerTickTime = Date.now();
 
             globalWasitInterval = setInterval(async () => {
-                if (!activeUserWasit && !activeUserPemain) return;
-
                 const now = Date.now();
                 const elapsed = now - lastTimerTickTime;
                 if (elapsed < 950) return;
@@ -2534,21 +2531,11 @@
                                 if(b.pairing) {
                                     b.pairing.forEach(m => {
                                         if(!m.isBye && !m.isFinished) {
-                                            const matchKey = `${ev.docId || ev.id}_meja_${m.meja}`;
-                                            
-                                            if (!localTimerValues[matchKey]) {
-                                                localTimerValues[matchKey] = {
-                                                    putih: m.timePutih !== undefined ? m.timePutih : 600,
-                                                    hitam: m.timeHitam !== undefined ? m.timeHitam : 600
-                                                };
-                                            }
-
                                             const engineChecker = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
                                             
                                             if(engineChecker.turn() === 'w') {
-                                                if(localTimerValues[matchKey].putih > 0) {
-                                                    localTimerValues[matchKey].putih--;
-                                                    m.timePutih = localTimerValues[matchKey].putih;
+                                                if(m.timePutih > 0) {
+                                                    m.timePutih--;
                                                     updated = true;
                                                 } else {
                                                     m.isFinished = true;
@@ -2558,9 +2545,8 @@
                                                     updated = true;
                                                 }
                                             } else {
-                                                if(localTimerValues[matchKey].hitam > 0) {
-                                                    localTimerValues[matchKey].hitam--;
-                                                    m.timeHitam = localTimerValues[matchKey].hitam;
+                                                if(m.timeHitam > 0) {
+                                                    m.timeHitam--;
                                                     updated = true;
                                                 } else {
                                                     m.isFinished = true;
@@ -2574,6 +2560,7 @@
                                     });
                                 }
                                 
+                                // Jika user yang sedang aktif adalah wasit, sinkronkan timer per detik ke Firestore
                                 if (window.db && updated && activeUserWasit) {
                                     const eventDocId = ev.docId || ev.id;
                                     await window.updateDoc(window.doc(window.db, "event", String(eventDocId)), {
@@ -2608,7 +2595,6 @@
                 if(elPutih) elPutih.innerText = formatTime(meja.timePutih || 0);
                 if(elHitam) elHitam.innerText = formatTime(meja.timeHitam || 0);
 
-                // CEK JIKA PERTANDINGAN BERAKHIR OLEH LAWAN (MISAL KELUAR/MENYERAH)
                 if (meja.isFinished) {
                     updateChessGameStatusInfoOnline(meja, meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp ? 'w' : 'b');
                 }
@@ -2935,7 +2921,7 @@
                         </div>
 
                         <button class="btn btn-success" style="width: 100%; padding: 10px; font-size: 0.85rem;" onclick="masukKeArenaBertanding('${ev.nama}', ${babakAktif.babakKe}, ${mejaPemain.meja}, '${lawan.nama}')">
-                            <i class="fa-solid fa-chess-board"></i> Masuk Bertanding Online Sekarang
+                            <i class="fa-solid fa-chess-board"></i> Masuk Meja Pertandingan Sekarang
                         </button>
                     </div>`;
             }
@@ -3304,6 +3290,12 @@
 
             meja.fen = chessEngine.fen();
 
+            // SINKRONISASI WAKTU SAAT LANGKAH DILAKUKAN KE DATABASE
+            const elPutih = document.getElementById('timerPutih');
+            const elHitam = document.getElementById('timerHitam');
+            if(elPutih) meja.timePutih = parseTimeStringToSeconds(elPutih.innerText);
+            if(elHitam) meja.timeHitam = parseTimeStringToSeconds(elHitam.innerText);
+
             if (chessEngine.game_over()) {
                 meja.isFinished = true;
                 babakObj.isTimerRunning = false;
@@ -3326,6 +3318,14 @@
                     babakList: ev.babakList
                 });
             }
+        }
+
+        function parseTimeStringToSeconds(timeStr) {
+            const parts = timeStr.split(':');
+            if(parts.length === 2) {
+                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            }
+            return 600;
         }
 
         function updateChessGameStatusInfoOnline(meja, myRoleColor) {
@@ -3388,7 +3388,7 @@
 
                             alert("Anda keluar dari pertandingan. Sistem mencatat Anda Menyerah dan kemenangan diberikan kepada lawan.");
                         } else {
-                            return; // Batal keluar, tetap di arena
+                            return; 
                         }
                     }
                 }
@@ -4072,7 +4072,7 @@
                 });
             }
 
-            alert(`Pertandingan Babak ${babakKe} DIMULAI! Waktu mulai berjalan dan papan catur terbuka untuk pemain.`);
+            alert(`Pertandingan Babak ${babakKe} DIMULAI! Hitungan mundur 10 detik aktif dan papan catur terbuka.`);
             renderPairingMejaInfo();
         }
 
