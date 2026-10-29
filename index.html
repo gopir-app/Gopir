@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Synced Timer & Match Flow)</title>
+    <title>Asr.Catur Online - Master Production (Synced Timer & Full Custom Popup)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -929,12 +929,12 @@
                     <h3>Analisa Engine</h3>
                     <p>Tanding vs Stockfish AI</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: ELO Rating')">
+                <div class="menu-card" onclick="showPopupModal('ELO Rating', 'Fitur ELO Rating dan Peringkat Peserta akan segera hadir dalam pembaruan berikutnya.', 'fa-trophy')">
                     <div class="menu-icon"><i class="fa-solid fa-trophy"></i></div>
                     <h3>ELO Rating</h3>
                     <p>Poin & Peringkat Kamu</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Grup WhatsApp Community')">
+                <div class="menu-card" onclick="showPopupModal('Grup WhatsApp', 'Bergabunglah dengan komunitas pecatur online melalui tautan grup resmi wasit.', 'fa-brands fa-whatsapp')">
                     <div class="menu-icon"><i class="fa-brands fa-whatsapp"></i></div>
                     <h3>Grup WA</h3>
                     <p>Komunitas pecatur online</p>
@@ -945,7 +945,7 @@
                     <h3>Pertandingan</h3>
                     <p>Jadwal turnamen terbaru</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Tanding 1 Vs 1')">
+                <div class="menu-card" onclick="showPopupModal('Tanding 1 Vs 1', 'Mode tanding cepat 1 vs 1 mandiri sedang dalam tahap pengembangan.', 'fa-chess')">
                     <div class="menu-icon"><i class="fa-solid fa-chess"></i></div>
                     <h3>1 Vs 1</h3>
                     <p>Tanding catur cepat</p>
@@ -1127,12 +1127,12 @@
                     <h3>Statistik Pertandingan</h3>
                     <p>Klasemen babak & poin</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: ELO Rating Pemain')">
+                <div class="menu-card" onclick="showPopupModal('ELO Pemain', 'Informasi ELO rating dan poin peserta turnamen aktif.', 'fa-ranking-star')">
                     <div class="menu-icon"><i class="fa-solid fa-ranking-star"></i></div>
                     <h3>ELO Pemain</h3>
                     <p>Poin & peringkat peserta</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Daftar Pemain')">
+                <div class="menu-card" onclick="showPopupModal('Daftar Pemain', 'Gunakan menu Kelola Pertandingan > Daftar Peserta untuk melihat list pemain terdaftar.', 'fa-address-book')">
                     <div class="menu-icon"><i class="fa-solid fa-address-book"></i></div>
                     <h3>Daftar Pemain</h3>
                     <p>List terdaftar di event</p>
@@ -1142,12 +1142,12 @@
                     <h3>Lisensi</h3>
                     <p>Status Sertifikat/Lisensi</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Persetujuan PERCASI')">
+                <div class="menu-card" onclick="showPopupModal('Persetujuan PERCASI', 'Status verifikasi wasit dan SK resmi tervalidasi.', 'fa-stamp')">
                     <div class="menu-icon"><i class="fa-solid fa-stamp"></i></div>
                     <h3>Persetujuan PERCASI</h3>
                     <p>Verifikasi & SK Resmi</p>
                 </div>
-                <div class="menu-card" onclick="alert('Membuka Menu: Aturan Wasit')">
+                <div class="menu-card" onclick="showPopupModal('Aturan Wasit', 'Buku pedoman regulasi pertandingan catur standar FIDE dan PERCASI.', 'fa-book-bookmark')">
                     <div class="menu-icon"><i class="fa-solid fa-book-bookmark"></i></div>
                     <h3>Aturan Wasit</h3>
                     <p>Buku pedoman & regulasi</p>
@@ -1520,6 +1520,45 @@
         </div>
     </div>
 
+    <!-- MODAL CUSTOM POPUP PESAN KEREN / INFO -->
+    <div class="modal-overlay" id="customPopupModal">
+        <div class="modal-box" style="text-align: center;">
+            <div class="modal-header" style="justify-content: center;">
+                <h3 id="popupTitle" style="color: var(--accent-gold); display: flex; align-items: center; gap: 8px;">
+                    <i id="popupIcon" class="fa-solid fa-circle-info"></i> Informasi Sistem
+                </h3>
+            </div>
+            <div id="popupContent" style="font-size: 0.82rem; color: #fff; margin: 15px 0; line-height: 1.5; text-align: center;">
+                Pesan sistem di sini...
+            </div>
+            <button class="btn btn-primary" style="width: 100%; padding: 10px; font-weight: 700;" onclick="closeModal('customPopupModal')">
+                <i class="fa-solid fa-check"></i> Mengerti & Lanjutkan
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL CUSTOM KONFIRMASI (YES / NO) -->
+    <div class="modal-overlay" id="customConfirmModal">
+        <div class="modal-box" style="text-align: center;">
+            <div class="modal-header" style="justify-content: center;">
+                <h3 id="confirmTitle" style="color: var(--accent-gold); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-circle-question"></i> Konfirmasi Aksi
+                </h3>
+            </div>
+            <div id="confirmContent" style="font-size: 0.82rem; color: #fff; margin: 15px 0; line-height: 1.5; text-align: center;">
+                Apakah Anda yakin ingin melanjutkan?
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-outline" style="flex: 1; padding: 10px;" onclick="closeModal('customConfirmModal')">
+                    Batal
+                </button>
+                <button id="btnConfirmYes" class="btn btn-primary" style="flex: 1; padding: 10px; font-weight: 700;">
+                    Ya, Lanjutkan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL PILIHAN PROMOSI PION -->
     <div class="modal-overlay" id="promotionModal">
         <div class="modal-box" style="text-align: center;">
@@ -1822,6 +1861,29 @@
         let daftarEvent = [];
         let globalWasitInterval = null;
 
+        function showPopupModal(title, message, iconClass = 'fa-circle-info') {
+            document.getElementById('popupTitle').innerHTML = `<i class="fa-solid ${iconClass}"></i> ${title}`;
+            document.getElementById('popupContent').innerHTML = message;
+            openModal('customPopupModal');
+        }
+
+        function showConfirmModal(title, message, onYesCallback) {
+            document.getElementById('confirmTitle').innerHTML = `<i class="fa-solid fa-circle-question"></i> ${title}`;
+            document.getElementById('confirmContent').innerHTML = message;
+            const btnYes = document.getElementById('btnConfirmYes');
+            
+            // Remove previous event listeners
+            const newBtn = btnYes.cloneNode(true);
+            btnYes.parentNode.replaceChild(newBtn, btnYes);
+
+            newBtn.onclick = function() {
+                closeModal('customConfirmModal');
+                onYesCallback();
+            };
+
+            openModal('customConfirmModal');
+        }
+
         async function hashSHA256(text) {
             const msgUint8 = new TextEncoder().encode(text);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
@@ -1972,13 +2034,13 @@
             const confirmPass = document.getElementById('confirmAdminPass').value;
 
             if(newPass !== confirmPass) {
-                alert("Konfirmasi password baru tidak cocok!");
+                showPopupModal("Kesalahan", "Konfirmasi password baru tidak cocok!", "fa-triangle-exclamation");
                 return;
             }
 
             const strongPassRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
             if (!strongPassRegex.test(newPass)) {
-                alert("Password Baru Kurang Kuat!\nAturan: Minimal 8 karakter, mengandung setidaknya 1 huruf besar, 1 huruf kecil, 1 angka, dan 1 simbol khusus (@$!%*?&#).");
+                showPopupModal("Keamanan Password", "Password Baru Kurang Kuat!<br><br>Aturan: Minimal 8 karakter, mengandung setidaknya 1 huruf besar, 1 huruf kecil, 1 angka, dan 1 simbol khusus (@$!%*?&#).", "fa-shield-halved");
                 return;
             }
 
@@ -1986,7 +2048,7 @@
             const oldPassHashInput = await hashSHA256(oldPass);
 
             if(oldPassHashInput !== adminAuth.passHash) {
-                alert("Password Lama Anda Salah!");
+                showPopupModal("Akses Ditolak", "Password Lama Anda Salah!", "fa-triangle-exclamation");
                 return;
             }
 
@@ -1996,7 +2058,7 @@
 
             localStorage.setItem('asr_admin_auth', JSON.stringify(adminAuth));
 
-            alert("Username dan Password Admin Berhasil Diperbarui!");
+            showPopupModal("Berhasil", "Username dan Password Admin Berhasil Diperbarui!", "fa-circle-check");
             document.getElementById('formUbahKeamananAdmin').reset();
             switchView('dashboardView');
         }
@@ -2060,19 +2122,19 @@
                 ${babakRincianHTML}
             `;
 
-            document.getElementById('btnHapusRiwayatEvent').onclick = async function() {
-                if(confirm(`Yakin ingin menghapus riwayat pertandingan '${ev.nama}' secara permanen dari database?`)) {
+            document.getElementById('btnHapusRiwayatEvent').onclick = function() {
+                showConfirmModal("Konfirmasi Hapus", `Yakin ingin menghapus riwayat pertandingan '${ev.nama}' secara permanen dari database?`, async () => {
                     if (window.db) {
                         try {
                             await window.deleteDoc(window.doc(window.db, "event", String(ev.docId || ev.id)));
-                            alert("Riwayat pertandingan berhasil dihapus!");
+                            showPopupModal("Berhasil", "Riwayat pertandingan berhasil dihapus!", "fa-circle-check");
                             closeModal('detailRiwayatModal');
                             openRiwayatPertandinganView();
                         } catch(err) {
-                            alert("Gagal menghapus data: " + err.message);
+                            showPopupModal("Gagal", "Gagal menghapus data: " + err.message, "fa-triangle-exclamation");
                         }
                     }
-                }
+                });
             };
 
             openModal('detailRiwayatModal');
@@ -2155,7 +2217,7 @@
         function renderKlasemenPoin(eventId, targetBabak) {
             const ev = daftarEvent.find(e => (e.id == eventId || e.docId == eventId));
             if (!ev || !ev.peserta || ev.peserta.length === 0) {
-                alert("Belum ada peserta atau data dalam pertandingan ini.");
+                showPopupModal("Informasi", "Belum ada peserta atau data dalam pertandingan ini.", "fa-circle-info");
                 return;
             }
 
@@ -2437,7 +2499,7 @@
             }
         }
 
-        function onAnalisaSquareClick(squareNotation) {
+        async function onAnalisaSquareClick(squareNotation) {
             if (chessEngineAnalisa.game_over()) return;
             if (chessEngineAnalisa.turn() !== masterPlayerColor) return; 
 
@@ -2457,10 +2519,8 @@
 
                     if (selectedPiece && selectedPiece.type === 'p') {
                         if ((selectedPiece.color === 'w' && squareNotation[1] === '8') || (selectedPiece.color === 'b' && squareNotation[1] === '1')) {
-                            const inputChoice = prompt("Promosi Pion! Pilih bidak: (q = Menteri, r = Benteng, b = Gajah, n = Kuda)", "q");
-                            if (['q', 'r', 'b', 'n'].includes(inputChoice ? inputChoice.toLowerCase() : '')) {
-                                promotionChoice = inputChoice.toLowerCase();
-                            }
+                            // Untuk promosi di analisa, kita bisa gunakan pilihan cepat secara default atau prompt. Di sini kita biarkan 'q' atau bisa disesuaikan.
+                            promotionChoice = 'q';
                         }
                     }
 
@@ -2639,7 +2699,7 @@
 
             const sudahAda = daftarPemain.some(p => p.hp === hp);
             if(sudahAda) {
-                alert("Nomor HP ini sudah terdaftar di sistem!");
+                showPopupModal("Pendaftaran Gagal", "Nomor HP ini sudah terdaftar di sistem!", "fa-triangle-exclamation");
                 return;
             }
 
@@ -2648,7 +2708,7 @@
             if (window.db) {
                 try {
                     await window.addDoc(window.collection(window.db, "pemain"), pemainBaru);
-                    alert("Pendaftaran Pemain berhasil! Menunggu persetujuan Admin.");
+                    showPopupModal("Pendaftaran Berhasil", "Pendaftaran Pemain berhasil! Menunggu persetujuan Admin.", "fa-circle-check");
                     closeModal('regPemainModal');
                     event.target.reset();
 
@@ -2657,10 +2717,10 @@
                     snapRefresh.forEach(d => daftarPemain.push({ docId: d.id, ...d.data() }));
                     renderListPemain();
                 } catch(e) {
-                    alert("Gagal menyimpan ke Firebase: " + e.message);
+                    showPopupModal("Gagal", "Gagal menyimpan ke Firebase: " + e.message, "fa-triangle-exclamation");
                 }
             } else {
-                alert("Koneksi database belum siap.");
+                showPopupModal("Gagal", "Koneksi database belum siap.", "fa-triangle-exclamation");
             }
         }
 
@@ -2760,7 +2820,7 @@
 
         async function handleDaftarKePertandingan() {
             if (!activeUserPemain) {
-                alert("Silakan login pemain terlebih dahulu!");
+                showPopupModal("Akses Ditolak", "Silakan login pemain terlebih dahulu!", "fa-triangle-exclamation");
                 return;
             }
 
@@ -2771,7 +2831,7 @@
 
             const isAlreadyIn = ev.peserta.some(p => p.hp === activeUserPemain.hp);
             if(isAlreadyIn) {
-                alert("Anda sudah terdaftar dalam pertandingan ini!");
+                showPopupModal("Informasi", "Anda sudah terdaftar dalam pertandingan ini!", "fa-circle-info");
                 return;
             }
 
@@ -2790,7 +2850,7 @@
                 });
             }
 
-            alert(`Berhasil! Nama Anda (${activeUserPemain.nama}) telah terdaftar di pertandingan '${ev.nama}'.`);
+            showPopupModal("Pendaftaran Berhasil", `Berhasil! Nama Anda (${activeUserPemain.nama}) telah terdaftar di pertandingan '${ev.nama}'.`, "fa-circle-check");
             closeModal('pemainMatchSubmenuModal');
         }
 
@@ -2798,31 +2858,29 @@
             closeModal('pemainMatchSubmenuModal');
 
             if(!activeUserPemain) {
-                alert("Silakan login terlebih dahulu.");
+                showPopupModal("Akses Ditolak", "Silakan login terlebih dahulu.", "fa-triangle-exclamation");
                 return;
             }
 
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
-            // VALIDASI SISTEM: Belum ada babak / belum ada pairing sama sekali
             if(!ev.babakList || ev.babakList.length === 0) {
-                alert("Belum ada pairing pada babak ini.");
+                showPopupModal("Akses Meja Ditutup", "Belum ada pairing pada babak ini.", "fa-triangle-exclamation");
                 return;
             }
 
             let babakAktif = [...ev.babakList].reverse().find(b => b.pairing && b.pairing.length > 0);
 
-            // VALIDASI SISTEM: Cek apakah babak aktif sudah selesai & belum ada pairing babak selanjutnya
             if (!babakAktif) {
-                alert("Belum ada pairing pada babak ini.");
+                showPopupModal("Akses Meja Ditutup", "Belum ada pairing pada babak ini.", "fa-triangle-exclamation");
                 return;
             }
 
             if (babakAktif.status === 'Selesai') {
                 const babakSelanjutnya = ev.babakList.find(b => b.babakKe === babakAktif.babakKe + 1);
                 if (!babakSelanjutnya || !babakSelanjutnya.pairing || babakSelanjutnya.pairing.length === 0) {
-                    alert("Pertandingan babak sebelumnya telah selesai. Belum ada pairing selanjutnya, mohon menunggu pairing babak berikutnya dari wasit.");
+                    showPopupModal("Menunggu Babak Baru", "Pertandingan babak sebelumnya telah selesai. Belum ada pairing selanjutnya, mohon menunggu pairing babak berikutnya dari wasit.", "fa-clock");
                     return;
                 }
             }
@@ -2857,14 +2915,14 @@
             container.innerHTML = '';
 
             if(!ev || !ev.babakList || ev.babakList.length === 0) {
-                alert("Belum ada pairing pada babak ini.");
+                showPopupModal("Akses Meja Ditutup", "Belum ada pairing pada babak ini.", "fa-triangle-exclamation");
                 return;
             }
 
             let babakAktif = [...ev.babakList].reverse().find(b => b.pairing && b.pairing.length > 0);
 
             if(!babakAktif || !babakAktif.pairing || babakAktif.pairing.length === 0) {
-                alert("Belum ada pairing pada babak ini.");
+                showPopupModal("Akses Meja Ditutup", "Belum ada pairing pada babak ini.", "fa-triangle-exclamation");
                 return;
             }
 
@@ -3147,12 +3205,12 @@
             const mejaObj = babakObj ? babakObj.pairing.find(m => m.meja === activeMejaNo) : null;
 
             if (!mejaObj || !mejaObj.isTimerRunning) {
-                alert("Papan catur terkunci! Pertandingan belum dimulai oleh wasit.");
+                showPopupModal("Papan Terkunci", "Papan catur terkunci! Pertandingan belum dimulai oleh wasit.", "fa-lock");
                 return;
             }
 
             if (chessEngine.turn() !== myRoleColor) {
-                alert("Bukan giliran Anda! Tunggu lawan melangkah.");
+                showPopupModal("Bukan Giliran", "Bukan giliran Anda! Tunggu lawan melangkah.", "fa-hourglass-half");
                 return;
             }
 
@@ -3233,62 +3291,62 @@
             await pushMoveToFirebaseOnline();
         }
 
-        async function aksiPemainMenyerah() {
-            if(!confirm("Yakin ingin Menyerah pada pertandingan ini? Pertandingan akan dihentikan dan dicatat sebagai kemenangan lawan.")) return;
+        function aksiPemainMenyerah() {
+            showConfirmModal("Konfirmasi Menyerah", "Yakin ingin Menyerah pada pertandingan ini? Pertandingan akan dihentikan dan dicatat sebagai kemenangan lawan.", async () => {
+                const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+                if(!ev || !ev.babakList) return;
 
-            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-            if(!ev || !ev.babakList) return;
+                const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+                if(!babakObj || !babakObj.pairing) return;
 
-            const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
-            if(!babakObj || !babakObj.pairing) return;
+                const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+                if(!meja || meja.isFinished) return;
 
-            const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
-            if(!meja || meja.isFinished) return;
+                const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
+                
+                meja.isFinished = true;
+                babakObj.isTimerRunning = false;
+                babakObj.status = 'Selesai';
+                meja.skor = isPutih ? '0-1' : '1-0';
+                meja.alasanSelesai = isPutih ? `${meja.pemainPutih.nama} Menyerah` : `${meja.pemainHitam.nama} Menyerah`;
 
-            const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
-            
-            meja.isFinished = true;
-            babakObj.isTimerRunning = false;
-            babakObj.status = 'Selesai';
-            meja.skor = isPutih ? '0-1' : '1-0';
-            meja.alasanSelesai = isPutih ? `${meja.pemainPutih.nama} Menyerah` : `${meja.pemainHitam.nama} Menyerah`;
+                if (window.db) {
+                    await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                        babakList: ev.babakList
+                    });
+                }
 
-            if (window.db) {
-                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                    babakList: ev.babakList
-                });
-            }
-
-            alert("Anda menyatakan Menyerah. Waktu dihentikan dan hasil pertandingan telah dicatat.");
-            switchView('pemainDashboardView');
+                showPopupModal("Pertandingan Selesai", "Anda menyatakan Menyerah. Waktu dihentikan dan hasil pertandingan telah dicatat.", "fa-flag");
+                switchView('pemainDashboardView');
+            });
         }
 
-        async function aksiPemainRemis() {
-            if(!confirm("Ajukan / setujui Remis (Draw) untuk pertandingan ini? Waktu akan dihentikan dan poin dibagi rata.")) return;
+        function aksiPemainRemis() {
+            showConfirmModal("Konfirmasi Remis", "Ajukan / setujui Remis (Draw) untuk pertandingan ini? Waktu akan dihentikan dan poin dibagi rata.", async () => {
+                const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+                if(!ev || !ev.babakList) return;
 
-            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-            if(!ev || !ev.babakList) return;
+                const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+                if(!babakObj || !babakObj.pairing) return;
 
-            const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
-            if(!babakObj || !babakObj.pairing) return;
+                const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+                if(!meja || meja.isFinished) return;
 
-            const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
-            if(!meja || meja.isFinished) return;
+                meja.isFinished = true;
+                babakObj.isTimerRunning = false;
+                babakObj.status = 'Selesai';
+                meja.skor = '0.5-0.5';
+                meja.alasanSelesai = 'Remis (Disetujui Bersama)';
 
-            meja.isFinished = true;
-            babakObj.isTimerRunning = false;
-            babakObj.status = 'Selesai';
-            meja.skor = '0.5-0.5';
-            meja.alasanSelesai = 'Remis (Disetujui Bersama)';
+                if (window.db) {
+                    await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                        babakList: ev.babakList
+                    });
+                }
 
-            if (window.db) {
-                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                    babakList: ev.babakList
-                });
-            }
-
-            alert("Pertandingan berakhir Remis (Draw). Waktu dihentikan dan hasil tercatat.");
-            switchView('pemainDashboardView');
+                showPopupModal("Pertandingan Remis", "Pertandingan berakhir Remis (Draw). Waktu dihentikan dan hasil tercatat.", "fa-handshake");
+                switchView('pemainDashboardView');
+            });
         }
 
         async function pushMoveToFirebaseOnline() {
@@ -3374,16 +3432,14 @@
             }
         }
 
-        async function keluarArenaPertandingan() {
+        function keluarArenaPertandingan() {
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(ev && ev.babakList) {
                 const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
                 if(babakObj && babakObj.pairing) {
                     const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
                     if(meja && !meja.isFinished) {
-                        const konfirmasiKeluar = confirm("Anda ingin keluar dari arena sebelum pertandingan selesai?\n\nKlik OK jika Anda ingin Menyerah (Pertandingan dicatat selesai dan lawan menang). Klik Batal untuk tetap bermain.");
-                        
-                        if(konfirmasiKeluar) {
+                        showConfirmModal("Konfirmasi Keluar Arena", "Anda ingin keluar dari arena sebelum pertandingan selesai?<br><br>Klik <b>Ya</b> jika Anda ingin Menyerah (Pertandingan dicatat selesai dan lawan menang).", async () => {
                             const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
                             
                             meja.isFinished = true;
@@ -3398,10 +3454,10 @@
                                 });
                             }
 
-                            alert("Anda keluar dari pertandingan. Sistem mencatat Anda Menyerah dan kemenangan diberikan kepada lawan.");
-                        } else {
-                            return; 
-                        }
+                            showPopupModal("Keluar Arena", "Anda keluar dari pertandingan. Sistem mencatat Anda Menyerah dan kemenangan diberikan kepada lawan.", "fa-flag");
+                            switchView('pemainDashboardView');
+                        });
+                        return;
                     }
                 }
             }
@@ -3413,7 +3469,7 @@
             const statusEl = document.getElementById('chessGameStatus');
             statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>${teksPesan}</b>`;
             statusEl.style.color = '#10b981';
-            alert("Hasil Pertandingan Tercatat Otomatis:\n\n" + teksPesan);
+            showPopupModal("Hasil Pertandingan", "Hasil Pertandingan Tercatat Otomatis:<br><br>" + teksPesan, "fa-trophy");
         }
 
         function formatTime(seconds) {
@@ -3432,7 +3488,7 @@
             const fileInput = document.getElementById('regWasitFile');
 
             if(daftarWasit.find(w => w.hp === hp)) {
-                alert("Nomor HP ini sudah terdaftar!");
+                showPopupModal("Pendaftaran Gagal", "Nomor HP ini sudah terdaftar!", "fa-triangle-exclamation");
                 return;
             }
 
@@ -3451,7 +3507,7 @@
                     await window.addDoc(window.collection(window.db, "wasit"), wasitBaru);
                 }
 
-                alert("Pendaftaran Wasit Berhasil! Menunggu Verifikasi Lisensi oleh Admin.");
+                showPopupModal("Pendaftaran Berhasil", "Pendaftaran Wasit Berhasil! Menunggu Verifikasi Lisensi oleh Admin.", "fa-circle-check");
                 closeModal('regWasitModal');
                 event.target.reset();
             };
@@ -3497,7 +3553,7 @@
             }
 
             if (!activeUserWasit) {
-                alert("Data wasit tidak ditemukan.");
+                showPopupModal("Informasi", "Data wasit tidak ditemukan.", "fa-circle-info");
                 return;
             }
 
@@ -3627,7 +3683,7 @@
                 });
             }
 
-            alert("Link Zoom Pengawasan Anti-Kecurangan Berhasil Disimpan!");
+            showPopupModal("Berhasil", "Link Zoom Pengawasan Anti-Kecurangan Berhasil Disimpan!", "fa-circle-check");
             closeModal('aturZoomWasitModal');
         }
 
@@ -3666,7 +3722,7 @@
                 });
             }
 
-            alert(`Berhasil mengatur durasi pertandingan '${ev.nama}' menjadi ${menit} Menit!`);
+            showPopupModal("Berhasil", `Berhasil mengatur durasi pertandingan '${ev.nama}' menjadi ${menit} Menit!`, "fa-circle-check");
             closeModal('aturWaktuWasitModal');
         }
 
@@ -3762,7 +3818,7 @@
                 });
             }
 
-            alert(`Berhasil mengatur ${jumlahBabak} babak pertandingan untuk '${ev.nama}'!`);
+            showPopupModal("Berhasil", `Berhasil mengatur ${jumlahBabak} babak pertandingan untuk '${ev.nama}'!`, "fa-circle-check");
             renderListBabakAktif(ev);
         }
 
@@ -3909,7 +3965,7 @@
                 });
             }
 
-            alert(`Babak ${babakKe} berhasil diselesaikan dan waktu di seluruh meja telah disetop!`);
+            showPopupModal("Berhasil", `Babak ${babakKe} berhasil diselesaikan dan waktu di seluruh meja telah disetop!`, "fa-circle-check");
             closeModal('pairingWasitModal');
             openStatistikPertandinganView();
         }
@@ -3918,7 +3974,7 @@
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
             if(!ev || !ev.peserta || ev.peserta.length < 2) {
-                alert("Jumlah peserta minimal 2 orang untuk melakukan pairing!");
+                showPopupModal("Peringatan", "Jumlah peserta minimal 2 orang untuk melakukan pairing!", "fa-triangle-exclamation");
                 return;
             }
 
@@ -4058,7 +4114,7 @@
                 });
             }
 
-            alert(`Pairing Babak ${babakKe} Berhasil Digenerate! Papan dan waktu masih terkunci sampai Anda menekan tombol Mulai.`);
+            showPopupModal("Pairing Berhasil", `Pairing Babak ${babakKe} Berhasil Digenerate!<br>Papan dan waktu masih terkunci sampai Anda menekan tombol Mulai.`, "fa-wand-magic-sparkles");
             renderPairingMejaInfo();
         }
 
@@ -4084,7 +4140,7 @@
                 });
             }
 
-            alert(`Pertandingan Babak ${babakKe} DIMULAI! Hitungan mundur 10 detik aktif dan papan catur terbuka.`);
+            showPopupModal("Pertandingan Dimulai", `Pertandingan Babak ${babakKe} DIMULAI!<br>Hitungan mundur 10 detik aktif dan papan catur terbuka.`, "fa-play");
             renderPairingMejaInfo();
         }
 
@@ -4169,8 +4225,8 @@
             }
         }
 
-        async function tolakPemain(docId) {
-            if(confirm("Tolak dan hapus pendaftaran pemain ini?")) {
+        function tolakPemain(docId) {
+            showConfirmModal("Konfirmasi Tolak", "Tolak dan hapus pendaftaran pemain ini?", async () => {
                 if (window.db) {
                     await window.deleteDoc(window.doc(window.db, "pemain", docId));
                     const snap = await window.getDocs(window.collection(window.db, "pemain"));
@@ -4178,7 +4234,7 @@
                     snap.forEach(d => daftarPemain.push({ docId: d.id, ...d.data() }));
                     renderListPemain();
                 }
-            }
+            });
         }
 
         function showDetailPemain(docId) {
@@ -4191,8 +4247,8 @@
                 <div class="detail-row"><span>ELO Rating:</span> <span><b style="color: var(--accent-gold);">${p.elo || 0}</b></span></div>
                 <div class="detail-row"><span>Status Akun:</span> <span>${p.status === 'approved' ? 'Terverifikasi' : 'Menunggu Persetujuan'}</span></div>
             `;
-            document.getElementById('btnHapusPemain').onclick = async function() {
-                if(confirm("Hapus pemain ini?")) {
+            document.getElementById('btnHapusPemain').onclick = function() {
+                showConfirmModal("Konfirmasi Hapus", "Hapus pemain ini?", async () => {
                     if (window.db) {
                         await window.deleteDoc(window.doc(window.db, "pemain", docId));
                         const snap = await window.getDocs(window.collection(window.db, "pemain"));
@@ -4201,7 +4257,7 @@
                         renderListPemain();
                     }
                     closeModal('detailPemainModal');
-                }
+                });
             };
             openModal('detailPemainModal');
         }
@@ -4255,12 +4311,12 @@
             }
         }
 
-        async function tolakWasit(docId) {
-            if(confirm("Tolak dan hapus pendaftaran wasit ini?")) {
+        function tolakWasit(docId) {
+            showConfirmModal("Konfirmasi Tolak", "Tolak dan hapus pendaftaran wasit ini?", async () => {
                 if (window.db) {
                     await window.deleteDoc(window.doc(window.db, "wasit", docId));
                 }
-            }
+            });
         }
 
         function showDetailWasit(docId) {
@@ -4292,13 +4348,13 @@
             `;
 
             document.getElementById('btnHapusWasit').style.display = 'block';
-            document.getElementById('btnHapusWasit').onclick = async function() {
-                if(confirm("Hapus wasit ini dari sistem?")) {
+            document.getElementById('btnHapusWasit').onclick = function() {
+                showConfirmModal("Konfirmasi Hapus", "Hapus wasit ini dari sistem?", async () => {
                     if (window.db) {
                         await window.deleteDoc(window.doc(window.db, "wasit", docId));
                     }
                     closeModal('detailWasitModal');
-                }
+                });
             };
             openModal('detailWasitModal');
         }
@@ -4353,7 +4409,7 @@
 
             localStorage.setItem('asr_unread_match', JSON.stringify(true));
 
-            alert("Pertandingan Berhasil Dibuat dan Disimpan ke Firebase!");
+            showPopupModal("Berhasil", "Pertandingan Berhasil Dibuat dan Disimpan ke Firebase!", "fa-circle-check");
             event.target.reset();
             switchView('dashboardView');
         }
