@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Automatic Scoring & Finish Round)</title>
+    <title>Asr.Catur Online - Master Production (Auto Surrender on Exit & Finish Round)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -652,7 +652,6 @@
             margin-top: 2px;
         }
 
-        /* OVERLAY COUNTDOWN & TEKS MULAI BESAR DI ARENA */
         .arena-countdown-overlay {
             position: absolute;
             top: 0;
@@ -752,11 +751,6 @@
             object-fit: contain;
             pointer-events: none;
             filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.4));
-            transition: transform 0.1s ease;
-        }
-
-        .square:hover .chess-piece-img {
-            transform: scale(1.05);
         }
 
         .eval-bar-container {
@@ -808,6 +802,45 @@
 
         .engine-row select, .engine-row button {
             font-size: 0.72rem;
+        }
+
+        .arena-action-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            max-width: 360px;
+            margin-top: 5px;
+        }
+
+        .promotion-choices-box {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .promo-option-btn {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--accent-gold);
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            transition: 0.2s;
+        }
+
+        .promo-option-btn:hover {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        .promo-option-btn img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
         }
 
         footer {
@@ -984,18 +1017,15 @@
             <p class="hero-subtitle" id="arenaMatchSubtitle">Meja Pertandingan Resmi</p>
 
             <div class="match-arena-box">
-                <!-- OVERLAY HITUNG MUNDUR & TEKS MULAI -->
                 <div id="arenaCountdownOverlay" class="arena-countdown-overlay">
                     <div id="countdownNumberDisplay" class="countdown-big-number">10</div>
                 </div>
 
                 <div class="clock-container">
-                    <!-- TIMER KIRI (SELALU PEMEGANG BUAH PUTIH) -->
                     <div class="player-clock-card active-turn" id="clockPutihBox">
                         <div style="font-size: 0.72rem; color: var(--accent-gold);" id="namaPutihClock">Putih (⚪)</div>
                         <div class="clock-time" id="timerPutih">10:00</div>
                     </div>
-                    <!-- TIMER KANAN ATAS (SELALU PEMEGANG BUAH HITAM) -->
                     <div class="player-clock-card" id="clockHitamBox">
                         <div style="font-size: 0.72rem; color: var(--text-muted);" id="namaHitamClock">Hitam (⚫)</div>
                         <div class="clock-time" id="timerHitam">10:00</div>
@@ -1006,6 +1036,15 @@
 
                 <div class="info-badge-box" id="chessGameStatus" style="width: 100%; text-align: center; margin-top: 5px;">
                     <i class="fa-solid fa-circle-info"></i> Menghubungkan ke meja online...
+                </div>
+
+                <div class="arena-action-row">
+                    <button class="btn btn-danger" style="flex: 1;" onclick="aksiPemainMenyerah()">
+                        <i class="fa-solid fa-flag"></i> Menyerah
+                    </button>
+                    <button class="btn btn-outline" style="flex: 1;" onclick="aksiPemainRemis()">
+                        <i class="fa-solid fa-handshake"></i> Tawaran Remis
+                    </button>
                 </div>
             </div>
 
@@ -1481,6 +1520,34 @@
         </div>
     </div>
 
+    <!-- MODAL PILIHAN PROMOSI PION -->
+    <div class="modal-overlay" id="promotionModal">
+        <div class="modal-box" style="text-align: center;">
+            <div class="modal-header" style="justify-content: center;">
+                <h3 style="color: var(--accent-gold);"><i class="fa-solid fa-chess-pawn"></i> Promosi Pion!</h3>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">Pilih bidak pengganti pion Anda:</p>
+            <div class="promotion-choices-box">
+                <button class="promo-option-btn" onclick="selectPromotionPiece('q')">
+                    <img id="promoImgQ" src="" alt="Menteri">
+                    <span style="font-size: 0.72rem; font-weight: 700; color: #fff;">Menteri</span>
+                </button>
+                <button class="promo-option-btn" onclick="selectPromotionPiece('r')">
+                    <img id="promoImgR" src="" alt="Benteng">
+                    <span style="font-size: 0.72rem; font-weight: 700; color: #fff;">Benteng</span>
+                </button>
+                <button class="promo-option-btn" onclick="selectPromotionPiece('b')">
+                    <img id="promoImgB" src="" alt="Gajah">
+                    <span style="font-size: 0.72rem; font-weight: 700; color: #fff;">Gajah</span>
+                </button>
+                <button class="promo-option-btn" onclick="selectPromotionPiece('n')">
+                    <img id="promoImgN" src="" alt="Kuda">
+                    <span style="font-size: 0.72rem; font-weight: 700; color: #fff;">Kuda</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL ZOOM CHECK ANTI-ENGINE SEBELUM MASUK MEJA -->
     <div class="modal-overlay" id="zoomCheckModal">
         <div class="modal-box" style="text-align: center;">
@@ -1489,7 +1556,7 @@
             </div>
             <div class="info-badge-box" style="text-align: left; margin: 12px 0;">
                 <i class="fa-solid fa-shield-halved"></i> <b>Aturan Turnamen Asr.Catur:</b><br>
-                Sebelum meja tanding terbuka, peserta **wajib terhubung ke ruang Zoom** pengawasan wasit untuk mencegah penggunaan *engine* / HP kedua.
+                Sebelum meja tanding terbuka, peserta **wajib terhubung ke ruang Zoom** wasit untuk mencegah penggunaan *engine* / HP kedua.
             </div>
             <p id="zoomLinkInfoText" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 15px;">
                 Link Zoom belum diatur oleh wasit. Silakan hubungi wasit ruangan Anda.
@@ -1528,7 +1595,6 @@
         </div>
     </div>
 
-    <!-- MODAL ATUR ZOOM OLEH WASIT -->
     <div class="modal-overlay" id="aturZoomWasitModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1658,7 +1724,6 @@
                 </button>
             </div>
 
-            <!-- TOMBOL KONTROL UTAMA WASIT: MULAI & SELESAIKAN -->
             <div id="wasitControlActionRow" style="margin-bottom: 12px; display: flex; gap: 6px; display: none;">
                 <button class="btn btn-success" style="flex: 1; padding: 9px;" onclick="triggerMulaiPertandinganWasit()">
                     <i class="fa-solid fa-play"></i> Mulai Pertandingan
@@ -1723,6 +1788,7 @@
         let validMovesForSelectedSquare = [];
         let lastKnownFenOnline = "";
         let lastKnownCountdownState = false;
+        let pendingPromotionMove = null;
 
         let chessEngineAnalisa = new Chess();
         let selectedSquareAnalisa = null;
@@ -1735,7 +1801,7 @@
         let currentStatistikEventId = null;
 
         let lastTimerTickTime = Date.now();
-        let localTimerValues = {}; // PENAMBAHAN: Menyimpan hitungan timer lokal per meja agar stabil & tidak melompat
+        let localTimerValues = {};
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -2456,7 +2522,7 @@
 
                 const now = Date.now();
                 const elapsed = now - lastTimerTickTime;
-                if (elapsed < 950) return; // Toleransi waktu agar pas 1000ms (1 detik)
+                if (elapsed < 950) return;
                 lastTimerTickTime = now;
 
                 let updated = false;
@@ -2464,13 +2530,12 @@
                 for (let ev of daftarEvent) {
                     if(ev.babakList) {
                         for (let b of ev.babakList) {
-                            if(b.status === 'Berjalan' && b.isTimerRunning) {
+                            if(b.status === 'Berjalan' && b.isTimerRunning === true) {
                                 if(b.pairing) {
                                     b.pairing.forEach(m => {
                                         if(!m.isBye && !m.isFinished) {
                                             const matchKey = `${ev.docId || ev.id}_meja_${m.meja}`;
                                             
-                                            // Inisialisasi waktu lokal jika belum ada
                                             if (!localTimerValues[matchKey]) {
                                                 localTimerValues[matchKey] = {
                                                     putih: m.timePutih !== undefined ? m.timePutih : 600,
@@ -2520,7 +2585,6 @@
                     }
                 }
 
-                // Perbarui tampilan timer di layar secara instan tanpa menunggu refresh database
                 updateTimerDisplayUI();
 
                 if(updated && document.getElementById('pairingWasitModal').classList.contains('active')) {
@@ -2543,6 +2607,11 @@
 
                 if(elPutih) elPutih.innerText = formatTime(meja.timePutih || 0);
                 if(elHitam) elHitam.innerText = formatTime(meja.timeHitam || 0);
+
+                // CEK JIKA PERTANDINGAN BERAKHIR OLEH LAWAN (MISAL KELUAR/MENYERAH)
+                if (meja.isFinished) {
+                    updateChessGameStatusInfoOnline(meja, meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp ? 'w' : 'b');
+                }
             }
         }
 
@@ -2970,8 +3039,46 @@
 
         function renderChessboardOnline(myRoleColor) {
             const boardEl = document.getElementById('chessboard');
-            boardEl.innerHTML = '';
+            
+            if (boardEl.children.length === 64) {
+                const boardArray = chessEngine.board();
+                const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        const rowIdx = myRoleColor === 'w' ? r : (7 - r);
+                        const colIdx = myRoleColor === 'w' ? c : (7 - c);
+                        const squareNotation = files[colIdx] + (8 - rowIdx);
+                        
+                        const squareEl = boardEl.querySelector(`[data-square="${squareNotation}"]`);
+                        if(squareEl) {
+                            squareEl.className = `square ${((r + c) % 2 === 0) ? 'light' : 'dark'}`;
+                            if (selectedSquareSquareNotation === squareNotation) squareEl.classList.add('selected');
+                            if (validMovesForSelectedSquare.some(m => m.to === squareNotation)) squareEl.classList.add('valid-move');
+
+                            squareEl.innerHTML = '';
+                            const piece = boardArray[rowIdx][colIdx];
+                            if (piece) {
+                                const pieceKey = piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase();
+                                if (pieceImages[pieceKey]) {
+                                    const img = document.createElement('img');
+                                    img.src = pieceImages[pieceKey];
+                                    img.className = 'chess-piece-img';
+                                    img.alt = pieceKey;
+                                    squareEl.appendChild(img);
+                                }
+                                if (piece.type === 'k' && chessEngine.in_check() && piece.color === chessEngine.turn()) {
+                                    squareEl.classList.add('in-check');
+                                }
+                            }
+                        }
+                    }
+                }
+                updateTurnActiveBox();
+                return;
+            }
+
+            boardEl.innerHTML = '';
             const boardArray = chessEngine.board(); 
             const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
@@ -3040,8 +3147,8 @@
             const babakObj = ev ? ev.babakList.find(b => b.babakKe === activeBabakKe) : null;
             const mejaObj = babakObj ? babakObj.pairing.find(m => m.meja === activeMejaNo) : null;
 
-            if (!mejaObj || (!mejaObj.isTimerRunning && !mejaObj.triggerMulai && babakObj.status !== 'Berjalan')) {
-                alert("Pertandingan belum dimulai oleh wasit!");
+            if (!mejaObj || !mejaObj.isTimerRunning) {
+                alert("Papan catur terkunci! Pertandingan belum dimulai oleh wasit.");
                 return;
             }
 
@@ -3062,21 +3169,24 @@
 
                 if (isMoveValid) {
                     const selectedPiece = chessEngine.get(selectedSquareSquareNotation);
-                    let promotionChoice = 'q';
 
-                    if (selectedPiece && selectedPiece.type === 'p') {
-                        if ((selectedPiece.color === 'w' && squareNotation[1] === '8') || (selectedPiece.color === 'b' && squareNotation[1] === '1')) {
-                            const inputChoice = prompt("Promosi Pion! Pilih bidak: (q = Menteri, r = Benteng, b = Gajah, n = Kuda)", "q");
-                            if (['q', 'r', 'b', 'n'].includes(inputChoice ? inputChoice.toLowerCase() : '')) {
-                                promotionChoice = inputChoice.toLowerCase();
-                            }
-                        }
+                    if (selectedPiece && selectedPiece.type === 'p' && ((selectedPiece.color === 'w' && squareNotation[1] === '8') || (selectedPiece.color === 'b' && squareNotation[1] === '1'))) {
+                        pendingPromotionMove = { from: selectedSquareSquareNotation, to: squareNotation };
+                        
+                        const prefix = myRoleColor === 'w' ? 'w' : 'b';
+                        document.getElementById('promoImgQ').src = pieceImages[prefix.toUpperCase() === 'W' ? 'Q' : 'q'];
+                        document.getElementById('promoImgR').src = pieceImages[prefix.toUpperCase() === 'W' ? 'R' : 'r'];
+                        document.getElementById('promoImgB').src = pieceImages[prefix.toUpperCase() === 'W' ? 'B' : 'b'];
+                        document.getElementById('promoImgN').src = pieceImages[prefix.toUpperCase() === 'W' ? 'N' : 'n'];
+
+                        openModal('promotionModal');
+                        return;
                     }
 
                     const moveResult = chessEngine.move({
                         from: selectedSquareSquareNotation,
                         to: squareNotation,
-                        promotion: promotionChoice
+                        promotion: 'q'
                     });
 
                     if (moveResult) {
@@ -3098,6 +3208,88 @@
                     renderChessboardOnline(myRoleColor);
                 }
             }
+        }
+
+        async function selectPromotionPiece(pieceType) {
+            closeModal('promotionModal');
+            if(!pendingPromotionMove) return;
+
+            chessEngine.move({
+                from: pendingPromotionMove.from,
+                to: pendingPromotionMove.to,
+                promotion: pieceType
+            });
+
+            pendingPromotionMove = null;
+            selectedSquareSquareNotation = null;
+            validMovesForSelectedSquare = [];
+            lastKnownFenOnline = chessEngine.fen();
+
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            const babakObj = ev ? ev.babakList.find(b => b.babakKe === activeBabakKe) : null;
+            const mejaObj = babakObj ? babakObj.pairing.find(m => m.meja === activeMejaNo) : null;
+            let myRoleColor = mejaObj && mejaObj.pemainPutih && mejaObj.pemainPutih.hp === activeUserPemain.hp ? 'w' : 'b';
+
+            renderChessboardOnline(myRoleColor);
+            await pushMoveToFirebaseOnline();
+        }
+
+        async function aksiPemainMenyerah() {
+            if(!confirm("Yakin ingin Menyerah pada pertandingan ini? Pertandingan akan dihentikan dan dicatat sebagai kemenangan lawan.")) return;
+
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            if(!ev || !ev.babakList) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+            if(!babakObj || !babakObj.pairing) return;
+
+            const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+            if(!meja || meja.isFinished) return;
+
+            const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
+            
+            meja.isFinished = true;
+            babakObj.isTimerRunning = false;
+            babakObj.status = 'Selesai';
+            meja.skor = isPutih ? '0-1' : '1-0';
+            meja.alasanSelesai = isPutih ? `${meja.pemainPutih.nama} Menyerah` : `${meja.pemainHitam.nama} Menyerah`;
+
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
+
+            alert("Anda menyatakan Menyerah. Waktu dihentikan dan hasil pertandingan telah dicatat.");
+            switchView('pemainDashboardView');
+        }
+
+        async function aksiPemainRemis() {
+            if(!confirm("Ajukan / setujui Remis (Draw) untuk pertandingan ini? Waktu akan dihentikan dan poin dibagi rata.")) return;
+
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            if(!ev || !ev.babakList) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+            if(!babakObj || !babakObj.pairing) return;
+
+            const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+            if(!meja || meja.isFinished) return;
+
+            meja.isFinished = true;
+            babakObj.isTimerRunning = false;
+            babakObj.status = 'Selesai';
+            meja.skor = '0.5-0.5';
+            meja.alasanSelesai = 'Remis (Disetujui Bersama)';
+
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
+
+            alert("Pertandingan berakhir Remis (Draw). Waktu dihentikan dan hasil tercatat.");
+            switchView('pemainDashboardView');
         }
 
         async function pushMoveToFirebaseOnline() {
@@ -3141,16 +3333,20 @@
             const turnText = chessEngine.turn() === 'w' ? 'Putih (⚪)' : 'Hitam (⚫)';
             const isMyTurn = chessEngine.turn() === myRoleColor;
 
-            if (!meja.isTimerRunning && !meja.triggerMulai && meja.isFinished !== true) {
-                statusEl.innerHTML = `<i class="fa-solid fa-clock"></i> <b>Menunggu Wasit Menekan Tombol Mulai...</b>`;
-                statusEl.style.color = 'var(--accent-gold)';
+            if (meja.isFinished) {
+                const pemenangNama = meja.skor === '1-0' ? meja.pemainPutih.nama : (meja.skor === '0-1' ? meja.pemainHitam.nama : 'Draw');
+                statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>Pertandingan Selesai!</b> Alasan: ${meja.alasanSelesai || 'Selesai'}. Pemenang: <b>${pemenangNama}</b>`;
+                statusEl.style.color = '#10b981';
                 return;
             }
 
-            if (meja.isFinished) {
-                statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>Pertandingan Selesai Otomatis!</b> Skor: ${meja.skor}`;
-                statusEl.style.color = '#10b981';
-            } else if (chessEngine.in_checkmate()) {
+            if (!meja.isTimerRunning) {
+                statusEl.innerHTML = `<i class="fa-solid fa-lock" style="color: #ef4444;"></i> <b>Papan Terkunci: Menunggu Wasit Menekan Tombol Mulai...</b>`;
+                statusEl.style.color = '#ef4444';
+                return;
+            }
+
+            if (chessEngine.in_checkmate()) {
                 const winner = chessEngine.turn() === 'w' ? 'Hitam' : 'Putih';
                 statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>SKAKMATI!</b> ${winner} Menang!`;
                 statusEl.style.color = '#10b981';
@@ -3166,7 +3362,38 @@
             }
         }
 
-        function keluarArenaPertandingan() {
+        async function keluarArenaPertandingan() {
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            if(ev && ev.babakList) {
+                const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+                if(babakObj && babakObj.pairing) {
+                    const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+                    if(meja && !meja.isFinished) {
+                        const konfirmasiKeluar = confirm("Anda ingin keluar dari arena sebelum pertandingan selesai?\n\nKlik OK jika Anda ingin Menyerah (Pertandingan dicatat selesai dan lawan menang). Klik Batal untuk tetap bermain.");
+                        
+                        if(konfirmasiKeluar) {
+                            const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
+                            
+                            meja.isFinished = true;
+                            babakObj.isTimerRunning = false;
+                            babakObj.status = 'Selesai';
+                            meja.skor = isPutih ? '0-1' : '1-0';
+                            meja.alasanSelesai = isPutih ? `${meja.pemainPutih.nama} Keluar & Menyerah` : `${meja.pemainHitam.nama} Keluar & Menyerah`;
+
+                            if (window.db) {
+                                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                                    babakList: ev.babakList
+                                });
+                            }
+
+                            alert("Anda keluar dari pertandingan. Sistem mencatat Anda Menyerah dan kemenangan diberikan kepada lawan.");
+                        } else {
+                            return; // Batal keluar, tetap di arena
+                        }
+                    }
+                }
+            }
+
             switchView('pemainDashboardView');
         }
 
@@ -3652,6 +3879,7 @@
             babakObj.isTimerRunning = false;
 
             babakObj.pairing.forEach(m => {
+                m.triggerMulai = false;
                 if(!m.isFinished) {
                     m.isFinished = true;
                     if(!m.skor) m.skor = '0.5-0.5';
@@ -3669,7 +3897,7 @@
                 });
             }
 
-            alert(`Babak ${babakKe} berhasil diselesaikan secara resmi! Statistik & klasemen poin telah diperbarui.`);
+            alert(`Babak ${babakKe} berhasil diselesaikan dan waktu di seluruh meja telah disetop!`);
             closeModal('pairingWasitModal');
             openStatistikPertandinganView();
         }
@@ -3818,7 +4046,7 @@
                 });
             }
 
-            alert(`Pairing Babak ${babakKe} Berhasil Digenerate!\nSistem otomatis menyesuaikan rotasi warna bidak.`);
+            alert(`Pairing Babak ${babakKe} Berhasil Digenerate! Papan dan waktu masih terkunci sampai Anda menekan tombol Mulai.`);
             renderPairingMejaInfo();
         }
 
@@ -3844,7 +4072,7 @@
                 });
             }
 
-            alert(`Pertandingan Babak ${babakKe} DIMULAI! Hitungan mundur dikirim ke seluruh meja.`);
+            alert(`Pertandingan Babak ${babakKe} DIMULAI! Waktu mulai berjalan dan papan catur terbuka untuk pemain.`);
             renderPairingMejaInfo();
         }
 
