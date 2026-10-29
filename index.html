@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Synced Timer & Full Custom Popup)</title>
+    <title>Asr.Catur Online - Master Production (Timer on White's First Move & Full Custom Popup)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1872,7 +1872,6 @@
             document.getElementById('confirmContent').innerHTML = message;
             const btnYes = document.getElementById('btnConfirmYes');
             
-            // Remove previous event listeners
             const newBtn = btnYes.cloneNode(true);
             btnYes.parentNode.replaceChild(newBtn, btnYes);
 
@@ -2519,7 +2518,6 @@
 
                     if (selectedPiece && selectedPiece.type === 'p') {
                         if ((selectedPiece.color === 'w' && squareNotation[1] === '8') || (selectedPiece.color === 'b' && squareNotation[1] === '1')) {
-                            // Untuk promosi di analisa, kita bisa gunakan pilihan cepat secara default atau prompt. Di sini kita biarkan 'q' atau bisa disesuaikan.
                             promotionChoice = 'q';
                         }
                     }
@@ -3204,7 +3202,7 @@
             const babakObj = ev ? ev.babakList.find(b => b.babakKe === activeBabakKe) : null;
             const mejaObj = babakObj ? babakObj.pairing.find(m => m.meja === activeMejaNo) : null;
 
-            if (!mejaObj || !mejaObj.isTimerRunning) {
+            if (!mejaObj || !mejaObj.isStarted) {
                 showPopupModal("Papan Terkunci", "Papan catur terkunci! Pertandingan belum dimulai oleh wasit.", "fa-lock");
                 return;
             }
@@ -3305,7 +3303,7 @@
                 const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
                 
                 meja.isFinished = true;
-                babakObj.isTimerRunning = false;
+                meja.isTimerRunning = false;
                 babakObj.status = 'Selesai';
                 meja.skor = isPutih ? '0-1' : '1-0';
                 meja.alasanSelesai = isPutih ? `${meja.pemainPutih.nama} Menyerah` : `${meja.pemainHitam.nama} Menyerah`;
@@ -3333,7 +3331,7 @@
                 if(!meja || meja.isFinished) return;
 
                 meja.isFinished = true;
-                babakObj.isTimerRunning = false;
+                meja.isTimerRunning = false;
                 babakObj.status = 'Selesai';
                 meja.skor = '0.5-0.5';
                 meja.alasanSelesai = 'Remis (Disetujui Bersama)';
@@ -3361,6 +3359,11 @@
 
             meja.fen = chessEngine.fen();
 
+            // KETIKA PUTIH MENJALANKAN LANGKAH PERTAMA, TIMER RESMI DIJALANKAN (isTimerRunning = true)
+            if (!meja.isTimerRunning) {
+                meja.isTimerRunning = true;
+            }
+
             const elPutih = document.getElementById('timerPutih');
             const elHitam = document.getElementById('timerHitam');
             if(elPutih) meja.timePutih = parseTimeStringToSeconds(elPutih.innerText);
@@ -3368,7 +3371,7 @@
 
             if (chessEngine.game_over()) {
                 meja.isFinished = true;
-                babakObj.isTimerRunning = false;
+                meja.isTimerRunning = false;
                 babakObj.status = 'Selesai';
 
                 if (chessEngine.in_checkmate()) {
@@ -3410,9 +3413,15 @@
                 return;
             }
 
-            if (!meja.isTimerRunning) {
+            if (!meja.isStarted) {
                 statusEl.innerHTML = `<i class="fa-solid fa-lock" style="color: #ef4444;"></i> <b>Papan Terkunci: Menunggu Wasit Menekan Tombol Mulai...</b>`;
                 statusEl.style.color = '#ef4444';
+                return;
+            }
+
+            if (!meja.isTimerRunning) {
+                statusEl.innerHTML = `<i class="fa-solid fa-hourglass-start" style="color: var(--accent-gold);"></i> <b>Papan Terbuka! Menunggu langkah pertama dari Pemain Putih (⚪) untuk menjalankan timer...</b>`;
+                statusEl.style.color = 'var(--accent-gold)';
                 return;
             }
 
@@ -3443,7 +3452,7 @@
                             const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
                             
                             meja.isFinished = true;
-                            babakObj.isTimerRunning = false;
+                            meja.isTimerRunning = false;
                             babakObj.status = 'Selesai';
                             meja.skor = isPutih ? '0-1' : '1-0';
                             meja.alasanSelesai = isPutih ? `${meja.pemainPutih.nama} Keluar & Menyerah` : `${meja.pemainHitam.nama} Keluar & Menyerah`;
@@ -3894,10 +3903,10 @@
                 actionGen.style.display = 'none';
                 wasitControlRow.style.display = 'flex';
                 btnSelesaiBabak.style.display = 'block';
-                infoBox.innerHTML = `Pairing Babak ${babakKe} Aktif. Status Pertandingan: <b>${babakObj.isTimerRunning ? 'BERJALAN' : 'MENUNGGU DIMULAI'}</b>`;
+                infoBox.innerHTML = `Pairing Babak ${babakKe} Aktif. Status Turnamen: <b>${babakObj.status}</b>`;
 
                 babakObj.pairing.forEach((m, idx) => {
-                    const statusSkorText = m.isFinished ? `<span style="color: #34d399; font-weight: 700;">Selesai [Skor: ${m.skor}]</span>` : `<span style="color: var(--accent-gold);">Sedang Berlangsung</span>`;
+                    const statusSkorText = m.isFinished ? `<span style="color: #34d399; font-weight: 700;">Selesai [Skor: ${m.skor}]</span>` : (m.isTimerRunning ? `<span style="color: var(--accent-gold);">Timer Berjalan</span>` : `<span style="color: #94a3b8;">Menunggu Langkah Putih</span>`);
 
                     if(m.isBye) {
                         containerMeja.innerHTML += `
@@ -3944,10 +3953,11 @@
             if(!babakObj || !babakObj.pairing) return;
 
             babakObj.status = 'Selesai';
-            babakObj.isTimerRunning = false;
 
             babakObj.pairing.forEach(m => {
                 m.triggerMulai = false;
+                m.isStarted = false;
+                m.isTimerRunning = false;
                 if(!m.isFinished) {
                     m.isFinished = true;
                     if(!m.skor) m.skor = '0.5-0.5';
@@ -4066,7 +4076,9 @@
                     timeHitam: durasiDetik,
                     isFinished: true,
                     alasanSelesai: 'BYE Otomatis',
-                    fen: startingFen
+                    fen: startingFen,
+                    isStarted: true,
+                    isTimerRunning: false
                 });
             }
 
@@ -4099,14 +4111,15 @@
                     timePutih: durasiDetik,
                     timeHitam: durasiDetik,
                     isFinished: false,
+                    isStarted: false,
+                    isTimerRunning: false,
                     triggerMulai: false,
                     fen: startingFen
                 });
             }
 
             babakObj.pairing = pairingResult;
-            babakObj.status = 'Berjalan';
-            babakObj.isTimerRunning = false;
+            babakObj.status = 'Siap Dimulai';
 
             if (window.db) {
                 await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
@@ -4114,7 +4127,7 @@
                 });
             }
 
-            showPopupModal("Pairing Berhasil", `Pairing Babak ${babakKe} Berhasil Digenerate!<br>Papan dan waktu masih terkunci sampai Anda menekan tombol Mulai.`, "fa-wand-magic-sparkles");
+            showPopupModal("Pairing Berhasil", `Pairing Babak ${babakKe} Berhasil Digenerate!<br>Tekan tombol Mulai Pertandingan untuk membuka meja bagi para pemain.`, "fa-wand-magic-sparkles");
             renderPairingMejaInfo();
         }
 
@@ -4126,11 +4139,14 @@
             const babakObj = ev.babakList.find(b => b.babakKe === babakKe);
             if(!babakObj) return;
 
-            babakObj.isTimerRunning = true;
             babakObj.status = 'Berjalan';
             if(babakObj.pairing) {
                 babakObj.pairing.forEach(m => {
-                    m.triggerMulai = true;
+                    if(!m.isBye) {
+                        m.isStarted = true;
+                        m.isTimerRunning = false; // Belum jalan sampai putih langkah pertama
+                        m.triggerMulai = true;
+                    }
                 });
             }
 
@@ -4140,7 +4156,7 @@
                 });
             }
 
-            showPopupModal("Pertandingan Dimulai", `Pertandingan Babak ${babakKe} DIMULAI!<br>Hitungan mundur 10 detik aktif dan papan catur terbuka.`, "fa-play");
+            showPopupModal("Pertandingan Dimulai", `Pertandingan Babak ${babakKe} DIMULAI!<br>Seluruh meja terbuka untuk pemain. Timer akan mulai berjalan setelah Pemain Putih (⚪) membuat langkah pertamanya.`, "fa-play");
             renderPairingMejaInfo();
         }
 
