@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Synced Timer & Match Start Flow)</title>
+    <title>Asr.Catur Online - Master Production (Synced Timer & Match Flow)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -2560,7 +2560,6 @@
                                     });
                                 }
                                 
-                                // Jika user yang sedang aktif adalah wasit, sinkronkan timer per detik ke Firestore
                                 if (window.db && updated && activeUserWasit) {
                                     const eventDocId = ev.docId || ev.id;
                                     await window.updateDoc(window.doc(window.db, "event", String(eventDocId)), {
@@ -2806,6 +2805,28 @@
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev) return;
 
+            // VALIDASI SISTEM: Belum ada babak / belum ada pairing sama sekali
+            if(!ev.babakList || ev.babakList.length === 0) {
+                alert("Belum ada pairing pada babak ini.");
+                return;
+            }
+
+            let babakAktif = [...ev.babakList].reverse().find(b => b.pairing && b.pairing.length > 0);
+
+            // VALIDASI SISTEM: Cek apakah babak aktif sudah selesai & belum ada pairing babak selanjutnya
+            if (!babakAktif) {
+                alert("Belum ada pairing pada babak ini.");
+                return;
+            }
+
+            if (babakAktif.status === 'Selesai') {
+                const babakSelanjutnya = ev.babakList.find(b => b.babakKe === babakAktif.babakKe + 1);
+                if (!babakSelanjutnya || !babakSelanjutnya.pairing || babakSelanjutnya.pairing.length === 0) {
+                    alert("Pertandingan babak sebelumnya telah selesai. Belum ada pairing selanjutnya, mohon menunggu pairing babak berikutnya dari wasit.");
+                    return;
+                }
+            }
+
             if (ev.useZoom === 'tidak') {
                 tampilkanKontenMejaPemain();
             } else {
@@ -2836,22 +2857,14 @@
             container.innerHTML = '';
 
             if(!ev || !ev.babakList || ev.babakList.length === 0) {
-                container.innerHTML = `
-                    <div class="info-badge-box" style="text-align: center;">
-                        <i class="fa-solid fa-circle-info"></i> Babak pertandingan belum diatur oleh Wasit.
-                    </div>`;
-                openModal('mejaPemainModal');
+                alert("Belum ada pairing pada babak ini.");
                 return;
             }
 
             let babakAktif = [...ev.babakList].reverse().find(b => b.pairing && b.pairing.length > 0);
 
-            if(!babakAktif) {
-                container.innerHTML = `
-                    <div class="info-badge-box" style="text-align: center;">
-                        <i class="fa-solid fa-clock"></i> Wasit belum melakukan pairing/pembagian meja untuk babak ini.
-                    </div>`;
-                openModal('mejaPemainModal');
+            if(!babakAktif || !babakAktif.pairing || babakAktif.pairing.length === 0) {
+                alert("Belum ada pairing pada babak ini.");
                 return;
             }
 
@@ -3290,7 +3303,6 @@
 
             meja.fen = chessEngine.fen();
 
-            // SINKRONISASI WAKTU SAAT LANGKAH DILAKUKAN KE DATABASE
             const elPutih = document.getElementById('timerPutih');
             const elHitam = document.getElementById('timerHitam');
             if(elPutih) meja.timePutih = parseTimeStringToSeconds(elPutih.innerText);
