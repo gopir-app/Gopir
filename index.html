@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Clean Countdown & Real-Time Penalty)</title>
+    <title>Asr.Catur Online - Master Production (Instant Local & Cloud Timer)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1858,7 +1858,7 @@
         let currentStatistikViewLevel = 'eventList'; 
         let currentStatistikEventId = null;
 
-        let lastTimerTickTime = Date.now();
+        let localTimerInterval = null;
         let localDrawModalShown = false;
 
         const pieceImages = {
@@ -1879,7 +1879,6 @@
         let daftarPemain = [];
         let daftarWasit = [];
         let daftarEvent = [];
-        let globalWasitInterval = null;
 
         function showPopupModal(title, message, iconClass = 'fa-circle-info') {
             document.getElementById('popupTitle').innerHTML = `<i class="fa-solid ${iconClass}"></i> ${title}`;
@@ -2590,73 +2589,60 @@
             }
         }
 
+        // ==========================================
+        // SISTEM TIMER LOKAL & CLOUD (REAL-TIME COUNTDOWN)
+        // ==========================================
         function startGlobalTimerSyncEngine() {
-            if(globalWasitInterval) clearInterval(globalWasitInterval);
-            lastTimerTickTime = Date.now();
+            if(localTimerInterval) clearInterval(localTimerInterval);
 
-            globalWasitInterval = setInterval(async () => {
-                const now = Date.now();
-                const elapsed = now - lastTimerTickTime;
-                if (elapsed < 950) return;
-                lastTimerTickTime = now;
+            localTimerInterval = setInterval(() => {
+                if (document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
+                    const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+                    if(!ev || !ev.babakList) return;
+                    const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+                    if(!babakObj || !babakObj.pairing) return;
+                    const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+                    if(!meja) return;
 
-                let updated = false;
+                    // Timer berdetak jika isTimerRunning bernilai true dan game belum selesai
+                    if (meja.isTimerRunning && !meja.isFinished) {
+                        const currentTurn = chessEngine.turn(); // 'w' atau 'b'
 
-                for (let ev of daftarEvent) {
-                    if(ev.babakList) {
-                        for (let b of ev.babakList) {
-                            if(b.status === 'Berjalan' && b.isTimerRunning === true) {
-                                if(b.pairing) {
-                                    b.pairing.forEach(m => {
-                                        if(!m.isBye && !m.isFinished && m.isTimerRunning) {
-                                            const engineChecker = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-                                            
-                                            if(engineChecker.turn() === 'w') {
-                                                if(m.timePutih > 0) {
-                                                    m.timePutih--;
-                                                    updated = true;
-                                                } else {
-                                                    m.isFinished = true;
-                                                    m.isTimerRunning = false;
-                                                    b.isTimerRunning = false;
-                                                    m.skor = '0-1'; 
-                                                    m.alasanSelesai = `Waktu Habis (${m.pemainHitam.nama} Menang)`;
-                                                    b.status = 'Selesai';
-                                                    updated = true;
-                                                }
-                                            } else {
-                                                if(m.timeHitam > 0) {
-                                                    m.timeHitam--;
-                                                    updated = true;
-                                                } else {
-                                                    m.isFinished = true;
-                                                    m.isTimerRunning = false;
-                                                    b.isTimerRunning = false;
-                                                    m.skor = '1-0'; 
-                                                    m.alasanSelesai = `Waktu Habis (${m.pemainPutih.nama} Menang)`;
-                                                    b.status = 'Selesai';
-                                                    updated = true;
-                                                }
-                                            }
-                                        }
-                                    });
-                                }
-                                
-                                if (window.db && updated) {
-                                    const eventDocId = ev.docId || ev.id;
-                                    await window.updateDoc(window.doc(window.db, "event", String(eventDocId)), {
-                                        babakList: ev.babakList
-                                    });
-                                }
+                        if (currentTurn === 'w') {
+                            if (meja.timePutih > 0) {
+                                meja.timePutih--;
+                            } else {
+                                meja.isFinished = true;
+                                meja.isTimerRunning = false;
+                                meja.skor = '0-1';
+                                meja.alasanSelesai = `Waktu Habis (${meja.pemainHitam.nama} Menang)`;
+                                babakObj.status = 'Selesai';
+                            }
+                        } else {
+                            if (meja.timeHitam > 0) {
+                                meja.timeHitam--;
+                            } else {
+                                meja.isFinished = true;
+                                meja.isTimerRunning = false;
+                                meja.skor = '1-0';
+                                meja.alasanSelesai = `Waktu Habis (${meja.pemainPutih.nama} Menang)`;
+                                babakObj.status = 'Selesai';
                             }
                         }
+
+                        // Update UI Jam Seketika
+                        const elPutih = document.getElementById('timerPutih');
+                        const elHitam = document.getElementById('timerHitam');
+                        if(elPutih) elPutih.innerText = formatTime(meja.timePutih);
+                        if(elHitam) elHitam.innerText = formatTime(meja.timeHitam);
+
+                        // Kirim update ke Cloud (Firebase) di latar belakang
+                        if (window.db) {
+                            window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                                babakList: ev.babakList
+                            }).catch(err => console.log("Sync background timer error:", err));
+                        }
                     }
-                }
-
-                updateTimerDisplayUI();
-
-                if(updated && document.getElementById('pairingWasitModal').classList.contains('active')) {
-                    renderPairingMejaInfo();
                 }
             }, 1000);
         }
@@ -3450,13 +3436,9 @@
 
             meja.fen = chessEngine.fen();
 
-            // PENTING: Begitu langkah pertama (atau langkah berikutnya) dijalankan, aktifkan timer
-            if (!meja.isTimerRunning) {
-                meja.isTimerRunning = true;
-            }
-            if (!babakObj.isTimerRunning) {
-                babakObj.isTimerRunning = true;
-            }
+            // PAKSA AKTIFKAN TIMER KETIKA LANGKAH PERTAMA DIJALANKAN
+            meja.isTimerRunning = true;
+            babakObj.isTimerRunning = true;
 
             const elPutih = document.getElementById('timerPutih');
             const elHitam = document.getElementById('timerHitam');
@@ -4241,7 +4223,7 @@
             if(!babakObj) return;
 
             babakObj.status = 'Berjalan';
-            babakObj.isTimerRunning = false; // Pastikan timer belum berdetak sampai putih melangkah
+            babakObj.isTimerRunning = false; 
 
             if(babakObj.pairing) {
                 babakObj.pairing.forEach(m => {
