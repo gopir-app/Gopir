@@ -2618,6 +2618,7 @@
                                                 } else {
                                                     m.isFinished = true;
                                                     m.isTimerRunning = false;
+                                                    b.isTimerRunning = false;
                                                     m.skor = '0-1'; 
                                                     m.alasanSelesai = `Waktu Habis (${m.pemainHitam.nama} Menang)`;
                                                     b.status = 'Selesai';
@@ -2630,6 +2631,7 @@
                                                 } else {
                                                     m.isFinished = true;
                                                     m.isTimerRunning = false;
+                                                    b.isTimerRunning = false;
                                                     m.skor = '1-0'; 
                                                     m.alasanSelesai = `Waktu Habis (${m.pemainPutih.nama} Menang)`;
                                                     b.status = 'Selesai';
@@ -2640,7 +2642,7 @@
                                     });
                                 }
                                 
-                                if (window.db && updated && activeUserWasit) {
+                                if (window.db && updated) {
                                     const eventDocId = ev.docId || ev.id;
                                     await window.updateDoc(window.doc(window.db, "event", String(eventDocId)), {
                                         babakList: ev.babakList
@@ -3346,6 +3348,7 @@
                 meja.isFinished = true;
                 meja.isTimerRunning = false;
                 babakObj.status = 'Selesai';
+                babakObj.isTimerRunning = false;
                 meja.skor = isPutih ? '0-1' : '1-0';
                 meja.alasanSelesai = isPutih ? `${meja.pemainPutih.nama} Menyerah` : `${meja.pemainHitam.nama} Menyerah`;
 
@@ -3398,6 +3401,7 @@
             meja.isFinished = true;
             meja.isTimerRunning = false;
             babakObj.status = 'Selesai';
+            babakObj.isTimerRunning = false;
             meja.skor = '0.5-0.5';
             meja.alasanSelesai = 'Remis (Disetujui Bersama)';
             meja.drawOffer = null;
@@ -3446,8 +3450,12 @@
 
             meja.fen = chessEngine.fen();
 
+            // PENTING: Begitu langkah pertama (atau langkah berikutnya) dijalankan, aktifkan timer
             if (!meja.isTimerRunning) {
                 meja.isTimerRunning = true;
+            }
+            if (!babakObj.isTimerRunning) {
+                babakObj.isTimerRunning = true;
             }
 
             const elPutih = document.getElementById('timerPutih');
@@ -3459,6 +3467,7 @@
                 meja.isFinished = true;
                 meja.isTimerRunning = false;
                 babakObj.status = 'Selesai';
+                babakObj.isTimerRunning = false;
 
                 if (chessEngine.in_checkmate()) {
                     const pemenang = chessEngine.turn() === 'w' ? meja.pemainHitam.nama : meja.pemainPutih.nama;
@@ -3473,9 +3482,13 @@
             }
 
             if (window.db) {
-                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                    babakList: ev.babakList
-                });
+                try {
+                    await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                        babakList: ev.babakList
+                    });
+                } catch(err) {
+                    console.error("Gagal memperbarui langkah ke Firebase:", err);
+                }
             }
         }
 
@@ -3540,6 +3553,7 @@
                             meja.isFinished = true;
                             meja.isTimerRunning = false;
                             babakObj.status = 'Selesai';
+                            babakObj.isTimerRunning = false;
                             meja.skor = isPutih ? '0-1' : '1-0';
                             meja.alasanSelesai = isPutih ? `${meja.pemainPutih.nama} Keluar & Menyerah` : `${meja.pemainHitam.nama} Keluar & Menyerah`;
 
@@ -4039,6 +4053,7 @@
             if(!babakObj || !babakObj.pairing) return;
 
             babakObj.status = 'Selesai';
+            babakObj.isTimerRunning = false;
 
             babakObj.pairing.forEach(m => {
                 m.triggerMulai = false;
@@ -4226,6 +4241,8 @@
             if(!babakObj) return;
 
             babakObj.status = 'Berjalan';
+            babakObj.isTimerRunning = false; // Pastikan timer belum berdetak sampai putih melangkah
+
             if(babakObj.pairing) {
                 babakObj.pairing.forEach(m => {
                     if(!m.isBye) {
@@ -4242,7 +4259,7 @@
                 });
             }
 
-            showPopupModal("Pertandingan Dimulai", `Pertandingan Babak ${babakKe} DIMULAI!<br>Seluruh meja terbuka untuk pemain. Timer akan mulai berjalan setelah Pemain Putih (⚪) membuat langkah pertamanya.`, "fa-play");
+            showPopupModal("Pertandingan Dimulai", `Pertandingan Babak ${babakKe} DIMULAI!<br>Papan catur terbuka. Timer akan mulai berdetak tepat setelah Pemain Putih (⚪) membuat langkah pertamanya.`, "fa-play");
             renderPairingMejaInfo();
         }
 
