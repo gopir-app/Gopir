@@ -1559,6 +1559,26 @@
         </div>
     </div>
 
+    <!-- MODAL TAWARAN REMIS LAWAN -->
+    <div class="modal-overlay" id="drawOfferModal">
+        <div class="modal-box" style="text-align: center;">
+            <div class="modal-header" style="justify-content: center;">
+                <h3 style="color: var(--accent-gold);"><i class="fa-solid fa-handshake"></i> Tawaran Remis (Draw)</h3>
+            </div>
+            <div id="drawOfferContent" style="font-size: 0.82rem; color: #fff; margin: 15px 0; line-height: 1.5; text-align: center;">
+                Lawan Anda menawarkan Remis. Apakah Anda setuju mengakhiri pertandingan dengan hasil imbang?
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-outline" style="flex: 1; padding: 10px;" onclick="tolakTawaranRemis()">
+                    Tolak / Lanjut
+                </button>
+                <button class="btn btn-primary" style="flex: 1; padding: 10px; font-weight: 700;" onclick="setujuTawaranRemis()">
+                    Setuju (Remis)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL PILIHAN PROMOSI PION -->
     <div class="modal-overlay" id="promotionModal">
         <div class="modal-box" style="text-align: center;">
@@ -1839,6 +1859,7 @@
         let currentStatistikEventId = null;
 
         let lastTimerTickTime = Date.now();
+        let localDrawModalShown = false;
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -2587,7 +2608,7 @@
                             if(b.status === 'Berjalan' && b.isTimerRunning === true) {
                                 if(b.pairing) {
                                     b.pairing.forEach(m => {
-                                        if(!m.isBye && !m.isFinished) {
+                                        if(!m.isBye && !m.isFinished && m.isTimerRunning) {
                                             const engineChecker = new Chess(m.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
                                             
                                             if(engineChecker.turn() === 'w') {
@@ -2596,6 +2617,7 @@
                                                     updated = true;
                                                 } else {
                                                     m.isFinished = true;
+                                                    m.isTimerRunning = false;
                                                     m.skor = '0-1'; 
                                                     m.alasanSelesai = `Waktu Habis (${m.pemainHitam.nama} Menang)`;
                                                     b.status = 'Selesai';
@@ -2607,6 +2629,7 @@
                                                     updated = true;
                                                 } else {
                                                     m.isFinished = true;
+                                                    m.isTimerRunning = false;
                                                     m.skor = '1-0'; 
                                                     m.alasanSelesai = `Waktu Habis (${m.pemainPutih.nama} Menang)`;
                                                     b.status = 'Selesai';
@@ -2651,9 +2674,28 @@
                 if(elPutih) elPutih.innerText = formatTime(meja.timePutih || 0);
                 if(elHitam) elHitam.innerText = formatTime(meja.timeHitam || 0);
 
+                // Cek status tawaran remis dari lawan secara real-time
+                checkRealtimeDrawOffer(meja);
+
                 if (meja.isFinished) {
                     updateChessGameStatusInfoOnline(meja, meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp ? 'w' : 'b');
                 }
+            }
+        }
+
+        function checkRealtimeDrawOffer(meja) {
+            if(!activeUserPemain || !meja) return;
+            const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
+            const myRole = isPutih ? 'w' : 'b';
+
+            if (meja.drawOffer && meja.drawOffer !== myRole && !localDrawModalShown) {
+                localDrawModalShown = true;
+                const pengirimNama = isPutih ? meja.pemainHitam.nama : meja.pemainPutih.nama;
+                document.getElementById('drawOfferContent').innerHTML = `<b>${pengirimNama}</b> menawarkan Remis (Draw).<br><br>Apakah Anda setuju mengakhiri pertandingan dengan hasil imbang?`;
+                openModal('drawOfferModal');
+            } else if (!meja.drawOffer && localDrawModalShown) {
+                localDrawModalShown = false;
+                closeModal('drawOfferModal');
             }
         }
 
@@ -3059,7 +3101,6 @@
                 renderChessboardOnline(myRoleColor);
             }
 
-            // HANYA MUNCUL KETIKA WASIT BARU SAJA KLIK MULAI (triggerMulai === true dan belum ditandai seen di session/localStorage)
             const countdownOverlay = document.getElementById('arenaCountdownOverlay');
             const countdownNumDisplay = document.getElementById('countdownNumberDisplay');
             const countdownStorageKey = `asr_countdown_seen_${selectedMatchId}_b${activeBabakKe}_m${activeMejaNo}`;
@@ -3320,32 +3361,78 @@
             });
         }
 
-        function aksiPemainRemis() {
-            showConfirmModal("Konfirmasi Remis", "Ajukan / setujui Remis (Draw) untuk pertandingan ini? Waktu akan dihentikan dan poin dibagi rata.", async () => {
-                const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-                if(!ev || !ev.babakList) return;
+        async function aksiPemainRemis() {
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            if(!ev || !ev.babakList) return;
 
-                const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
-                if(!babakObj || !babakObj.pairing) return;
+            const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+            if(!babakObj || !babakObj.pairing) return;
 
-                const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
-                if(!meja || meja.isFinished) return;
+            const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+            if(!meja || meja.isFinished) return;
 
-                meja.isFinished = true;
-                meja.isTimerRunning = false;
-                babakObj.status = 'Selesai';
-                meja.skor = '0.5-0.5';
-                meja.alasanSelesai = 'Remis (Disetujui Bersama)';
+            const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
+            const myRole = isPutih ? 'w' : 'b';
 
-                if (window.db) {
-                    await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                        babakList: ev.babakList
-                    });
-                }
+            meja.drawOffer = myRole;
 
-                showPopupModal("Pertandingan Remis", "Pertandingan berakhir Remis (Draw). Waktu dihentikan dan hasil tercatat.", "fa-handshake");
-                switchView('pemainDashboardView');
-            });
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
+
+            showPopupModal("Tawaran Remis Terkirim", "Tawaran Remis telah dikirimkan ke lawan. Menunggu tanggapan dari lawan...", "fa-handshake");
+        }
+
+        async function setujuTawaranRemis() {
+            closeModal('drawOfferModal');
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            if(!ev || !ev.babakList) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+            if(!babakObj || !babakObj.pairing) return;
+
+            const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+            if(!meja || meja.isFinished) return;
+
+            meja.isFinished = true;
+            meja.isTimerRunning = false;
+            babakObj.status = 'Selesai';
+            meja.skor = '0.5-0.5';
+            meja.alasanSelesai = 'Remis (Disetujui Bersama)';
+            meja.drawOffer = null;
+
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
+
+            showPopupModal("Pertandingan Remis", "Tawaran Remis disetujui! Pertandingan berakhir imbang (0.5 - 0.5).", "fa-handshake");
+            switchView('pemainDashboardView');
+        }
+
+        async function tolakTawaranRemis() {
+            closeModal('drawOfferModal');
+            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+            if(!ev || !ev.babakList) return;
+
+            const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+            if(!babakObj || !babakObj.pairing) return;
+
+            const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
+            if(!meja || meja.isFinished) return;
+
+            meja.drawOffer = null;
+
+            if (window.db) {
+                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                    babakList: ev.babakList
+                });
+            }
+
+            showPopupModal("Tawaran Ditolak", "Anda menolak / mengabaikan tawaran remis. Pertandingan tetap dilanjutkan.", "fa-circle-info");
         }
 
         async function pushMoveToFirebaseOnline() {
