@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Instant Local & Cloud Timer)</title>
+    <title>Asr.Catur Online - Master Production (Minimalist Draw & Timer)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -637,6 +637,7 @@
             border-radius: 10px;
             padding: 8px;
             text-align: center;
+            position: relative;
         }
 
         .player-clock-card.active-turn {
@@ -650,6 +651,62 @@
             color: #fff;
             font-family: monospace;
             margin-top: 2px;
+        }
+
+        /* MINI REMIS POPUP DI ATAS TIMER */
+        .mini-remis-popup {
+            position: absolute;
+            top: -38px;
+            left: 0;
+            width: 100%;
+            background: #1e293b;
+            border: 1px solid var(--accent-gold);
+            border-radius: 6px;
+            padding: 4px 6px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            z-index: 60;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .mini-remis-popup.active {
+            display: flex;
+        }
+
+        .mini-remis-text {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 2px;
+        }
+
+        .mini-remis-actions {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .mini-btn {
+            flex: 1;
+            padding: 2px 4px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .mini-btn-yes {
+            background-color: var(--accent-gold);
+            color: #000;
+        }
+
+        .mini-btn-no {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
         .arena-countdown-overlay {
@@ -1022,11 +1079,30 @@
                 </div>
 
                 <div class="clock-container">
+                    <!-- TIMER PUTIH -->
                     <div class="player-clock-card active-turn" id="clockPutihBox">
+                        <!-- MINI POPUP REMIS DI ATAS TIMER PUTIH -->
+                        <div id="miniRemisPopupPutih" class="mini-remis-popup">
+                            <span class="mini-remis-text">Remis?</span>
+                            <div class="mini-remis-actions">
+                                <button class="mini-btn mini-btn-yes" onclick="setujuTawaranRemis()">Ya</button>
+                                <button class="mini-btn mini-btn-no" onclick="tolakTawaranRemis()">Tolak</button>
+                            </div>
+                        </div>
                         <div style="font-size: 0.72rem; color: var(--accent-gold);" id="namaPutihClock">Putih (⚪)</div>
                         <div class="clock-time" id="timerPutih">10:00</div>
                     </div>
+
+                    <!-- TIMER HITAM -->
                     <div class="player-clock-card" id="clockHitamBox">
+                        <!-- MINI POPUP REMIS DI ATAS TIMER HITAM -->
+                        <div id="miniRemisPopupHitam" class="mini-remis-popup">
+                            <span class="mini-remis-text">Remis?</span>
+                            <div class="mini-remis-actions">
+                                <button class="mini-btn mini-btn-yes" onclick="setujuTawaranRemis()">Ya</button>
+                                <button class="mini-btn mini-btn-no" onclick="tolakTawaranRemis()">Tolak</button>
+                            </div>
+                        </div>
                         <div style="font-size: 0.72rem; color: var(--text-muted);" id="namaHitamClock">Hitam (⚫)</div>
                         <div class="clock-time" id="timerHitam">10:00</div>
                     </div>
@@ -1559,26 +1635,6 @@
         </div>
     </div>
 
-    <!-- MODAL TAWARAN REMIS LAWAN -->
-    <div class="modal-overlay" id="drawOfferModal">
-        <div class="modal-box" style="text-align: center;">
-            <div class="modal-header" style="justify-content: center;">
-                <h3 style="color: var(--accent-gold);"><i class="fa-solid fa-handshake"></i> Tawaran Remis (Draw)</h3>
-            </div>
-            <div id="drawOfferContent" style="font-size: 0.82rem; color: #fff; margin: 15px 0; line-height: 1.5; text-align: center;">
-                Lawan Anda menawarkan Remis. Apakah Anda setuju mengakhiri pertandingan dengan hasil imbang?
-            </div>
-            <div style="display: flex; gap: 8px;">
-                <button class="btn btn-outline" style="flex: 1; padding: 10px;" onclick="tolakTawaranRemis()">
-                    Tolak / Lanjut
-                </button>
-                <button class="btn btn-primary" style="flex: 1; padding: 10px; font-weight: 700;" onclick="setujuTawaranRemis()">
-                    Setuju (Remis)
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- MODAL PILIHAN PROMOSI PION -->
     <div class="modal-overlay" id="promotionModal">
         <div class="modal-box" style="text-align: center;">
@@ -1859,7 +1915,7 @@
         let currentStatistikEventId = null;
 
         let localTimerInterval = null;
-        let localDrawModalShown = false;
+        let lastSeenDrawOfferState = null;
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -2604,7 +2660,6 @@
                     const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
                     if(!meja) return;
 
-                    // Timer berdetak jika isTimerRunning bernilai true dan game belum selesai
                     if (meja.isTimerRunning && !meja.isFinished) {
                         const currentTurn = chessEngine.turn(); // 'w' atau 'b'
 
@@ -2630,13 +2685,11 @@
                             }
                         }
 
-                        // Update UI Jam Seketika
                         const elPutih = document.getElementById('timerPutih');
                         const elHitam = document.getElementById('timerHitam');
                         if(elPutih) elPutih.innerText = formatTime(meja.timePutih);
                         if(elHitam) elHitam.innerText = formatTime(meja.timeHitam);
 
-                        // Kirim update ke Cloud (Firebase) di latar belakang
                         if (window.db) {
                             window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
                                 babakList: ev.babakList
@@ -2675,15 +2728,28 @@
             const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
             const myRole = isPutih ? 'w' : 'b';
 
-            if (meja.drawOffer && meja.drawOffer !== myRole && !localDrawModalShown) {
-                localDrawModalShown = true;
-                const pengirimNama = isPutih ? meja.pemainHitam.nama : meja.pemainPutih.nama;
-                document.getElementById('drawOfferContent').innerHTML = `<b>${pengirimNama}</b> menawarkan Remis (Draw).<br><br>Apakah Anda setuju mengakhiri pertandingan dengan hasil imbang?`;
-                openModal('drawOfferModal');
-            } else if (!meja.drawOffer && localDrawModalShown) {
-                localDrawModalShown = false;
-                closeModal('drawOfferModal');
+            const popupPutih = document.getElementById('miniRemisPopupPutih');
+            const popupHitam = document.getElementById('miniRemisPopupHitam');
+
+            // Deteksi perubahan state remis dari lawan
+            if (meja.drawOffer && meja.drawOffer !== myRole) {
+                if (myRole === 'w') {
+                    popupPutih.classList.add('active');
+                    popupHitam.classList.remove('active');
+                } else {
+                    popupHitam.classList.add('active');
+                    popupPutih.classList.remove('active');
+                }
+            } else {
+                popupPutih.classList.remove('active');
+                popupHitam.classList.remove('active');
             }
+
+            // Deteksi jika tawaran kita ditolak lawan (drawOffer kembali null dan sebelumnya ada state ditolak)
+            if (!meja.drawOffer && lastSeenDrawOfferState === myRole) {
+                showPopupModal("Remis Ditolak", "Lawan menolak tawaran remis Anda. Pertandingan dilanjutkan.", "fa-handshake-slash");
+            }
+            lastSeenDrawOfferState = meja.drawOffer;
         }
 
         function openModal(id) {
@@ -3374,7 +3440,6 @@
         }
 
         async function setujuTawaranRemis() {
-            closeModal('drawOfferModal');
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev || !ev.babakList) return;
 
@@ -3403,7 +3468,6 @@
         }
 
         async function tolakTawaranRemis() {
-            closeModal('drawOfferModal');
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev || !ev.babakList) return;
 
@@ -3413,6 +3477,7 @@
             const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
             if(!meja || meja.isFinished) return;
 
+            // Kosongkan drawOffer agar kembali null di cloud (memicu notifikasi ditolak di layar pengirim)
             meja.drawOffer = null;
 
             if (window.db) {
@@ -3421,7 +3486,8 @@
                 });
             }
 
-            showPopupModal("Tawaran Ditolak", "Anda menolak / mengabaikan tawaran remis. Pertandingan tetap dilanjutkan.", "fa-circle-info");
+            document.getElementById('miniRemisPopupPutih').classList.remove('active');
+            document.getElementById('miniRemisPopupHitam').classList.remove('active');
         }
 
         async function pushMoveToFirebaseOnline() {
@@ -3435,8 +3501,6 @@
             if(!meja) return;
 
             meja.fen = chessEngine.fen();
-
-            // PAKSA AKTIFKAN TIMER KETIKA LANGKAH PERTAMA DIJALANKAN
             meja.isTimerRunning = true;
             babakObj.isTimerRunning = true;
 
