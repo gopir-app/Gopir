@@ -656,18 +656,18 @@
         /* MINI REMIS POPUP DI ATAS TIMER */
         .mini-remis-popup {
             position: absolute;
-            top: -38px;
+            top: -46px;
             left: 0;
             width: 100%;
             background: #1e293b;
             border: 1px solid var(--accent-gold);
             border-radius: 6px;
-            padding: 4px 6px;
+            padding: 5px 8px;
             display: none;
             flex-direction: column;
             align-items: center;
             z-index: 60;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
             animation: fadeIn 0.2s ease;
         }
 
@@ -676,22 +676,22 @@
         }
 
         .mini-remis-text {
-            font-size: 0.68rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: var(--accent-gold);
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
         .mini-remis-actions {
             display: flex;
-            gap: 4px;
+            gap: 6px;
             width: 100%;
         }
 
         .mini-btn {
             flex: 1;
-            padding: 2px 4px;
-            font-size: 0.6rem;
+            padding: 3px 6px;
+            font-size: 0.65rem;
             font-weight: 700;
             border-radius: 4px;
             border: none;
@@ -1086,7 +1086,7 @@
                             <span class="mini-remis-text">Remis?</span>
                             <div class="mini-remis-actions">
                                 <button class="mini-btn mini-btn-yes" onclick="setujuTawaranRemis()">Ya</button>
-                                <button class="mini-btn mini-btn-no" onclick="tolakTawaranRemis()">Tolak</button>
+                                <button class="mini-btn mini-btn-no" onclick="tolakTawaranRemis()">Tidak</button>
                             </div>
                         </div>
                         <div style="font-size: 0.72rem; color: var(--accent-gold);" id="namaPutihClock">Putih (⚪)</div>
@@ -1100,7 +1100,7 @@
                             <span class="mini-remis-text">Remis?</span>
                             <div class="mini-remis-actions">
                                 <button class="mini-btn mini-btn-yes" onclick="setujuTawaranRemis()">Ya</button>
-                                <button class="mini-btn mini-btn-no" onclick="tolakTawaranRemis()">Tolak</button>
+                                <button class="mini-btn mini-btn-no" onclick="tolakTawaranRemis()">Tidak</button>
                             </div>
                         </div>
                         <div style="font-size: 0.72rem; color: var(--text-muted);" id="namaHitamClock">Hitam (⚫)</div>
@@ -1903,6 +1903,7 @@
         let validMovesForSelectedSquare = [];
         let lastKnownFenOnline = "";
         let pendingPromotionMove = null;
+        let isLocalMoving = false;
 
         let chessEngineAnalisa = new Chess();
         let selectedSquareAnalisa = null;
@@ -1916,6 +1917,7 @@
 
         let localTimerInterval = null;
         let lastSeenDrawOfferState = null;
+        let drawOfferTimeoutId = null; // Timer untuk auto-dismiss pesan remis jika diabaikan
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -1935,6 +1937,25 @@
         let daftarPemain = [];
         let daftarWasit = [];
         let daftarEvent = [];
+
+        // Fungsi bantuan untuk memutar suara / nada notifikasi
+        function playNotificationSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // Nada D5
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.6);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.6);
+            } catch(e) {
+                console.log("Audio context tidak didukung otomatis:", e);
+            }
+        }
 
         function showPopupModal(title, message, iconClass = 'fa-circle-info') {
             document.getElementById('popupTitle').innerHTML = `<i class="fa-solid ${iconClass}"></i> ${title}`;
@@ -2646,7 +2667,7 @@
         }
 
         // ==========================================
-        // SISTEM TIMER LOKAL & CLOUD (REAL-TIME COUNTDOWN)
+        // SISTEM TIMER & SINKRONISASI WAKTU CLOUD/WASIT
         // ==========================================
         function startGlobalTimerSyncEngine() {
             if(localTimerInterval) clearInterval(localTimerInterval);
@@ -2661,43 +2682,54 @@
                     if(!meja) return;
 
                     if (meja.isTimerRunning && !meja.isFinished) {
-                        const currentTurn = chessEngine.turn(); // 'w' atau 'b'
-
-                        if (currentTurn === 'w') {
-                            if (meja.timePutih > 0) {
-                                meja.timePutih--;
-                            } else {
-                                meja.isFinished = true;
-                                meja.isTimerRunning = false;
-                                meja.skor = '0-1';
-                                meja.alasanSelesai = `Waktu Habis (${meja.pemainHitam.nama} Menang)`;
-                                babakObj.status = 'Selesai';
-                            }
-                        } else {
-                            if (meja.timeHitam > 0) {
-                                meja.timeHitam--;
-                            } else {
-                                meja.isFinished = true;
-                                meja.isTimerRunning = false;
-                                meja.skor = '1-0';
-                                meja.alasanSelesai = `Waktu Habis (${meja.pemainPutih.nama} Menang)`;
-                                babakObj.status = 'Selesai';
-                            }
+                        const now = Date.now();
+                        if (!meja.lastTickTimestamp) {
+                            meja.lastTickTimestamp = now;
                         }
 
-                        const elPutih = document.getElementById('timerPutih');
-                        const elHitam = document.getElementById('timerHitam');
-                        if(elPutih) elPutih.innerText = formatTime(meja.timePutih);
-                        if(elHitam) elHitam.innerText = formatTime(meja.timeHitam);
+                        const elapsedSeconds = Math.floor((now - meja.lastTickTimestamp) / 1000);
+                        if (elapsedSeconds >= 1) {
+                            meja.lastTickTimestamp += (elapsedSeconds * 1000);
+                            const currentTurn = chessEngine.turn(); // 'w' atau 'b'
 
-                        if (window.db) {
-                            window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                                babakList: ev.babakList
-                            }).catch(err => console.log("Sync background timer error:", err));
+                            if (currentTurn === 'w') {
+                                if (meja.timePutih > elapsedSeconds) {
+                                    meja.timePutih -= elapsedSeconds;
+                                } else {
+                                    meja.timePutih = 0;
+                                    meja.isFinished = true;
+                                    meja.isTimerRunning = false;
+                                    meja.skor = '0-1';
+                                    meja.alasanSelesai = `Waktu Habis (${meja.pemainHitam.nama} Menang)`;
+                                    babakObj.status = 'Selesai';
+                                }
+                            } else {
+                                if (meja.timeHitam > elapsedSeconds) {
+                                    meja.timeHitam -= elapsedSeconds;
+                                } else {
+                                    meja.timeHitam = 0;
+                                    meja.isFinished = true;
+                                    meja.isTimerRunning = false;
+                                    meja.skor = '1-0';
+                                    meja.alasanSelesai = `Waktu Habis (${meja.pemainPutih.nama} Menang)`;
+                                    babakObj.status = 'Selesai';
+                                }
+                            }
+
+                            const elPutih = document.getElementById('timerPutih');
+                            const elHitam = document.getElementById('timerHitam');
+                            if(elPutih) elPutih.innerText = formatTime(meja.timePutih);
+                            if(elHitam) elHitam.innerText = formatTime(meja.timeHitam);
+
+                            if (window.db) {
+                                window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                                    babakList: ev.babakList
+                                }).catch(err => console.log("Sync background timer error:", err));
+                            }
                         }
                     }
                 }
-            }, 1000);
+            }, 500);
         }
 
         function updateTimerDisplayUI() {
@@ -2731,25 +2763,64 @@
             const popupPutih = document.getElementById('miniRemisPopupPutih');
             const popupHitam = document.getElementById('miniRemisPopupHitam');
 
-            // Deteksi perubahan state remis dari lawan
+            // Deteksi jika lawan menawarkan remis ke saya
             if (meja.drawOffer && meja.drawOffer !== myRole) {
+                // Munculkan popup di atas timer lawan main / timer saya yang menerima
                 if (myRole === 'w') {
-                    popupPutih.classList.add('active');
-                    popupHitam.classList.remove('active');
+                    if (!popupPutih.classList.contains('active')) {
+                        popupPutih.classList.add('active');
+                        popupHitam.classList.remove('active');
+                        playNotificationSound();
+                        startAutoDismissDrawOffer(meja);
+                    }
                 } else {
-                    popupHitam.classList.add('active');
-                    popupPutih.classList.remove('active');
+                    if (!popupHitam.classList.contains('active')) {
+                        popupHitam.classList.add('active');
+                        popupPutih.classList.remove('active');
+                        playNotificationSound();
+                        startAutoDismissDrawOffer(meja);
+                    }
                 }
             } else {
                 popupPutih.classList.remove('active');
                 popupHitam.classList.remove('active');
+                if (drawOfferTimeoutId) {
+                    clearTimeout(drawOfferTimeoutId);
+                    drawOfferTimeoutId = null;
+                }
             }
 
-            // Deteksi jika tawaran kita ditolak lawan (drawOffer kembali null dan sebelumnya ada state ditolak)
             if (!meja.drawOffer && lastSeenDrawOfferState === myRole) {
-                showPopupModal("Remis Ditolak", "Lawan menolak tawaran remis Anda. Pertandingan dilanjutkan.", "fa-handshake-slash");
+                // Jika tawaran ditolak / kedaluwarsa
+                popupPutih.classList.remove('active');
+                popupHitam.classList.remove('active');
             }
             lastSeenDrawOfferState = meja.drawOffer;
+        }
+
+        // Auto-dismiss jika diabaikan atau tidak dijawab dalam 10 detik
+        function startAutoDismissDrawOffer(meja) {
+            if (drawOfferTimeoutId) clearTimeout(drawOfferTimeoutId);
+            
+            drawOfferTimeoutId = setTimeout(async () => {
+                const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
+                if(!ev || !ev.babakList) return;
+                const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
+                if(!babakObj || !babakObj.pairing) return;
+                const mObj = babakObj.pairing.find(m => m.meja === activeMejaNo);
+                
+                if (mObj && mObj.drawOffer) {
+                    // Batalkan tawaran remis otomatis (diabaikan)
+                    mObj.drawOffer = null;
+                    if (window.db) {
+                        await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                            babakList: ev.babakList
+                        });
+                    }
+                }
+                document.getElementById('miniRemisPopupPutih').classList.remove('active');
+                document.getElementById('miniRemisPopupHitam').classList.remove('active');
+            }, 10000); // 10 detik kedaluwarsa otomatis
         }
 
         function openModal(id) {
@@ -3148,7 +3219,7 @@
 
             const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
             
-            if (currentFen !== lastKnownFenOnline) {
+            if (currentFen !== lastKnownFenOnline && !isLocalMoving) {
                 lastKnownFenOnline = currentFen;
                 chessEngine = new Chess(currentFen);
                 renderChessboardOnline(myRoleColor);
@@ -3333,6 +3404,7 @@
                         return;
                     }
 
+                    isLocalMoving = true;
                     const moveResult = chessEngine.move({
                         from: selectedSquareSquareNotation,
                         to: squareNotation,
@@ -3364,6 +3436,7 @@
             closeModal('promotionModal');
             if(!pendingPromotionMove) return;
 
+            isLocalMoving = true;
             chessEngine.move({
                 from: pendingPromotionMove.from,
                 to: pendingPromotionMove.to,
@@ -3477,7 +3550,6 @@
             const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
             if(!meja || meja.isFinished) return;
 
-            // Kosongkan drawOffer agar kembali null di cloud (memicu notifikasi ditolak di layar pengirim)
             meja.drawOffer = null;
 
             if (window.db) {
@@ -3503,6 +3575,7 @@
             meja.fen = chessEngine.fen();
             meja.isTimerRunning = true;
             babakObj.isTimerRunning = true;
+            meja.lastTickTimestamp = Date.now();
 
             const elPutih = document.getElementById('timerPutih');
             const elHitam = document.getElementById('timerHitam');
@@ -3534,7 +3607,11 @@
                     });
                 } catch(err) {
                     console.error("Gagal memperbarui langkah ke Firebase:", err);
+                } finally {
+                    setTimeout(() => { isLocalMoving = false; }, 400);
                 }
+            } else {
+                isLocalMoving = false;
             }
         }
 
@@ -4295,6 +4372,7 @@
                         m.isStarted = true;
                         m.isTimerRunning = false; 
                         m.triggerMulai = true;
+                        m.lastTickTimestamp = Date.now();
                     }
                 });
             }
