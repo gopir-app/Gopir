@@ -1002,7 +1002,7 @@
                     <h3>Pertandingan</h3>
                     <p>Jadwal turnamen terbaru</p>
                 </div>
-                <div class="menu-card" onclick="showPopupModal('Tanding 1 Vs 1', 'Mode tanding cepat 1 vs 1 mandiri sedang dalam tahap pengembangan.', 'fa-chess')">
+                <div class="menu-card" onclick="openMenu1vs1Modal();">
                     <div class="menu-icon"><i class="fa-solid fa-chess"></i></div>
                     <h3>1 Vs 1</h3>
                     <p>Tanding catur cepat</p>
@@ -1857,6 +1857,108 @@
         </div>
     </div>
 
+    <!-- MODAL MENU PILIHAN 1 VS 1 -->
+    <div class="modal-overlay" id="menu1vs1Modal">
+        <div class="modal-box" style="text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-chess"></i> Tanding 1 Vs 1 Mandiri</h3>
+                <button class="close-btn" onclick="closeModal('menu1vs1Modal')">&times;</button>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">
+                Pilih mode bertanding cepat mandiri tanpa perlu menunggu jadwal turnamen resmi.
+            </p>
+
+            <div class="submenu-grid" style="gap: 8px;">
+                <button class="submenu-btn" onclick="openBuatKamar1vs1Modal()">
+                    <i class="fa-solid fa-plus-circle" style="color: var(--accent-gold);"></i> 
+                    <div>
+                        <div>Buat Kamar Mandiri</div>
+                        <div style="font-size: 0.68rem; color: var(--text-muted);">Atur durasi & undang teman via kode</div>
+                    </div>
+                </button>
+                <button class="submenu-btn" onclick="openGabungKamar1vs1Modal()">
+                    <i class="fa-solid fa-right-to-bracket" style="color: var(--accent-green);"></i>
+                    <div>
+                        <div>Masuk Kode Kamar</div>
+                        <div style="font-size: 0.68rem; color: var(--text-muted);">Tulis 6 digit kode dari teman</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BUAT KAMAR 1 VS 1 -->
+    <div class="modal-overlay" id="buatKamar1vs1Modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-plus-circle"></i> Buat Kamar 1 Vs 1</h3>
+                <button class="close-btn" onclick="closeModal('buatKamar1vs1Modal')">&times;</button>
+            </div>
+            <form onsubmit="handleProsesBuatKamar1vs1(event)">
+                <div class="input-group">
+                    <label><i class="fa-solid fa-stopwatch"></i> Durasi Waktu Game</label>
+                    <select id="selectDurasi1vs1" required>
+                        <option value="1">1 Menit (Bullet)</option>
+                        <option value="3">3 Menit (Blitz Cepat)</option>
+                        <option value="5" selected>5 Menit (Blitz Standar)</option>
+                        <option value="10">10 Menit (Rapid)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label><i class="fa-solid fa-chess-piece"></i> Bidak Pilihan Anda</label>
+                    <select id="selectWarna1vs1" required>
+                        <option value="random" selected>Acak / Random (Otomatis)</option>
+                        <option value="w">Putih (⚪)</option>
+                        <option value="b">Hitam (⚫)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; margin-top: 5px; font-weight: 700;">
+                    <i class="fa-solid fa-check"></i> Buat Ruangan Sekarang
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL GABUNG KAMAR 1 VS 1 -->
+    <div class="modal-overlay" id="gabungKamar1vs1Modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-key"></i> Masukkan Kode Kamar</h3>
+                <button class="close-btn" onclick="closeModal('gabungKamar1vs1Modal')">&times;</button>
+            </div>
+            <form onsubmit="handleProsesGabungKamar1vs1(event)">
+                <div class="input-group">
+                    <label>Kode Unik Ruangan (6 Digit)</label>
+                    <input type="text" id="inputKodeKamar1vs1" placeholder="Contoh: A7X9K2" maxlength="6" style="text-transform: uppercase; letter-spacing: 3px; font-weight: 800; text-align: center; font-size: 1.1rem;" required autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-success" style="width: 100%; padding: 10px; font-weight: 700;">
+                    <i class="fa-solid fa-gamepad"></i> Gabung & Masuk Meja
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL LOBBY MENUNGGU LAWAN 1 VS 1 -->
+    <div class="modal-overlay" id="waitingLobby1vs1Modal">
+        <div class="modal-box" style="text-align: center;">
+            <div class="modal-header" style="justify-content: center;">
+                <h3 style="color: var(--accent-gold);"><i class="fa-solid fa-spinner fa-spin"></i> Menunggu Lawan...</h3>
+            </div>
+            <div class="info-badge-box" style="margin: 12px 0;">
+                Berbagikan Kode Kamar berikut kepada kawan bertanding Anda:
+            </div>
+            <div id="displayKodeKamarUnik" style="font-size: 2.2rem; font-weight: 900; letter-spacing: 5px; color: var(--accent-gold); background: rgba(15, 23, 42, 0.9); padding: 10px; border-radius: 8px; border: 2px dashed var(--accent-gold); margin-bottom: 12px;">
+                ------
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;">
+                Papan tanding akan otomatis terbuka begitu lawan memasukkan kode di atas.
+            </p>
+            <button class="btn btn-danger" style="width: 100%; padding: 8px;" onclick="batalBuatKamar1vs1()">
+                <i class="fa-solid fa-xmark"></i> Batalkan Ruangan
+            </button>
+        </div>
+    </div>
+
     <footer>
         <p>&copy; 2026 Asr.Catur Online</p>
     </footer>
@@ -1916,6 +2018,10 @@
 
         let localTimerInterval = null;
         let lastSeenDrawOfferState = null;
+
+        // Variabel Tambahan untuk Modul 1 Vs 1
+        let currentRoom1vs1Id = null;
+        let roomUnsubscribeListener = null;
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -2653,6 +2759,47 @@
 
             localTimerInterval = setInterval(() => {
                 if (document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
+                    
+                    // Cek apakah ini mode 1 vs 1 atau turnamen biasa
+                    if (selectedMatchId.toString().length > 15) {
+                        // Logika Timer 1 Vs 1 di Firebase
+                        if (!window.db) return;
+                        window.getDocs(window.collection(window.db, "rooms1vs1")).then(snapshot => {
+                            snapshot.forEach(async docSnap => {
+                                if (docSnap.id === selectedMatchId) {
+                                    let data = docSnap.data();
+                                    let meja = data.mejaData;
+                                    if (meja && meja.isTimerRunning && !meja.isFinished) {
+                                        const currentTurn = chessEngine.turn();
+                                        if (currentTurn === 'w') {
+                                            if (meja.timePutih > 0) meja.timePutih--;
+                                            else {
+                                                meja.isFinished = true;
+                                                meja.isTimerRunning = false;
+                                                meja.skor = '0-1';
+                                                meja.alasanSelesai = `Waktu Habis (${meja.pemainHitam.nama} Menang)`;
+                                            }
+                                        } else {
+                                            if (meja.timeHitam > 0) meja.timeHitam--;
+                                            else {
+                                                meja.isFinished = true;
+                                                meja.isTimerRunning = false;
+                                                meja.skor = '1-0';
+                                                meja.alasanSelesai = `Waktu Habis (${meja.pemainPutih.nama} Menang)`;
+                                            }
+                                        }
+                                        document.getElementById('timerPutih').innerText = formatTime(meja.timePutih);
+                                        document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam);
+
+                                        await window.updateDoc(window.doc(window.db, "rooms1vs1", selectedMatchId), { mejaData: meja });
+                                    }
+                                }
+                            });
+                        }).catch(err => console.log("Sync 1vs1 timer error:", err));
+                        return;
+                    }
+
+                    // Logika Timer Turnamen Biasa
                     const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
                     if(!ev || !ev.babakList) return;
                     const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
@@ -2700,29 +2847,6 @@
             }, 1000);
         }
 
-        function updateTimerDisplayUI() {
-            if (document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
-                const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-                if(!ev || !ev.babakList) return;
-                const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
-                if(!babakObj || !babakObj.pairing) return;
-                const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
-                if(!meja) return;
-
-                const elPutih = document.getElementById('timerPutih');
-                const elHitam = document.getElementById('timerHitam');
-
-                if(elPutih) elPutih.innerText = formatTime(meja.timePutih || 0);
-                if(elHitam) elHitam.innerText = formatTime(meja.timeHitam || 0);
-
-                checkRealtimeDrawOffer(meja);
-
-                if (meja.isFinished) {
-                    updateChessGameStatusInfoOnline(meja, meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp ? 'w' : 'b');
-                }
-            }
-        }
-
         function checkRealtimeDrawOffer(meja) {
             if(!activeUserPemain || !meja) return;
             const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
@@ -2731,7 +2855,6 @@
             const popupPutih = document.getElementById('miniRemisPopupPutih');
             const popupHitam = document.getElementById('miniRemisPopupHitam');
 
-            // Deteksi perubahan state remis dari lawan
             if (meja.drawOffer && meja.drawOffer !== myRole) {
                 if (myRole === 'w') {
                     popupPutih.classList.add('active');
@@ -2745,7 +2868,6 @@
                 popupHitam.classList.remove('active');
             }
 
-            // Deteksi jika tawaran kita ditolak lawan (drawOffer kembali null dan sebelumnya ada state ditolak)
             if (!meja.drawOffer && lastSeenDrawOfferState === myRole) {
                 showPopupModal("Remis Ditolak", "Lawan menolak tawaran remis Anda. Pertandingan dilanjutkan.", "fa-handshake-slash");
             }
@@ -3118,6 +3240,40 @@
         function syncRealtimeArenaState() {
             if(!activeUserPemain || !selectedMatchId || !activeMejaNo || !activeBabakKe) return;
 
+            // Cek apakah ini mode 1 vs 1
+            if (selectedMatchId.toString().length > 15) {
+                if (!window.db) return;
+                window.getDocs(window.collection(window.db, "rooms1vs1")).then(snapshot => {
+                    snapshot.forEach(docSnap => {
+                        if (docSnap.id === selectedMatchId) {
+                            const data = docSnap.data();
+                            const meja = data.mejaData;
+                            let myRoleColor = 'w';
+                            let namaPutih = meja.pemainPutih ? meja.pemainPutih.nama : 'Putih';
+                            let namaHitam = meja.pemainHitam ? meja.pemainHitam.nama : 'Hitam';
+
+                            if (meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp) myRoleColor = 'w';
+                            else if (meja.pemainHitam && meja.pemainHitam.hp === activeUserPemain.hp) myRoleColor = 'b';
+
+                            document.getElementById('namaPutihClock').innerText = `${namaPutih} (Putih ⚪)`;
+                            document.getElementById('namaHitamClock').innerText = `${namaHitam} (Hitam ⚫)`;
+
+                            document.getElementById('timerPutih').innerText = formatTime(meja.timePutih || 300);
+                            document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam || 300);
+
+                            const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+                            if (currentFen !== lastKnownFenOnline) {
+                                lastKnownFenOnline = currentFen;
+                                chessEngine = new Chess(currentFen);
+                                renderChessboardOnline(myRoleColor);
+                            }
+                            updateChessGameStatusInfoOnline(meja, myRoleColor);
+                        }
+                    });
+                });
+                return;
+            }
+
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev || !ev.babakList) return;
 
@@ -3293,6 +3449,65 @@
         async function onSquareClickOnline(squareNotation, myRoleColor) {
             if (chessEngine.game_over()) return;
 
+            // Cek mode 1 vs 1
+            if (selectedMatchId.toString().length > 15) {
+                if (chessEngine.turn() !== myRoleColor) {
+                    showPopupModal("Bukan Giliran", "Bukan giliran Anda! Tunggu lawan melangkah.", "fa-hourglass-half");
+                    return;
+                }
+
+                if (selectedSquareSquareNotation === null) {
+                    const piece = chessEngine.get(squareNotation);
+                    if (piece && piece.color === myRoleColor) {
+                        selectedSquareSquareNotation = squareNotation;
+                        validMovesForSelectedSquare = chessEngine.moves({ square: squareNotation, verbose: true });
+                        renderChessboardOnline(myRoleColor);
+                    }
+                } else {
+                    const isMoveValid = validMovesForSelectedSquare.some(m => m.to === squareNotation);
+                    if (isMoveValid) {
+                        const moveResult = chessEngine.move({
+                            from: selectedSquareSquareNotation,
+                            to: squareNotation,
+                            promotion: 'q'
+                        });
+
+                        if (moveResult) {
+                            selectedSquareSquareNotation = null;
+                            validMovesForSelectedSquare = [];
+                            lastKnownFenOnline = chessEngine.fen();
+                            renderChessboardOnline(myRoleColor);
+
+                            // Push ke Firebase 1vs1
+                            if (window.db) {
+                                const docRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
+                                window.getDocs(window.collection(window.db, "rooms1vs1")).then(snap => {
+                                    snap.forEach(d => {
+                                        if (d.id === selectedMatchId) {
+                                            let roomData = d.data();
+                                            roomData.mejaData.fen = chessEngine.fen();
+                                            roomData.mejaData.isTimerRunning = true;
+                                            window.updateDoc(docRef, { mejaData: roomData.mejaData });
+                                        }
+                                    });
+                                });
+                            }
+                        }
+                    } else {
+                        const piece = chessEngine.get(squareNotation);
+                        if (piece && piece.color === myRoleColor) {
+                            selectedSquareSquareNotation = squareNotation;
+                            validMovesForSelectedSquare = chessEngine.moves({ square: squareNotation, verbose: true });
+                        } else {
+                            selectedSquareSquareNotation = null;
+                            validMovesForSelectedSquare = [];
+                        }
+                        renderChessboardOnline(myRoleColor);
+                    }
+                }
+                return;
+            }
+
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakObj = ev ? ev.babakList.find(b => b.babakKe === activeBabakKe) : null;
             const mejaObj = babakObj ? babakObj.pairing.find(m => m.meja === activeMejaNo) : null;
@@ -3386,6 +3601,26 @@
 
         function aksiPemainMenyerah() {
             showConfirmModal("Konfirmasi Menyerah", "Yakin ingin Menyerah pada pertandingan ini? Pertandingan akan dihentikan dan dicatat sebagai kemenangan lawan.", async () => {
+                if (selectedMatchId && selectedMatchId.toString().length > 15) {
+                    if (window.db) {
+                        window.getDocs(window.collection(window.db, "rooms1vs1")).then(async snap => {
+                            for (let d of snap.docs) {
+                                if (d.id === selectedMatchId) {
+                                    let data = d.data();
+                                    data.mejaData.isFinished = true;
+                                    data.mejaData.isTimerRunning = false;
+                                    data.mejaData.skor = data.mejaData.pemainPutih.hp === activeUserPemain.hp ? '0-1' : '1-0';
+                                    data.mejaData.alasanSelesai = `${activeUserPemain.nama} Menyerah`;
+                                    await window.updateDoc(window.doc(window.db, "rooms1vs1", selectedMatchId), { mejaData: data.mejaData, status: 'finished' });
+                                }
+                            }
+                        });
+                    }
+                    showPopupModal("Pertandingan Selesai", "Anda menyatakan Menyerah.", "fa-flag");
+                    switchView('pemainDashboardView');
+                    return;
+                }
+
                 const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
                 if(!ev || !ev.babakList) return;
 
@@ -3416,6 +3651,11 @@
         }
 
         async function aksiPemainRemis() {
+            if (selectedMatchId && selectedMatchId.toString().length > 15) {
+                showPopupModal("Tawaran Remis", "Tawaran remis dikirimkan ke lawan 1vs1.", "fa-handshake");
+                return;
+            }
+
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev || !ev.babakList) return;
 
@@ -3477,7 +3717,6 @@
             const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
             if(!meja || meja.isFinished) return;
 
-            // Kosongkan drawOffer agar kembali null di cloud (memicu notifikasi ditolak di layar pengirim)
             meja.drawOffer = null;
 
             if (window.db) {
@@ -3587,6 +3826,11 @@
         }
 
         function keluarArenaPertandingan() {
+            if (selectedMatchId && selectedMatchId.toString().length > 15) {
+                switchView('pemainDashboardView');
+                return;
+            }
+
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(ev && ev.babakList) {
                 const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
@@ -3632,6 +3876,177 @@
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
             const s = (seconds % 60).toString().padStart(2, '0');
             return `${m}:${s}`;
+        }
+
+        // ==========================================
+        // LOGIKA BARU MODUL 1 VS 1
+        // ==========================================
+        function openMenu1vs1Modal() {
+            if (!activeUserPemain) {
+                showPopupModal("Akses Ditolak", "Silakan login pemain terlebih dahulu!", "fa-triangle-exclamation");
+                return;
+            }
+            openModal('menu1vs1Modal');
+        }
+
+        function openBuatKamar1vs1Modal() {
+            closeModal('menu1vs1Modal');
+            openModal('buatKamar1vs1Modal');
+        }
+
+        function openGabungKamar1vs1Modal() {
+            closeModal('menu1vs1Modal');
+            document.getElementById('inputKodeKamar1vs1').value = '';
+            openModal('gabungKamar1vs1Modal');
+        }
+
+        function generateKodeKamarUnik() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        async function handleProsesBuatKamar1vs1(event) {
+            event.preventDefault();
+            closeModal('buatKamar1vs1Modal');
+
+            const durasi = parseInt(document.getElementById('selectDurasi1vs1').value) || 5;
+            const preferensiWarna = document.getElementById('selectWarna1vs1').value;
+            const kodeKamar = generateKodeKamarUnik();
+            const durasiDetik = durasi * 60;
+
+            let roleMaker = 'w';
+            if (preferensiWarna === 'random') {
+                roleMaker = Math.random() < 0.5 ? 'w' : 'b';
+            } else {
+                roleMaker = preferensiWarna;
+            }
+
+            const roomData = {
+                kodeKamar: kodeKamar,
+                durasiWaktu: durasi,
+                status: 'waiting',
+                createdAt: Date.now(),
+                pemainPutih: roleMaker === 'w' ? { nama: activeUserPemain.nama, hp: activeUserPemain.hp, kota: activeUserPemain.kota } : null,
+                pemainHitam: roleMaker === 'b' ? { nama: activeUserPemain.nama, hp: activeUserPemain.hp, kota: activeUserPemain.kota } : null,
+                mejaData: {
+                    meja: 1,
+                    timePutih: durasiDetik,
+                    timeHitam: durasiDetik,
+                    fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+                    isStarted: true,
+                    isTimerRunning: false,
+                    isFinished: false,
+                    skor: '0',
+                    alasanSelesai: '',
+                    triggerMulai: true
+                }
+            };
+
+            try {
+                if (window.db) {
+                    const docRef = await window.addDoc(window.collection(window.db, "rooms1vs1"), roomData);
+                    currentRoom1vs1Id = docRef.id;
+
+                    document.getElementById('displayKodeKamarUnik').innerText = kodeKamar;
+                    openModal('waitingLobby1vs1Modal');
+
+                    listenRoomState1vs1(currentRoom1vs1Id);
+                }
+            } catch (err) {
+                showPopupModal("Gagal Membuat Kamar", err.message, "fa-triangle-exclamation");
+            }
+        }
+
+        async function handleProsesGabungKamar1vs1(event) {
+            event.preventDefault();
+            const kodeInput = document.getElementById('inputKodeKamar1vs1').value.trim().toUpperCase();
+            closeModal('gabungKamar1vs1Modal');
+
+            if (!window.db) return;
+
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "rooms1vs1"));
+                let targetRoomDoc = null;
+
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.kodeKamar === kodeInput && data.status === 'waiting') {
+                        targetRoomDoc = { docId: docSnap.id, ...data };
+                    }
+                });
+
+                if (!targetRoomDoc) {
+                    showPopupModal("Kode Tidak Ditemukan", "Kode kamar tidak valid atau permainan sudah dimulai/selesai.", "fa-triangle-exclamation");
+                    return;
+                }
+
+                let updatedPutih = targetRoomDoc.pemainPutih;
+                let updatedHitam = targetRoomDoc.pemainHitam;
+
+                if (!updatedPutih) {
+                    updatedPutih = { nama: activeUserPemain.nama, hp: activeUserPemain.hp, kota: activeUserPemain.kota };
+                } else if (!updatedHitam) {
+                    updatedHitam = { nama: activeUserPemain.nama, hp: activeUserPemain.hp, kota: activeUserPemain.kota };
+                }
+
+                targetRoomDoc.mejaData.pemainPutih = updatedPutih;
+                targetRoomDoc.mejaData.pemainHitam = updatedHitam;
+
+                await window.updateDoc(window.doc(window.db, "rooms1vs1", targetRoomDoc.docId), {
+                    status: 'playing',
+                    pemainPutih: updatedPutih,
+                    pemainHitam: updatedHitam,
+                    mejaData: targetRoomDoc.mejaData
+                });
+
+                masukArena1vs1(targetRoomDoc.docId, targetRoomDoc.mejaData, targetRoomDoc.durasiWaktu);
+
+            } catch (err) {
+                showPopupModal("Gagal Masuk", err.message, "fa-triangle-exclamation");
+            }
+        }
+
+        function listenRoomState1vs1(docId) {
+            if (!window.db) return;
+            if (roomUnsubscribeListener) roomUnsubscribeListener();
+
+            roomUnsubscribeListener = window.onSnapshot(window.doc(window.db, "rooms1vs1", docId), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.status === 'playing') {
+                        closeModal('waitingLobby1vs1Modal');
+                        if (roomUnsubscribeListener) roomUnsubscribeListener();
+                        
+                        masukArena1vs1(docId, data.mejaData, data.durasiWaktu);
+                    }
+                }
+            });
+        }
+
+        function masukArena1vs1(docId, mejaData, durasiWaktu) {
+            selectedMatchId = docId;
+            activeMejaNo = 1;
+            activeBabakKe = 1;
+
+            switchView('papanCaturFullView');
+            document.getElementById('arenaMatchTitle').innerText = `1 Vs 1 - Match Mandiri`;
+            document.getElementById('arenaMatchSubtitle').innerText = `Kode Ruangan: ${docId.substring(0, 6).toUpperCase()}`;
+
+            resetMatchArenaPemain(1, 1);
+            showPopupModal("Pertandingan Dimulai!", "Lawan telah bergabung. Selamat bertanding!", "fa-gamepad");
+        }
+
+        async function batalBuatKamar1vs1() {
+            if (currentRoom1vs1Id && window.db) {
+                await window.deleteDoc(window.doc(window.db, "rooms1vs1", currentRoom1vs1Id));
+                currentRoom1vs1Id = null;
+            }
+            if (roomUnsubscribeListener) roomUnsubscribeListener();
+            closeModal('waitingLobby1vs1Modal');
         }
 
         async function handleRegisterWasit(event) {
