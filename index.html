@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Active Button Feedback & Synced Wasit)</title>
+    <title>Asr.Catur Online - Master Production (Minimalist Draw & Timer)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -209,14 +209,6 @@
             background-color: rgba(239, 68, 68, 0.2);
             color: #f87171;
             border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        /* EFEK KLIK AKTIF PADA TOMBOL WASIT */
-        .btn-success.clicked-active {
-            background-color: #059669 !important;
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.8);
-            transform: scale(0.97);
-            border: 2px solid #fff;
         }
 
         .dashboard-grid {
@@ -664,18 +656,18 @@
         /* MINI REMIS POPUP DI ATAS TIMER */
         .mini-remis-popup {
             position: absolute;
-            top: -46px;
+            top: -38px;
             left: 0;
             width: 100%;
             background: #1e293b;
             border: 1px solid var(--accent-gold);
             border-radius: 6px;
-            padding: 5px 8px;
+            padding: 4px 6px;
             display: none;
             flex-direction: column;
             align-items: center;
             z-index: 60;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             animation: fadeIn 0.2s ease;
         }
 
@@ -684,22 +676,22 @@
         }
 
         .mini-remis-text {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 700;
             color: var(--accent-gold);
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
         .mini-remis-actions {
             display: flex;
-            gap: 6px;
+            gap: 4px;
             width: 100%;
         }
 
         .mini-btn {
             flex: 1;
-            padding: 3px 6px;
-            font-size: 0.65rem;
+            padding: 2px 4px;
+            font-size: 0.6rem;
             font-weight: 700;
             border-radius: 4px;
             border: none;
@@ -875,84 +867,6 @@
             width: 100%;
             max-width: 360px;
             margin-top: 5px;
-        }
-
-        .match-panels-wrapper {
-            width: 100%;
-            max-width: 360px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 5px;
-        }
-
-        .panel-box-card {
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .panel-title-small {
-            font-size: 0.72rem;
-            color: var(--accent-gold);
-            font-weight: 700;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .pgn-history-box {
-            font-family: monospace;
-            font-size: 0.72rem;
-            color: #cbd5e1;
-            max-height: 50px;
-            overflow-y: auto;
-            background: rgba(11, 15, 25, 0.6);
-            padding: 4px 6px;
-            border-radius: 4px;
-            word-break: break-all;
-        }
-
-        .chat-messages-container {
-            font-size: 0.72rem;
-            max-height: 70px;
-            overflow-y: auto;
-            background: rgba(11, 15, 25, 0.6);
-            padding: 4px 6px;
-            border-radius: 4px;
-            margin-bottom: 5px;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .chat-msg-item {
-            color: #f8fafc;
-            line-height: 1.2;
-        }
-
-        .chat-msg-item span {
-            color: var(--accent-gold);
-            font-weight: 700;
-        }
-
-        .chat-input-row {
-            display: flex;
-            gap: 4px;
-        }
-
-        .chat-input-row input {
-            flex: 1;
-            background: rgba(11, 15, 25, 0.8);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: #fff;
-            padding: 4px 8px;
-            font-size: 0.72rem;
-            outline: none;
         }
 
         .promotion-choices-box {
@@ -1172,7 +1086,7 @@
                             <span class="mini-remis-text">Remis?</span>
                             <div class="mini-remis-actions">
                                 <button class="mini-btn mini-btn-yes" onclick="setujuTawaranRemis()">Ya</button>
-                                <button class="mini-btn mini-btn-no" onclick="tolakTawaranRemis()">Tidak</button>
+                                <button class="mini-btn mini-btn-no" onclick="tolakTawaranRemis()">Tolak</button>
                             </div>
                         </div>
                         <div style="font-size: 0.72rem; color: var(--accent-gold);" id="namaPutihClock">Putih (⚪)</div>
@@ -1186,7 +1100,7 @@
                             <span class="mini-remis-text">Remis?</span>
                             <div class="mini-remis-actions">
                                 <button class="mini-btn mini-btn-yes" onclick="setujuTawaranRemis()">Ya</button>
-                                <button class="mini-btn mini-btn-no" onclick="tolakTawaranRemis()">Tidak</button>
+                                <button class="mini-btn mini-btn-no" onclick="tolakTawaranRemis()">Tolak</button>
                             </div>
                         </div>
                         <div style="font-size: 0.72rem; color: var(--text-muted);" id="namaHitamClock">Hitam (⚫)</div>
@@ -1195,32 +1109,6 @@
                 </div>
 
                 <div id="chessboard" class="chessboard-grid"></div>
-
-                <!-- PANEL PGN & CHAT MEJA -->
-                <div class="match-panels-wrapper">
-                    <div class="panel-box-card">
-                        <div class="panel-title-small">
-                            <span><i class="fa-solid fa-list-ol"></i> Riwayat Langkah (PGN)</span>
-                            <button class="btn btn-primary" style="padding: 2px 6px; font-size: 0.62rem;" onclick="salinNotasiPgn()">
-                                <i class="fa-solid fa-copy"></i> Salin PGN
-                            </button>
-                        </div>
-                        <div id="pgnHistoryDisplay" class="pgn-history-box">Belum ada langkah...</div>
-                    </div>
-
-                    <div class="panel-box-card">
-                        <div class="panel-title-small">
-                            <span><i class="fa-solid fa-comments"></i> Chat Meja (Lawan & Wasit)</span>
-                        </div>
-                        <div id="chatMessagesBox" class="chat-messages-container">
-                            <div class="chat-msg-item"><span>Sistem:</span> Selamat bertanding secara sportif!</div>
-                        </div>
-                        <form class="chat-input-row" onsubmit="handleKirimChatMeja(event)">
-                            <input type="text" id="inputChatMeja" placeholder="Ketik pesan..." autocomplete="off" required>
-                            <button type="submit" class="btn btn-primary" style="padding: 4px 8px; font-size: 0.7rem;"><i class="fa-solid fa-paper-plane"></i></button>
-                        </form>
-                    </div>
-                </div>
 
                 <div class="info-badge-box" id="chessGameStatus" style="width: 100%; text-align: center; margin-top: 5px;">
                     <i class="fa-solid fa-circle-info"></i> Menghubungkan ke meja online...
@@ -2015,7 +1903,6 @@
         let validMovesForSelectedSquare = [];
         let lastKnownFenOnline = "";
         let pendingPromotionMove = null;
-        let isLocalMoving = false;
 
         let chessEngineAnalisa = new Chess();
         let selectedSquareAnalisa = null;
@@ -2029,7 +1916,6 @@
 
         let localTimerInterval = null;
         let lastSeenDrawOfferState = null;
-        let drawOfferTimeoutId = null;
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -2049,48 +1935,6 @@
         let daftarPemain = [];
         let daftarWasit = [];
         let daftarEvent = [];
-
-        function playChessSound(type = 'move') {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                
-                if (type === 'capture') {
-                    osc.frequency.setValueAtTime(320, audioCtx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.15);
-                } else if (type === 'check') {
-                    osc.frequency.setValueAtTime(750, audioCtx.currentTime);
-                    osc.frequency.setValueAtTime(950, audioCtx.currentTime + 0.08);
-                } else {
-                    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-                }
-
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.2);
-            } catch(e) {}
-        }
-
-        function playNotificationSound() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.6);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.6);
-            } catch(e) {}
-        }
 
         function showPopupModal(title, message, iconClass = 'fa-circle-info') {
             document.getElementById('popupTitle').innerHTML = `<i class="fa-solid ${iconClass}"></i> ${title}`;
@@ -2140,7 +1984,9 @@
                 querySnapshot.forEach((docSnap) => {
                     daftarPemain.push({ docId: docSnap.id, ...docSnap.data() });
                 });
-            } catch(e) {}
+            } catch(e) {
+                console.error("Gagal mengambil data awal pemain:", e);
+            }
 
             window.onSnapshot(window.collection(window.db, "pemain"), (snapshot) => {
                 daftarPemain = [];
@@ -2183,10 +2029,6 @@
 
                 if(document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
                     syncRealtimeArenaState();
-                }
-
-                if(document.getElementById('pairingWasitModal').classList.contains('active')) {
-                    renderPairingMejaInfo();
                 }
             });
         }
@@ -2593,7 +2435,9 @@
                     stockfishWorker.postMessage("uci");
                     stockfishWorker.postMessage("ucinewgame");
                 })
-                .catch(err => {});
+                .catch(err => {
+                    console.warn("Stockfish Blob Worker gagal dimuat:", err);
+                });
         }
 
         function parseStockfishScore(msg) {
@@ -2802,7 +2646,7 @@
         }
 
         // ==========================================
-        // SISTEM TIMER & SINKRONISASI WAKTU CLOUD/WASIT
+        // SISTEM TIMER LOKAL & CLOUD (REAL-TIME COUNTDOWN)
         // ==========================================
         function startGlobalTimerSyncEngine() {
             if(localTimerInterval) clearInterval(localTimerInterval);
@@ -2817,54 +2661,43 @@
                     if(!meja) return;
 
                     if (meja.isTimerRunning && !meja.isFinished) {
-                        const now = Date.now();
-                        if (!meja.lastTickTimestamp) {
-                            meja.lastTickTimestamp = now;
+                        const currentTurn = chessEngine.turn(); // 'w' atau 'b'
+
+                        if (currentTurn === 'w') {
+                            if (meja.timePutih > 0) {
+                                meja.timePutih--;
+                            } else {
+                                meja.isFinished = true;
+                                meja.isTimerRunning = false;
+                                meja.skor = '0-1';
+                                meja.alasanSelesai = `Waktu Habis (${meja.pemainHitam.nama} Menang)`;
+                                babakObj.status = 'Selesai';
+                            }
+                        } else {
+                            if (meja.timeHitam > 0) {
+                                meja.timeHitam--;
+                            } else {
+                                meja.isFinished = true;
+                                meja.isTimerRunning = false;
+                                meja.skor = '1-0';
+                                meja.alasanSelesai = `Waktu Habis (${meja.pemainPutih.nama} Menang)`;
+                                babakObj.status = 'Selesai';
+                            }
                         }
 
-                        const elapsedSeconds = Math.floor((now - meja.lastTickTimestamp) / 1000);
-                        if (elapsedSeconds >= 1) {
-                            meja.lastTickTimestamp += (elapsedSeconds * 1000);
-                            const currentTurn = chessEngine.turn();
+                        const elPutih = document.getElementById('timerPutih');
+                        const elHitam = document.getElementById('timerHitam');
+                        if(elPutih) elPutih.innerText = formatTime(meja.timePutih);
+                        if(elHitam) elHitam.innerText = formatTime(meja.timeHitam);
 
-                            if (currentTurn === 'w') {
-                                if (meja.timePutih > elapsedSeconds) {
-                                    meja.timePutih -= elapsedSeconds;
-                                } else {
-                                    meja.timePutih = 0;
-                                    meja.isFinished = true;
-                                    meja.isTimerRunning = false;
-                                    meja.skor = '0-1';
-                                    meja.alasanSelesai = `Waktu Habis (${meja.pemainHitam.nama} Menang)`;
-                                    babakObj.status = 'Selesai';
-                                }
-                            } else {
-                                if (meja.timeHitam > elapsedSeconds) {
-                                    meja.timeHitam -= elapsedSeconds;
-                                } else {
-                                    meja.timeHitam = 0;
-                                    meja.isFinished = true;
-                                    meja.isTimerRunning = false;
-                                    meja.skor = '1-0';
-                                    meja.alasanSelesai = `Waktu Habis (${meja.pemainPutih.nama} Menang)`;
-                                    babakObj.status = 'Selesai';
-                                }
-                            }
-
-                            const elPutih = document.getElementById('timerPutih');
-                            const elHitam = document.getElementById('timerHitam');
-                            if(elPutih) elPutih.innerText = formatTime(meja.timePutih);
-                            if(elHitam) elHitam.innerText = formatTime(meja.timeHitam);
-
-                            if (window.db) {
-                                window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                                    babakList: ev.babakList
-                                }).catch(err => {});
-                            }
+                        if (window.db) {
+                            window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
+                                babakList: ev.babakList
+                            }).catch(err => console.log("Sync background timer error:", err));
                         }
                     }
                 }
-            }, 500);
+            }, 1000);
         }
 
         function updateTimerDisplayUI() {
@@ -2883,70 +2716,10 @@
                 if(elHitam) elHitam.innerText = formatTime(meja.timeHitam || 0);
 
                 checkRealtimeDrawOffer(meja);
-                renderPgnAndChatUI(meja);
 
                 if (meja.isFinished) {
                     updateChessGameStatusInfoOnline(meja, meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp ? 'w' : 'b');
                 }
-            }
-        }
-
-        function renderPgnAndChatUI(meja) {
-            const pgnDisplay = document.getElementById('pgnHistoryDisplay');
-            if (pgnDisplay && meja.pgnHistory) {
-                pgnDisplay.innerText = meja.pgnHistory.length > 0 ? meja.pgnHistory.join(' ') : 'Belum ada langkah...';
-            }
-
-            const chatBox = document.getElementById('chatMessagesBox');
-            if (chatBox && meja.chatList) {
-                let chatHtml = '';
-                meja.chatList.forEach(c => {
-                    chatHtml += `<div class="chat-msg-item"><span>${c.pengirim}:</span> ${c.pesan}</div>`;
-                });
-                chatBox.innerHTML = chatHtml || '<div class="chat-msg-item"><span>Sistem:</span> Belum ada pesan obrolan.</div>';
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }
-        }
-
-        function salinNotasiPgn() {
-            const pgnText = document.getElementById('pgnHistoryDisplay').innerText;
-            if(!pgnText || pgnText.includes('Belum ada')) {
-                showPopupModal("Informasi", "Belum ada riwayat langkah PGN yang dapat disalin.", "fa-circle-info");
-                return;
-            }
-            navigator.clipboard.writeText(pgnText).then(() => {
-                showPopupModal("Berhasil Disalin", "Riwayat PGN berhasil disalin ke clipboard!", "fa-circle-check");
-            }).catch(err => {
-                showPopupModal("Gagal", "Gagal menyalin teks: " + err, "fa-triangle-exclamation");
-            });
-        }
-
-        async function handleKirimChatMeja(event) {
-            event.preventDefault();
-            const inputEl = document.getElementById('inputChatMeja');
-            const pesanText = inputEl.value.trim();
-            if(!pesanText || !activeUserPemain) return;
-
-            const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-            if(!ev || !ev.babakList) return;
-            const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
-            if(!babakObj || !babakObj.pairing) return;
-            const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
-            if(!meja) return;
-
-            if(!meja.chatList) meja.chatList = [];
-            meja.chatList.push({
-                pengirim: activeUserPemain.nama,
-                pesan: pesanText,
-                timestamp: Date.now()
-            });
-
-            inputEl.value = '';
-
-            if (window.db) {
-                await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                    babakList: ev.babakList
-                });
             }
         }
 
@@ -2958,59 +2731,25 @@
             const popupPutih = document.getElementById('miniRemisPopupPutih');
             const popupHitam = document.getElementById('miniRemisPopupHitam');
 
+            // Deteksi perubahan state remis dari lawan
             if (meja.drawOffer && meja.drawOffer !== myRole) {
                 if (myRole === 'w') {
-                    if (!popupPutih.classList.contains('active')) {
-                        popupPutih.classList.add('active');
-                        popupHitam.classList.remove('active');
-                        playNotificationSound();
-                        startAutoDismissDrawOffer(meja);
-                    }
+                    popupPutih.classList.add('active');
+                    popupHitam.classList.remove('active');
                 } else {
-                    if (!popupHitam.classList.contains('active')) {
-                        popupHitam.classList.add('active');
-                        popupPutih.classList.remove('active');
-                        playNotificationSound();
-                        startAutoDismissDrawOffer(meja);
-                    }
+                    popupHitam.classList.add('active');
+                    popupPutih.classList.remove('active');
                 }
             } else {
                 popupPutih.classList.remove('active');
                 popupHitam.classList.remove('active');
-                if (drawOfferTimeoutId) {
-                    clearTimeout(drawOfferTimeoutId);
-                    drawOfferTimeoutId = null;
-                }
             }
 
+            // Deteksi jika tawaran kita ditolak lawan (drawOffer kembali null dan sebelumnya ada state ditolak)
             if (!meja.drawOffer && lastSeenDrawOfferState === myRole) {
-                popupPutih.classList.remove('active');
-                popupHitam.classList.remove('active');
+                showPopupModal("Remis Ditolak", "Lawan menolak tawaran remis Anda. Pertandingan dilanjutkan.", "fa-handshake-slash");
             }
             lastSeenDrawOfferState = meja.drawOffer;
-        }
-
-        function startAutoDismissDrawOffer(meja) {
-            if (drawOfferTimeoutId) clearTimeout(drawOfferTimeoutId);
-            
-            drawOfferTimeoutId = setTimeout(async () => {
-                const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
-                if(!ev || !ev.babakList) return;
-                const babakObj = ev.babakList.find(b => b.babakKe === activeBabakKe);
-                if(!babakObj || !babakObj.pairing) return;
-                const mObj = babakObj.pairing.find(m => m.meja === activeMejaNo);
-                
-                if (mObj && mObj.drawOffer) {
-                    mObj.drawOffer = null;
-                    if (window.db) {
-                        await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
-                            babakList: ev.babakList
-                        });
-                    }
-                }
-                document.getElementById('miniRemisPopupPutih').classList.remove('active');
-                document.getElementById('miniRemisPopupHitam').classList.remove('active');
-            }, 10000);
         }
 
         function openModal(id) {
@@ -3045,7 +2784,9 @@
                     const snap = await window.getDocs(window.collection(window.db, "pemain"));
                     daftarPemain = [];
                     snap.forEach(d => daftarPemain.push({ docId: d.id, ...d.data() }));
-                } catch(err) {}
+                } catch(err) {
+                    console.error("Gagal memeriksa database:", err);
+                }
             }
 
             const sudahAda = daftarPemain.some(p => p.hp === hp);
@@ -3407,7 +3148,7 @@
 
             const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
             
-            if (currentFen !== lastKnownFenOnline && !isLocalMoving) {
+            if (currentFen !== lastKnownFenOnline) {
                 lastKnownFenOnline = currentFen;
                 chessEngine = new Chess(currentFen);
                 renderChessboardOnline(myRoleColor);
@@ -3592,10 +3333,6 @@
                         return;
                     }
 
-                    isLocalMoving = true;
-                    const targetPiece = chessEngine.get(squareNotation);
-                    const isCaptureMove = targetPiece !== null;
-
                     const moveResult = chessEngine.move({
                         from: selectedSquareSquareNotation,
                         to: squareNotation,
@@ -3603,19 +3340,11 @@
                     });
 
                     if (moveResult) {
-                        if (chessEngine.in_check()) {
-                            playChessSound('check');
-                        } else if (isCaptureMove) {
-                            playChessSound('capture');
-                        } else {
-                            playChessSound('move');
-                        }
-
                         selectedSquareSquareNotation = null;
                         validMovesForSelectedSquare = [];
                         lastKnownFenOnline = chessEngine.fen();
                         renderChessboardOnline(myRoleColor);
-                        await pushMoveToFirebaseOnline(moveResult.san);
+                        await pushMoveToFirebaseOnline();
                     }
                 } else {
                     const piece = chessEngine.get(squareNotation);
@@ -3635,16 +3364,11 @@
             closeModal('promotionModal');
             if(!pendingPromotionMove) return;
 
-            isLocalMoving = true;
-            const moveResult = chessEngine.move({
+            chessEngine.move({
                 from: pendingPromotionMove.from,
                 to: pendingPromotionMove.to,
                 promotion: pieceType
             });
-
-            if (moveResult) {
-                playChessSound('move');
-            }
 
             pendingPromotionMove = null;
             selectedSquareSquareNotation = null;
@@ -3657,7 +3381,7 @@
             let myRoleColor = mejaObj && mejaObj.pemainPutih && mejaObj.pemainPutih.hp === activeUserPemain.hp ? 'w' : 'b';
 
             renderChessboardOnline(myRoleColor);
-            await pushMoveToFirebaseOnline(moveResult ? moveResult.san : '');
+            await pushMoveToFirebaseOnline();
         }
 
         function aksiPemainMenyerah() {
@@ -3753,6 +3477,7 @@
             const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
             if(!meja || meja.isFinished) return;
 
+            // Kosongkan drawOffer agar kembali null di cloud (memicu notifikasi ditolak di layar pengirim)
             meja.drawOffer = null;
 
             if (window.db) {
@@ -3765,7 +3490,7 @@
             document.getElementById('miniRemisPopupHitam').classList.remove('active');
         }
 
-        async function pushMoveToFirebaseOnline(sanMove) {
+        async function pushMoveToFirebaseOnline() {
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev || !ev.babakList) return;
 
@@ -3778,17 +3503,6 @@
             meja.fen = chessEngine.fen();
             meja.isTimerRunning = true;
             babakObj.isTimerRunning = true;
-            meja.lastTickTimestamp = Date.now();
-
-            if(!meja.pgnHistory) meja.pgnHistory = [];
-            if(sanMove) {
-                if(meja.pgnHistory.length % 2 === 0) {
-                    const moveNo = (meja.pgnHistory.length / 2) + 1;
-                    meja.pgnHistory.push(`${moveNo}. ${sanMove}`);
-                } else {
-                    meja.pgnHistory.push(sanMove);
-                }
-            }
 
             const elPutih = document.getElementById('timerPutih');
             const elHitam = document.getElementById('timerHitam');
@@ -3818,12 +3532,9 @@
                     await window.updateDoc(window.doc(window.db, "event", String(ev.docId || ev.id)), {
                         babakList: ev.babakList
                     });
-                } catch(err) {}
-                finally {
-                    setTimeout(() => { isLocalMoving = false; }, 400);
+                } catch(err) {
+                    console.error("Gagal memperbarui langkah ke Firebase:", err);
                 }
-            } else {
-                isLocalMoving = false;
             }
         }
 
@@ -4341,14 +4052,7 @@
                 infoBox.innerHTML = `Pairing Babak ${babakKe} Aktif. Status Turnamen: <b>${babakObj.status}</b>`;
 
                 babakObj.pairing.forEach((m, idx) => {
-                    let timerStatusLabel = `<span style="color: #94a3b8;"><i class="fa-solid fa-hourglass-start"></i> Belum Jalan</span>`;
-                    if (m.isFinished) {
-                        timerStatusLabel = `<span style="color: #34d399; font-weight: 700;">Selesai [Skor: ${m.skor}]</span>`;
-                    } else if (m.isTimerRunning) {
-                        timerStatusLabel = `<span style="color: var(--accent-gold); font-weight: 700;"><i class="fa-solid fa-clock fa-spin"></i> Timer Berjalan</span>`;
-                    } else if (m.isStarted) {
-                        timerStatusLabel = `<span style="color: #facc15;"><i class="fa-solid fa-pause"></i> Standby (Menunggu Langkah Putih)</span>`;
-                    }
+                    const statusSkorText = m.isFinished ? `<span style="color: #34d399; font-weight: 700;">Selesai [Skor: ${m.skor}]</span>` : (m.isTimerRunning ? `<span style="color: var(--accent-gold);">Timer Berjalan</span>` : `<span style="color: #94a3b8;">Menunggu Langkah Putih</span>`);
 
                     if(m.isBye) {
                         containerMeja.innerHTML += `
@@ -4368,12 +4072,12 @@
                             <div class="pairing-card">
                                 <div class="pairing-header">
                                     <span>Meja ${m.meja || idx + 1}</span>
-                                    <span>${timerStatusLabel}</span>
+                                    <span>${statusSkorText}</span>
                                 </div>
                                 <div class="pairing-row" style="margin-bottom: 6px;">
-                                    <span class="player-p">⚪ ${m.pemainPutih.nama}<br><b style="font-family: monospace; color: var(--accent-gold);">${formatTime(m.timePutih)}</b></span>
+                                    <span class="player-p">⚪ ${m.pemainPutih.nama} (${formatTime(m.timePutih)})</span>
                                     <span class="vs-tag">VS</span>
-                                    <span class="player-h" style="text-align: right;">⚫ ${m.pemainHitam.nama}<br><b style="font-family: monospace; color: var(--accent-gold);">${formatTime(m.timeHitam)}</b></span>
+                                    <span class="player-h">⚫ ${m.pemainHitam.nama} (${formatTime(m.timeHitam)})</span>
                                 </div>
 
                                 <div class="timer-control-row">
@@ -4386,14 +4090,7 @@
             }
         }
 
-        // TOMBOL SELESAIKAN BABAK DENGAN EFEK WARNA AKTIF
         async function selesaikanBabakAktif() {
-            const btnSelesai = document.getElementById('btnSelesaikanBabak');
-            if (btnSelesai) {
-                btnSelesai.classList.add('clicked-active');
-                btnSelesai.innerHTML = `<i class="fa-solid fa-check-double"></i> Babak Telah Diselesaikan`;
-            }
-
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
             if(!ev) return;
@@ -4528,9 +4225,7 @@
                     alasanSelesai: 'BYE Otomatis',
                     fen: startingFen,
                     isStarted: true,
-                    isTimerRunning: false,
-                    pgnHistory: [],
-                    chatList: []
+                    isTimerRunning: false
                 });
             }
 
@@ -4566,9 +4261,7 @@
                     isStarted: false,
                     isTimerRunning: false,
                     triggerMulai: false,
-                    fen: startingFen,
-                    pgnHistory: [],
-                    chatList: []
+                    fen: startingFen
                 });
             }
 
@@ -4585,14 +4278,7 @@
             renderPairingMejaInfo();
         }
 
-        // TOMBOL MULAI PERTANDINGAN DENGAN EFEK WARNA AKTIF
         async function triggerMulaiPertandinganWasit() {
-            const btnMulai = document.querySelector('#wasitControlActionRow .btn-success');
-            if (btnMulai) {
-                btnMulai.classList.add('clicked-active');
-                btnMulai.innerHTML = `<i class="fa-solid fa-check"></i> Pertandingan Dimulai!`;
-            }
-
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakKe = parseInt(document.getElementById('selectBabakPairing').value);
             if(!ev) return;
@@ -4609,7 +4295,6 @@
                         m.isStarted = true;
                         m.isTimerRunning = false; 
                         m.triggerMulai = true;
-                        m.lastTickTimestamp = Date.now();
                     }
                 });
             }
