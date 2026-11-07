@@ -2022,6 +2022,7 @@
         // Variabel Tambahan untuk Modul 1 Vs 1
         let currentRoom1vs1Id = null;
         let roomUnsubscribeListener = null;
+        let activeArena1vs1Unsubscribe = null;
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -3234,7 +3235,45 @@
             validMovesForSelectedSquare = [];
             lastKnownFenOnline = "";
 
+            if (selectedMatchId && selectedMatchId.toString().length > 15) {
+                initLiveArena1vs1(selectedMatchId);
+            }
+
             syncRealtimeArenaState();
+        }
+
+        function initLiveArena1vs1(docId) {
+            if (!window.db) return;
+            if (activeArena1vs1Unsubscribe) activeArena1vs1Unsubscribe();
+
+            activeArena1vs1Unsubscribe = window.onSnapshot(window.doc(window.db, "rooms1vs1", docId), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const meja = data.mejaData;
+                    if (meja) {
+                        let myRoleColor = 'w';
+                        let namaPutih = meja.pemainPutih ? meja.pemainPutih.nama : 'Putih';
+                        let namaHitam = meja.pemainHitam ? meja.pemainHitam.nama : 'Hitam';
+
+                        if (meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp) myRoleColor = 'w';
+                        else if (meja.pemainHitam && meja.pemainHitam.hp === activeUserPemain.hp) myRoleColor = 'b';
+
+                        document.getElementById('namaPutihClock').innerText = `${namaPutih} (Putih ⚪)`;
+                        document.getElementById('namaHitamClock').innerText = `${namaHitam} (Hitam ⚫)`;
+
+                        document.getElementById('timerPutih').innerText = formatTime(meja.timePutih || 300);
+                        document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam || 300);
+
+                        const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+                        if (currentFen !== lastKnownFenOnline) {
+                            lastKnownFenOnline = currentFen;
+                            chessEngine = new Chess(currentFen);
+                            renderChessboardOnline(myRoleColor);
+                        }
+                        updateChessGameStatusInfoOnline(meja, myRoleColor);
+                    }
+                }
+            });
         }
 
         function syncRealtimeArenaState() {
@@ -3242,36 +3281,7 @@
 
             // Cek apakah ini mode 1 vs 1
             if (selectedMatchId.toString().length > 15) {
-                if (!window.db) return;
-                window.getDocs(window.collection(window.db, "rooms1vs1")).then(snapshot => {
-                    snapshot.forEach(docSnap => {
-                        if (docSnap.id === selectedMatchId) {
-                            const data = docSnap.data();
-                            const meja = data.mejaData;
-                            let myRoleColor = 'w';
-                            let namaPutih = meja.pemainPutih ? meja.pemainPutih.nama : 'Putih';
-                            let namaHitam = meja.pemainHitam ? meja.pemainHitam.nama : 'Hitam';
-
-                            if (meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp) myRoleColor = 'w';
-                            else if (meja.pemainHitam && meja.pemainHitam.hp === activeUserPemain.hp) myRoleColor = 'b';
-
-                            document.getElementById('namaPutihClock').innerText = `${namaPutih} (Putih ⚪)`;
-                            document.getElementById('namaHitamClock').innerText = `${namaHitam} (Hitam ⚫)`;
-
-                            document.getElementById('timerPutih').innerText = formatTime(meja.timePutih || 300);
-                            document.getElementById('timerHitam').innerText = formatTime(meja.timeHitam || 300);
-
-                            const currentFen = meja.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-                            if (currentFen !== lastKnownFenOnline) {
-                                lastKnownFenOnline = currentFen;
-                                chessEngine = new Chess(currentFen);
-                                renderChessboardOnline(myRoleColor);
-                            }
-                            updateChessGameStatusInfoOnline(meja, myRoleColor);
-                        }
-                    });
-                });
-                return;
+                return; // Ditangani oleh initLiveArena1vs1 via onSnapshot
             }
 
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
@@ -3450,7 +3460,7 @@
             if (chessEngine.game_over()) return;
 
             // Cek mode 1 vs 1
-            if (selectedMatchId.toString().length > 15) {
+            if (selectedMatchId && selectedMatchId.toString().length > 15) {
                 if (chessEngine.turn() !== myRoleColor) {
                     showPopupModal("Bukan Giliran", "Bukan giliran Anda! Tunggu lawan melangkah.", "fa-hourglass-half");
                     return;
@@ -3478,19 +3488,24 @@
                             lastKnownFenOnline = chessEngine.fen();
                             renderChessboardOnline(myRoleColor);
 
-                            // Push ke Firebase 1vs1
+                            // Push update FEN dan giliran ke Firebase 1vs1 secara real-time
                             if (window.db) {
                                 const docRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
-                                window.getDocs(window.collection(window.db, "rooms1vs1")).then(snap => {
-                                    snap.forEach(d => {
+                                try {
+                                    const snapDoc = await window.getDocs(window.collection(window.db, "rooms1vs1"));
+                                    snapDoc.forEach(async (d) => {
                                         if (d.id === selectedMatchId) {
                                             let roomData = d.data();
                                             roomData.mejaData.fen = chessEngine.fen();
                                             roomData.mejaData.isTimerRunning = true;
-                                            window.updateDoc(docRef, { mejaData: roomData.mejaData });
+                                            await window.updateDoc(window.doc(window.db, "rooms1vs1", selectedMatchId), { 
+                                                mejaData: roomData.mejaData 
+                                            });
                                         }
                                     });
-                                });
+                                } catch (err) {
+                                    console.error("Gagal sinkronisasi langkah 1vs1:", err);
+                                }
                             }
                         }
                     } else {
@@ -3827,6 +3842,7 @@
 
         function keluarArenaPertandingan() {
             if (selectedMatchId && selectedMatchId.toString().length > 15) {
+                if (activeArena1vs1Unsubscribe) activeArena1vs1Unsubscribe();
                 switchView('pemainDashboardView');
                 return;
             }
