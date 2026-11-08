@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asr.Catur Online - Master Production (Minimalist Draw & Timer)</title>
+    <title>Asr.Catur Online - Master Production (Adaptive ELO Matchmaking)</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1121,7 +1121,7 @@
                     <button class="btn btn-outline" style="flex: 1;" onclick="aksiPemainRemis()">
                         <i class="fa-solid fa-handshake"></i> Tawaran Remis
                     </button>
-                    <!-- TOMBOL REMATCH (MUNCUL OTOMATIS SAAT GAME SELESAI PADA 1 VS 1) -->
+                    <!-- TOMBOL REMATCH (MUNCUL OTOMATIS SAAT GAME SELESAI PADA 1 VS 1 ATAU ONLINE) -->
                     <button id="btnRematch1vs1" class="btn btn-success" style="flex: 100%; display: none;" onclick="mintaRematch1vs1()">
                         <i class="fa-solid fa-rotate-right"></i> Minta Tanding Lagi (Rematch)
                     </button>
@@ -1551,25 +1551,25 @@
         </div>
     </div>
 
-    <!-- MODAL UTAMA BERMAIN ONLINE -->
+    <!-- MODAL UTAMA BERMAIN ONLINE (ADAPTIVE ELO) -->
     <div class="modal-overlay" id="bermainOnlineModal">
         <div class="modal-box">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-globe"></i> Pilih ELO Lawan Online</h3>
+                <h3><i class="fa-solid fa-globe"></i> Tentukan ELO Anda Sendiri</h3>
                 <button class="close-btn" onclick="closeModal('bermainOnlineModal')">&times;</button>
             </div>
             <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
-                Pilih tingkat ELO target lawan tanding Anda:
+                Pilih tingkat ELO Anda saat ini untuk menyesuaikan level lawan secara seimbang:
             </p>
             <div class="submenu-grid">
+                <button class="submenu-btn" onclick="pilihEloOnline(1200)">
+                    <i class="fa-solid fa-shield" style="color: var(--accent-gold);"></i> ELO 1200 (Pemula)
+                </button>
                 <button class="submenu-btn" onclick="pilihEloOnline(1500)">
-                    <i class="fa-solid fa-shield" style="color: var(--accent-gold);"></i> ELO 1500 (Menengah)
+                    <i class="fa-solid fa-shield-halved" style="color: var(--accent-gold);"></i> ELO 1500 (Menengah)
                 </button>
-                <button class="submenu-btn" onclick="pilihEloOnline(1700)">
-                    <i class="fa-solid fa-shield-halved" style="color: var(--accent-gold);"></i> ELO 1700 (Mahir)
-                </button>
-                <button class="submenu-btn" onclick="pilihEloOnline(2000)">
-                    <i class="fa-solid fa-crown" style="color: var(--accent-gold);"></i> ELO 2000 (Master)
+                <button class="submenu-btn" onclick="pilihEloOnline(1800)">
+                    <i class="fa-solid fa-crown" style="color: var(--accent-gold);"></i> ELO 1800 (Mahir / Master)
                 </button>
             </div>
         </div>
@@ -1583,7 +1583,7 @@
                 <button class="close-btn" onclick="closeModal('pilihWaktuOnlineModal')">&times;</button>
             </div>
             <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;" id="infoEloTerpilih">
-                ELO Terpilih: 1500
+                ELO Anda: 1500
             </p>
             <div class="submenu-grid">
                 <button class="submenu-btn" onclick="pilihWaktuGame(3)">
@@ -1606,7 +1606,7 @@
     <div class="modal-overlay" id="mulaiPertandinganOnlineModal">
         <div class="modal-box" style="text-align: center;">
             <div class="modal-header" style="justify-content: center;">
-                <h3 style="color: var(--accent-gold);"><i class="fa-solid fa-chess-board"></i> Siap Bertanding</h3>
+                <h3 style="color: var(--accent-gold);"><i class="fa-solid fa-chess-board"></i> Cari Lawan Seimbang</h3>
             </div>
             <div class="info-badge-box" style="text-align: left; margin: 12px 0;" id="ringkasanSettingOnline">
                 <!-- Diisi via JavaScript -->
@@ -1614,7 +1614,7 @@
             <div style="display: flex; gap: 8px; margin-top: 15px;">
                 <button class="btn btn-outline" style="flex: 1;" onclick="closeModal('mulaiPertandinganOnlineModal')">Batal</button>
                 <button class="btn btn-success" style="flex: 1; padding: 10px; font-weight: 700;" onclick="eksekusiMulaiPertandinganOnline()">
-                    <i class="fa-solid fa-play"></i> Mulai Pertandingan
+                    <i class="fa-solid fa-play"></i> Cari Lawan & Mulai
                 </button>
             </div>
         </div>
@@ -2097,9 +2097,11 @@
         let roomUnsubscribeListener = null;
         let activeArena1vs1Unsubscribe = null;
 
-        // Variabel Tambahan untuk Modul Bermain Online (ELO & Waktu)
-        let selectedEloTarget = 1500;
-        let selectedWaktuMenit = 5;
+        // Variabel Tambahan untuk Modul Bermain Online (Adaptive ELO & Matchmaking)
+        let playerSessionElo = 1500;       // ELO pemain yang dipilih/tersimpan
+        let targetOpponentElo = 1500;     // ELO lawan yang sedang dicari
+        let selectedWaktuMenit = 5;       // Durasi waktu game online
+        let onlineGameLastResult = null;  // 'menang' atau 'kalah' untuk remat
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -2838,9 +2840,8 @@
             localTimerInterval = setInterval(() => {
                 if (document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
                     
-                    // Cek apakah ini mode 1 vs 1 atau turnamen biasa
+                    // Cek apakah ini mode 1 vs 1 atau Online Matchmaking
                     if (selectedMatchId.toString().length > 15) {
-                        // Logika Timer 1 Vs 1 di Firebase
                         if (!window.db) return;
                         window.getDocs(window.collection(window.db, "rooms1vs1")).then(snapshot => {
                             snapshot.forEach(async docSnap => {
@@ -2995,7 +2996,7 @@
                 return;
             }
 
-            const pemainBaru = { id: Date.now(), hp, pass, nama, kota, elo: 0, status: "pending" };
+            const pemainBaru = { id: Date.now(), hp, pass, nama, kota, elo: 1500, status: "pending" };
             
             if (window.db) {
                 try {
@@ -3027,6 +3028,9 @@
                 localStorage.setItem('asr_active_pemain', JSON.stringify(pemain));
                 localStorage.setItem('asr_active_role', 'pemain');
 
+                // Sinkronkan ELO pemain ke state online session
+                playerSessionElo = pemain.elo || 1500;
+
                 closeModal('loginPemainModal');
                 switchView('pemainDashboardView');
                 
@@ -3041,14 +3045,14 @@
         }
 
         function openProfilPemainView() {
-            if (!activeUserPemain) activeUserPemain = daftarPemain[0] || { nama: 'Pemain', hp: '-', kota: '-', elo: 0 };
+            if (!activeUserPemain) activeUserPemain = daftarPemain[0] || { nama: 'Pemain', hp: '-', kota: '-', elo: 1500 };
 
             document.getElementById('profNama').innerText = activeUserPemain.nama;
             document.getElementById('profHp').innerText = activeUserPemain.hp;
             document.getElementById('profDetailNama').innerText = activeUserPemain.nama;
             document.getElementById('profDetailHp').innerText = activeUserPemain.hp;
             document.getElementById('profDetailKota').innerText = activeUserPemain.kota;
-            document.getElementById('profDetailElo').innerText = activeUserPemain.elo || 0;
+            document.getElementById('profDetailElo').innerText = activeUserPemain.elo || 1500;
         }
 
         function openPertandinganPemainView() {
@@ -3132,7 +3136,7 @@
                 nama: activeUserPemain.nama,
                 hp: activeUserPemain.hp,
                 kota: activeUserPemain.kota,
-                elo: activeUserPemain.elo || 0,
+                elo: activeUserPemain.elo || 1500,
                 poin: 0
             });
 
@@ -3360,11 +3364,24 @@
                         
                         updateChessGameStatusInfoOnline(meja, myRoleColor);
 
+                        // Cek apakah game selesai dan simpan hasil untuk Adaptive Rematch
+                        if (meja.isFinished) {
+                            const isPutih = meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp;
+                            const didIWin = (isPutih && meja.skor === '1-0') || (!isPutih && meja.skor === '0-1');
+                            const didIDraw = meja.skor === '0.5-0.5';
+
+                            if (didIWin) onlineGameLastResult = 'menang';
+                            else if (didIDraw) onlineGameLastResult = 'imbang';
+                            else onlineGameLastResult = 'kalah';
+                        }
+
                         // Munculkan Tombol Rematch jika game sudah selesai
                         const btnRematch = document.getElementById('btnRematch1vs1');
                         if (meja.isFinished) {
                             btnRematch.style.display = 'block';
-                            if (data.rematchRequested) {
+                            if (selectedMatchId.toString().startsWith("ONLINE_")) {
+                                btnRematch.innerHTML = `<i class="fa-solid fa-rotate-right"></i> Main Lagi (Cari Lawan ELO Seimbang)`;
+                            } else if (data.rematchRequested) {
                                 btnRematch.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Lawan Meminta Tanding Lagi...`;
                             }
                         } else {
@@ -3378,6 +3395,24 @@
 
         async function mintaRematch1vs1() {
             if (!window.db || !selectedMatchId) return;
+
+            // Jika ini mode Online Matchmaking dengan Bot/Sistem Adaptif ELO
+            if (selectedMatchId.toString().startsWith("ONLINE_")) {
+                // Terapkan adaptif ELO berdasarkan hasil pertandingan sebelumnya
+                if (onlineGameLastResult === 'menang') {
+                    targetOpponentElo += 75; // Menang: Cari lawan lebih tinggi
+                    showPopupModal("Matchmaking Adaptif", `Hebat! Anda menang. Sistem mencarikan lawan dengan ELO lebih tinggi: <b>${targetOpponentElo}</b>`, "fa-ranking-star");
+                } else if (onlineGameLastResult === 'kalah') {
+                    targetOpponentElo = Math.max(1000, targetOpponentElo - 60); // Kalah: Cari lawan sedikit di bawah
+                    showPopupModal("Matchmaking Adaptif", `Jangan menyerah! Sistem mencarikan lawan yang lebih seimbang di ELO: <b>${targetOpponentElo}</b>`, "fa-ranking-star");
+                } else {
+                    showPopupModal("Matchmaking Adaptif", `Pertandingan imbang. Mempertahankan level ELO lawan di: <b>${targetOpponentElo}</b>`, "fa-ranking-star");
+                }
+
+                // Mulai ulang pertandingan online baru
+                eksekusiMulaiPertandinganOnline();
+                return;
+            }
 
             const roomRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
             const durasiAwal = 5 * 60; 
@@ -3588,7 +3623,7 @@
         async function onSquareClickOnline(squareNotation, myRoleColor) {
             if (chessEngine.game_over()) return;
 
-            // Cek mode 1 vs 1
+            // Cek mode 1 vs 1 atau Online Matchmaking
             if (selectedMatchId && selectedMatchId.toString().length > 15) {
                 if (chessEngine.turn() !== myRoleColor) {
                     showPopupModal("Bukan Giliran", "Bukan giliran Anda! Tunggu lawan melangkah.", "fa-hourglass-half");
@@ -3718,7 +3753,7 @@
             lastKnownFenOnline = chessEngine.fen();
 
             if (selectedMatchId && selectedMatchId.toString().length > 15) {
-                renderChessboardOnline(chessEngine.turn() === 'w' ? 'b' : 'w'); // Disesuaikan saat promosi
+                renderChessboardOnline(chessEngine.turn() === 'w' ? 'b' : 'w');
                 await pushMoveToFirebaseOnline();
                 return;
             }
@@ -3749,6 +3784,7 @@
                             }
                         });
                     }
+                    onlineGameLastResult = 'kalah';
                     showPopupModal("Pertandingan Selesai", "Anda menyatakan Menyerah.", "fa-flag");
                     switchView('pemainDashboardView');
                     return;
@@ -3785,7 +3821,7 @@
 
         async function aksiPemainRemis() {
             if (selectedMatchId && selectedMatchId.toString().length > 15) {
-                showPopupModal("Tawaran Remis", "Tawaran remis dikirimkan ke lawan 1vs1.", "fa-handshake");
+                showPopupModal("Tawaran Remis", "Tawaran remis dikirimkan ke lawan.", "fa-handshake");
                 return;
             }
 
@@ -3863,7 +3899,6 @@
         }
 
         async function pushMoveToFirebaseOnline() {
-            // PERBARUAN: Logika Penanganan 1 vs 1 (Skakmat, Remis, dll)
             if (selectedMatchId && selectedMatchId.toString().length > 15) {
                 if (!window.db) return;
                 const roomRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
@@ -3989,7 +4024,7 @@
 
         function keluarArenaPertandingan() {
             if (selectedMatchId && selectedMatchId.toString().length > 15) {
-                showConfirmModal("Konfirmasi Keluar", "Apakah Anda yakin ingin keluar dari kamar? Keluar akan menghentikan pertandingan dan lawan akan mendapatkan pemberitahuan bahwa Anda keluar.", async () => {
+                showConfirmModal("Konfirmasi Keluar", "Apakah Anda yakin ingin keluar dari kamar? Keluar akan menghentikan pertandingan.", async () => {
                     if (window.db) {
                         try {
                             const roomRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
@@ -4015,7 +4050,7 @@
                 if(babakObj && babakObj.pairing) {
                     const meja = babakObj.pairing.find(m => m.meja === activeMejaNo);
                     if(meja && !meja.isFinished) {
-                        showConfirmModal("Konfirmasi Keluar Arena", "Anda ingin keluar dari arena sebelum pertandingan selesai?<br><br>Klik <b>Ya</b> jika Anda ingin Menyerah (Pertandingan dicatat selesai dan lawan menang).", async () => {
+                        showConfirmModal("Konfirmasi Keluar Arena", "Anda ingin keluar dari arena sebelum pertandingan selesai?<br><br>Klik <b>Ya</b> jika Anda ingin Menyerah.", async () => {
                             const isPutih = meja.pemainPutih && (meja.pemainPutih.hp === activeUserPemain.hp || meja.pemainPutih.nama === activeUserPemain.nama);
                             
                             meja.isFinished = true;
@@ -4031,7 +4066,7 @@
                                 });
                             }
 
-                            showPopupModal("Keluar Arena", "Anda keluar dari pertandingan. Sistem mencatat Anda Menyerah dan kemenangan diberikan kepada lawan.", "fa-flag");
+                            showPopupModal("Keluar Arena", "Anda keluar dari pertandingan. Sistem mencatat Anda Menyerah.", "fa-flag");
                             switchView('pemainDashboardView');
                         });
                         return;
@@ -4057,7 +4092,7 @@
         }
 
         // ==========================================
-        // LOGIKA BARU MODUL BERMAIN ONLINE (ELO & WAKTU)
+        // LOGIKA BARU BERMAIN ONLINE (ADAPTIVE ELO & MATCHMAKING)
         // ==========================================
         function openBermainOnlineModal() {
             if (!activeUserPemain) {
@@ -4070,10 +4105,11 @@
         }
 
         function pilihEloOnline(eloVal) {
-            selectedEloTarget = eloVal;
+            playerSessionElo = eloVal; // Set ELO Pemain
+            targetOpponentElo = eloVal; // Set acuan awal pencarian lawan seimbang
             closeModal('bermainOnlineModal');
             
-            document.getElementById('infoEloTerpilih').innerText = `Target ELO Lawan: ${eloVal}`;
+            document.getElementById('infoEloTerpilih').innerText = `ELO Anda Saat Ini: ${eloVal} (Sistem Mencari Lawan Seimbang)`;
             openModal('pilihWaktuOnlineModal');
         }
 
@@ -4083,36 +4119,67 @@
 
             document.getElementById('ringkasanSettingOnline').innerHTML = `
                 <i class="fa-solid fa-circle-check"></i> <b>Konfigurasi Laga Online:</b><br>
-                • Target ELO Lawan: <b>${selectedEloTarget}</b><br>
+                • ELO Anda: <b>${playerSessionElo}</b><br>
+                • Target ELO Lawan: <b>~${targetOpponentElo} (Seimbang)</b><br>
                 • Durasi Waktu: <b>${selectedWaktuMenit} Menit</b><br>
-                • Sistem: Pencarian Lawan Otomatis (Matchmaking)
+                • Fitur: Sistem Adaptif (Naik jika menang, turun jika kalah)
             `;
             openModal('mulaiPertandinganOnlineModal');
         }
 
-        function eksekusiMulaiPertandinganOnline() {
+        async function eksekusiMulaiPertandinganOnline() {
             closeModal('mulaiPertandinganOnlineModal');
 
-            const dummyLawanNama = selectedEloTarget === 2000 ? "Grandmaster AI (2000)" : (selectedEloTarget === 1700 ? "Master Nasional (1700)" : "Klub Pemain (1500)");
             const durasiDetik = selectedWaktuMenit * 60;
-            
             selectedMatchId = "ONLINE_" + Date.now();
             activeMejaNo = 1;
             activeBabakKe = 1;
 
+            const namaLawanBot = `Master AI (ELO ~${targetOpponentElo})`;
+
+            const roomDataOnline = {
+                kodeKamar: "ONLINE_MATCH",
+                durasiWaktu: selectedWaktuMenit,
+                status: 'playing',
+                createdAt: Date.now(),
+                pemainPutih: { nama: activeUserPemain.nama, hp: activeUserPemain.hp, kota: activeUserPemain.kota },
+                pemainHitam: { nama: namaLawanBot, hp: 'BOT_AI', kota: 'Server AI' },
+                mejaData: {
+                    meja: 1,
+                    timePutih: durasiDetik,
+                    timeHitam: durasiDetik,
+                    fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+                    isStarted: true,
+                    isTimerRunning: false,
+                    isFinished: false,
+                    skor: '0',
+                    alasanSelesai: '',
+                    triggerMulai: true
+                }
+            };
+
+            if (window.db) {
+                try {
+                    await window.setDoc(window.doc(window.db, "rooms1vs1", selectedMatchId), roomDataOnline);
+                } catch(err) {
+                    console.log("Gagal membuat room online di firebase:", err);
+                }
+            }
+
             switchView('papanCaturFullView');
-            document.getElementById('arenaMatchTitle').innerText = `Match Online vs ELO ${selectedEloTarget}`;
-            document.getElementById('arenaMatchSubtitle').innerText = `Lawan: ${dummyLawanNama}`;
+            document.getElementById('arenaMatchTitle').innerText = `Laga Online (ELO Anda: ${playerSessionElo})`;
+            document.getElementById('arenaMatchSubtitle').innerText = `Lawan Seimbang: ${namaLawanBot}`;
 
             chessEngine = new Chess();
             document.getElementById('namaPutihClock').innerText = `${activeUserPemain.nama} (Putih ⚪)`;
-            document.getElementById('namaHitamClock').innerText = `${dummyLawanNama} (Hitam ⚫)`;
+            document.getElementById('namaHitamClock').innerText = `${namaLawanBot} (Hitam ⚫)`;
             
             document.getElementById('timerPutih').innerText = formatTime(durasiDetik);
             document.getElementById('timerHitam').innerText = formatTime(durasiDetik);
 
+            initLiveArena1vs1(selectedMatchId);
             renderChessboardOnline('w');
-            showPopupModal("Berhasil Terhubung", `Meja pertandingan berhasil dibuka melawan ${dummyLawanNama} dengan waktu ${selectedWaktuMenit} menit!`, "fa-chess-board");
+            showPopupModal("Lawan Ditemukan!", `Sistem berhasil mencarikan lawan dengan ELO seimbang (~${targetOpponentElo}). Pertandingan dimulai!`, "fa-globe");
         }
 
         // ==========================================
@@ -4552,7 +4619,7 @@
                                 <div class="player-name">${idx + 1}. ${p.nama}</div>
                                 <div class="player-city">${p.kota} • ${p.hp}</div>
                             </div>
-                            <span class="elo-tag">Elo: ${p.elo || 0}</span>
+                            <span class="elo-tag">Elo: ${p.elo || 1500}</span>
                         </div>`;
                 });
             }
@@ -5009,7 +5076,7 @@
                             <div class="player-city">${p.kota} • ${p.hp}</div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="elo-tag">Elo: ${p.elo || 0}</span>
+                            <span class="elo-tag">Elo: ${p.elo || 1500}</span>
                             <div class="action-group">
                                 <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.68rem;" onclick="terimaPemain('${p.docId}')">Terima</button>
                                 <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.68rem;" onclick="tolakPemain('${p.docId}')">Tolak</button>
@@ -5026,7 +5093,7 @@
                             <div class="player-name">${p.nama}</div>
                             <div class="player-city">${p.kota} • ${p.hp}</div>
                         </div>
-                        <span class="elo-tag">Elo: ${p.elo || 0}</span>
+                        <span class="elo-tag">Elo: ${p.elo || 1500}</span>
                     </div>`;
             });
         }
@@ -5060,7 +5127,7 @@
                 <div class="detail-row"><span>Nama Lengkap:</span> <span><b>${p.nama}</b></span></div>
                 <div class="detail-row"><span>Nomor HP:</span> <span>${p.hp}</span></div>
                 <div class="detail-row"><span>Kota:</span> <span>${p.kota}</span></div>
-                <div class="detail-row"><span>ELO Rating:</span> <span><b style="color: var(--accent-gold);">${p.elo || 0}</b></span></div>
+                <div class="detail-row"><span>ELO Rating:</span> <span><b style="color: var(--accent-gold);">${p.elo || 1500}</b></span></div>
                 <div class="detail-row"><span>Status Akun:</span> <span>${p.status === 'approved' ? 'Terverifikasi' : 'Menunggu Persetujuan'}</span></div>
             `;
             document.getElementById('btnHapusPemain').onclick = function() {
