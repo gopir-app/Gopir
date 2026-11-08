@@ -982,8 +982,8 @@
                     <p>Informasi akun & biodata</p>
                 </div>
                 <div class="menu-card" onclick="openAnalisaEngineView();">
-                    <div class="menu-icon"><i class="fa-solid fa-microchip"></i></div>
-                    <h3>Analisa Engine</h3>
+                    <div class="menu-icon"><i class="fa-solid fa-robot"></i></div>
+                    <h3>Lawan Bot</h3>
                     <p>Tanding vs Stockfish AI</p>
                 </div>
                 <div class="menu-card" onclick="showPopupModal('ELO Rating', 'Fitur ELO Rating dan Peringkat Peserta akan segera hadir dalam pembaruan berikutnya.', 'fa-trophy')">
@@ -1133,9 +1133,9 @@
             </button>
         </div>
 
-        <!-- HALAMAN PEMAIN 2.4: PAPAN CATUR ANALISA ENGINE STOCKFISH -->
+        <!-- HALAMAN PEMAIN 2.4: PAPAN CATUR LAWAN BOT AI STOCKFISH -->
         <div id="analisaEngineFullView" class="page-view">
-            <h1 class="hero-title"><i class="fa-solid fa-microchip"></i> Papan Analisa Engine</h1>
+            <h1 class="hero-title"><i class="fa-solid fa-robot"></i> Tanding Lawan Bot AI</h1>
             <p class="hero-subtitle">Master vs Stockfish AI Engine (Depth 10+)</p>
 
             <div class="match-arena-box">
@@ -2665,7 +2665,7 @@
 
             const statusEl = document.getElementById('analisaEngineStatus');
             if(statusEl) {
-                statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Stockfish Engine Berpikir... (Depth: ${stockfishDepthLevel})`;
+                statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Stockfish AI Berpikir... (Depth: ${stockfishDepthLevel})`;
             }
         }
 
