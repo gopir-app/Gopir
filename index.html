@@ -1004,8 +1004,8 @@
                 </div>
                 <div class="menu-card" onclick="openMenu1vs1Modal();">
                     <div class="menu-icon"><i class="fa-solid fa-chess"></i></div>
-                    <h3>1 Vs 1</h3>
-                    <p>Tanding catur cepat</p>
+                    <h3>Room</h3>
+                    <p>Buat atau gabung room mandiri</p>
                 </div>
             </div>
             <button class="btn btn-danger" style="width: 100%; margin-top: 15px; padding: 8px;" onclick="logoutView('pemainDashboardView')">
@@ -1121,7 +1121,7 @@
                     <button class="btn btn-outline" style="flex: 1;" onclick="aksiPemainRemis()">
                         <i class="fa-solid fa-handshake"></i> Tawaran Remis
                     </button>
-                    <!-- TOMBOL REMATCH (MUNCUL OTOMATIS SAAT GAME SELESAI PADA 1 VS 1 ATAU ONLINE) -->
+                    <!-- TOMBOL REMATCH (MUNCUL OTOMATIS SAAT GAME SELESAI PADA ROOM ATAU ONLINE) -->
                     <button id="btnRematch1vs1" class="btn btn-success" style="flex: 100%; display: none;" onclick="mintaRematch1vs1()">
                         <i class="fa-solid fa-rotate-right"></i> Minta Tanding Lagi (Rematch)
                     </button>
@@ -1930,29 +1930,29 @@
         </div>
     </div>
 
-    <!-- MODAL MENU PILIHAN 1 VS 1 -->
+    <!-- MODAL MENU PILIHAN ROOM -->
     <div class="modal-overlay" id="menu1vs1Modal">
         <div class="modal-box" style="text-align: center;">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-chess"></i> Tanding 1 Vs 1 Mandiri</h3>
+                <h3><i class="fa-solid fa-chess"></i> Room Catur Mandiri</h3>
                 <button class="close-btn" onclick="closeModal('menu1vs1Modal')">&times;</button>
             </div>
             <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">
-                Pilih mode bertanding cepat mandiri tanpa perlu menunggu jadwal turnamen resmi.
+                Pilih opsi untuk membuat room baru atau masuk ke room teman menggunakan kode.
             </p>
 
             <div class="submenu-grid" style="gap: 8px;">
                 <button class="submenu-btn" onclick="openBuatKamar1vs1Modal()">
                     <i class="fa-solid fa-plus-circle" style="color: var(--accent-gold);"></i> 
                     <div>
-                        <div>Buat Kamar Mandiri</div>
+                        <div>Buat Room Baru</div>
                         <div style="font-size: 0.68rem; color: var(--text-muted);">Atur durasi & undang teman via kode</div>
                     </div>
                 </button>
                 <button class="submenu-btn" onclick="openGabungKamar1vs1Modal()">
                     <i class="fa-solid fa-right-to-bracket" style="color: var(--accent-green);"></i>
                     <div>
-                        <div>Masuk Kode Kamar</div>
+                        <div>Masukkan Kode Room</div>
                         <div style="font-size: 0.68rem; color: var(--text-muted);">Tulis 6 digit kode dari teman</div>
                     </div>
                 </button>
@@ -1960,11 +1960,11 @@
         </div>
     </div>
 
-    <!-- MODAL BUAT KAMAR 1 VS 1 -->
+    <!-- MODAL BUAT ROOM -->
     <div class="modal-overlay" id="buatKamar1vs1Modal">
         <div class="modal-box">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-plus-circle"></i> Buat Kamar 1 Vs 1</h3>
+                <h3><i class="fa-solid fa-plus-circle"></i> Buat Room Baru</h3>
                 <button class="close-btn" onclick="closeModal('buatKamar1vs1Modal')">&times;</button>
             </div>
             <form onsubmit="handleProsesBuatKamar1vs1(event)">
@@ -1992,11 +1992,11 @@
         </div>
     </div>
 
-    <!-- MODAL GABUNG KAMAR 1 VS 1 -->
+    <!-- MODAL GABUNG ROOM -->
     <div class="modal-overlay" id="gabungKamar1vs1Modal">
         <div class="modal-box">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-key"></i> Masukkan Kode Kamar</h3>
+                <h3><i class="fa-solid fa-key"></i> Masukkan Kode Room</h3>
                 <button class="close-btn" onclick="closeModal('gabungKamar1vs1Modal')">&times;</button>
             </div>
             <form onsubmit="handleProsesGabungKamar1vs1(event)">
@@ -2011,14 +2011,14 @@
         </div>
     </div>
 
-    <!-- MODAL LOBBY MENUNGGU LAWAN 1 VS 1 -->
+    <!-- MODAL LOBBY MENUNGGU LAWAN ROOM -->
     <div class="modal-overlay" id="waitingLobby1vs1Modal">
         <div class="modal-box" style="text-align: center;">
             <div class="modal-header" style="justify-content: center;">
                 <h3 style="color: var(--accent-gold);"><i class="fa-solid fa-spinner fa-spin"></i> Menunggu Lawan...</h3>
             </div>
             <div class="info-badge-box" style="margin: 12px 0;">
-                Berbagikan Kode Kamar berikut kepada kawan bertanding Anda:
+                Berbagikan Kode Room berikut kepada kawan bertanding Anda:
             </div>
             <div id="displayKodeKamarUnik" style="font-size: 2.2rem; font-weight: 900; letter-spacing: 5px; color: var(--accent-gold); background: rgba(15, 23, 42, 0.9); padding: 10px; border-radius: 8px; border: 2px dashed var(--accent-gold); margin-bottom: 12px;">
                 ------
@@ -2092,16 +2092,16 @@
         let localTimerInterval = null;
         let lastSeenDrawOfferState = null;
 
-        // Variabel Tambahan untuk Modul 1 Vs 1
+        // Variabel Tambahan untuk Modul Room
         let currentRoom1vs1Id = null;
         let roomUnsubscribeListener = null;
         let activeArena1vs1Unsubscribe = null;
 
         // Variabel Tambahan untuk Modul Bermain Online (Adaptive ELO & Matchmaking)
-        let playerSessionElo = 1500;       // ELO pemain yang dipilih/tersimpan
-        let targetOpponentElo = 1500;     // ELO lawan yang sedang dicari
-        let selectedWaktuMenit = 5;       // Durasi waktu game online
-        let onlineGameLastResult = null;  // 'menang' atau 'kalah' untuk rematch
+        let playerSessionElo = 1500;       
+        let targetOpponentElo = 1500;     
+        let selectedWaktuMenit = 5;       
+        let onlineGameLastResult = null;  
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -2840,7 +2840,7 @@
             localTimerInterval = setInterval(() => {
                 if (document.getElementById('papanCaturFullView').classList.contains('active') && selectedMatchId && activeMejaNo && activeBabakKe) {
                     
-                    // Cek apakah ini mode 1 vs 1 atau Online Matchmaking
+                    // Cek apakah ini mode Room atau Online Matchmaking
                     if (selectedMatchId.toString().length > 15) {
                         if (!window.db) return;
                         window.getDocs(window.collection(window.db, "rooms1vs1")).then(snapshot => {
@@ -2874,7 +2874,7 @@
                                     }
                                 }
                             });
-                        }).catch(err => console.log("Sync 1vs1 timer error:", err));
+                        }).catch(err => console.log("Sync Room timer error:", err));
                         return;
                     }
 
@@ -3028,7 +3028,6 @@
                 localStorage.setItem('asr_active_pemain', JSON.stringify(pemain));
                 localStorage.setItem('asr_active_role', 'pemain');
 
-                // Sinkronkan ELO pemain ke state online session
                 playerSessionElo = pemain.elo || 1500;
 
                 closeModal('loginPemainModal');
@@ -3364,14 +3363,12 @@
                         
                         updateChessGameStatusInfoOnline(meja, myRoleColor);
 
-                        // Cek apakah giliran Bot (Hitam) dan panggil Stockfish Bot
                         if (meja.pemainHitam && meja.pemainHitam.hp === 'BOT_AI' && !meja.isFinished) {
                             setTimeout(() => {
                                 triggerBotMoveOnline(docId, meja);
                             }, 500);
                         }
 
-                        // Cek apakah game selesai dan simpan hasil untuk Adaptive Rematch
                         if (meja.isFinished) {
                             const isPutih = meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp;
                             const didIWin = (isPutih && meja.skor === '1-0') || (!isPutih && meja.skor === '0-1');
@@ -3382,7 +3379,6 @@
                             else onlineGameLastResult = 'kalah';
                         }
 
-                        // Munculkan Tombol Rematch jika game sudah selesai
                         const btnRematch = document.getElementById('btnRematch1vs1');
                         if (meja.isFinished) {
                             btnRematch.style.display = 'block';
@@ -3400,13 +3396,11 @@
             });
         }
 
-        // FUNGSI BOT AI STOCKFISH DENGAN SISTEM FALLBACK AMAN
         function triggerBotMoveOnline(roomDocId, mejaData) {
             if (chessEngine.game_over() || mejaData.isFinished) return;
             
             if (chessEngine.turn() === 'b' && mejaData.pemainHitam && mejaData.pemainHitam.hp === 'BOT_AI') {
                 
-                // FALLBACK JIKA STOCKFISH WORKER BELUM SIAP / DIBLOKIR BROWSER
                 if (!stockfishWorker) {
                     setTimeout(async () => {
                         const possibleMoves = chessEngine.moves({ verbose: true });
@@ -4121,7 +4115,7 @@
 
         function keluarArenaPertandingan() {
             if (selectedMatchId && selectedMatchId.toString().length > 15) {
-                showConfirmModal("Konfirmasi Keluar", "Apakah Anda yakin ingin keluar dari kamar? Keluar akan menghentikan pertandingan.", async () => {
+                showConfirmModal("Konfirmasi Keluar", "Apakah Anda yakin ingin keluar dari room? Keluar akan menghentikan pertandingan.", async () => {
                     if (window.db) {
                         try {
                             const roomRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
@@ -4202,8 +4196,8 @@
         }
 
         function pilihEloOnline(eloVal) {
-            playerSessionElo = eloVal; // Set ELO Pemain
-            targetOpponentElo = eloVal; // Set acuan awal pencarian lawan seimbang
+            playerSessionElo = eloVal; 
+            targetOpponentElo = eloVal; 
             closeModal('bermainOnlineModal');
             
             document.getElementById('infoEloTerpilih').innerText = `ELO Anda Saat Ini: ${eloVal} (Sistem Mencari Lawan Seimbang)`;
@@ -4280,7 +4274,7 @@
         }
 
         // ==========================================
-        // LOGIKA MODUL 1 VS 1
+        // LOGIKA MODUL ROOM
         // ==========================================
         function openMenu1vs1Modal() {
             if (!activeUserPemain) {
@@ -4358,7 +4352,7 @@
                     listenRoomState1vs1(currentRoom1vs1Id);
                 }
             } catch (err) {
-                showPopupModal("Gagal Membuat Kamar", err.message, "fa-triangle-exclamation");
+                showPopupModal("Gagal Membuat Room", err.message, "fa-triangle-exclamation");
             }
         }
 
@@ -4381,7 +4375,7 @@
                 });
 
                 if (!targetRoomDoc) {
-                    showPopupModal("Kode Tidak Ditemukan", "Kode kamar tidak valid atau permainan sudah dimulai/selesai.", "fa-triangle-exclamation");
+                    showPopupModal("Kode Tidak Ditemukan", "Kode room tidak valid atau permainan sudah dimulai/selesai.", "fa-triangle-exclamation");
                     return;
                 }
 
@@ -4434,7 +4428,7 @@
             activeBabakKe = 1;
 
             switchView('papanCaturFullView');
-            document.getElementById('arenaMatchTitle').innerText = `1 Vs 1 - Match Mandiri`;
+            document.getElementById('arenaMatchTitle').innerText = `Room - Match Mandiri`;
             document.getElementById('arenaMatchSubtitle').innerText = `Kode Ruangan: ${docId.substring(0, 6).toUpperCase()}`;
 
             resetMatchArenaPemain(1, 1);
