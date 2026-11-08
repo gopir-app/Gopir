@@ -3254,12 +3254,10 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
-                    // Cek jika lawan keluar / meninggalkan pertandingan
                     if (data.status === 'abandoned') {
                         showPopupModal("Lawan Keluar", "Lawan Anda telah keluar dari pertandingan. Pertandingan dihentikan.", "fa-triangle-exclamation");
                         if (activeArena1vs1Unsubscribe) activeArena1vs1Unsubscribe();
                         
-                        // Hapus data room dari Firestore secara otomatis
                         await window.deleteDoc(window.doc(window.db, "rooms1vs1", docId)).catch(e => console.log(e));
                         switchView('pemainDashboardView');
                         return;
@@ -3309,7 +3307,7 @@
             if (!window.db || !selectedMatchId) return;
 
             const roomRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
-            const durasiAwal = 5 * 60; // 5 menit default atau disesuaikan
+            const durasiAwal = 5 * 60; 
             
             const resetMeja = {
                 meja: 1,
@@ -3327,9 +3325,9 @@
             try {
                 await window.updateDoc(roomRef, {
                     "mejaData": resetMeja,
-                    "rematchRequested": true
+                    "rematchRequested": false
                 });
-                showPopupModal("Permintaan Rematch", "Permintaan tanding ulang dikirimkan. Papan direset!", "fa-rotate-right");
+                showPopupModal("Tanding Ulang", "Permintaan tanding ulang disetujui. Papan berhasil direset!", "fa-rotate-right");
             } catch(err) {
                 showPopupModal("Gagal", err.message, "fa-triangle-exclamation");
             }
@@ -3338,9 +3336,8 @@
         function syncRealtimeArenaState() {
             if(!activeUserPemain || !selectedMatchId || !activeMejaNo || !activeBabakKe) return;
 
-            // Cek apakah ini mode 1 vs 1
             if (selectedMatchId.toString().length > 15) {
-                return; // Ditangani oleh initLiveArena1vs1 via onSnapshot
+                return;
             }
 
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
@@ -3548,17 +3545,7 @@
                             lastKnownFenOnline = chessEngine.fen();
                             renderChessboardOnline(myRoleColor);
 
-                            if (window.db) {
-                                try {
-                                    const roomRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
-                                    await window.updateDoc(roomRef, {
-                                        "mejaData.fen": chessEngine.fen(),
-                                        "mejaData.isTimerRunning": true
-                                    });
-                                } catch (err) {
-                                    console.error("Gagal sinkronisasi langkah 1vs1:", err);
-                                }
-                            }
+                            await pushMoveToFirebaseOnline();
                         }
                     } else {
                         const piece = chessEngine.get(squareNotation);
@@ -3656,6 +3643,12 @@
             selectedSquareSquareNotation = null;
             validMovesForSelectedSquare = [];
             lastKnownFenOnline = chessEngine.fen();
+
+            if (selectedMatchId && selectedMatchId.toString().length > 15) {
+                renderChessboardOnline(chessEngine.turn() === 'w' ? 'b' : 'w'); // Disesuaikan saat promosi
+                await pushMoveToFirebaseOnline();
+                return;
+            }
 
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             const babakObj = ev ? ev.babakList.find(b => b.babakKe === activeBabakKe) : null;
@@ -3797,6 +3790,35 @@
         }
 
         async function pushMoveToFirebaseOnline() {
+            // PERBARUAN: Logika Penanganan 1 vs 1 (Skakmat, Remis, dll)
+            if (selectedMatchId && selectedMatchId.toString().length > 15) {
+                if (!window.db) return;
+                const roomRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
+                
+                let updateData = {
+                    "mejaData.fen": chessEngine.fen(),
+                    "mejaData.isTimerRunning": true
+                };
+
+                if (chessEngine.game_over()) {
+                    updateData["mejaData.isFinished"] = true;
+                    updateData["mejaData.isTimerRunning"] = false;
+                    
+                    if (chessEngine.in_checkmate()) {
+                        const loserColor = chessEngine.turn();
+                        const winnerColor = loserColor === 'w' ? 'b' : 'w';
+                        updateData["mejaData.skor"] = winnerColor === 'w' ? '1-0' : '0-1';
+                        updateData["mejaData.alasanSelesai"] = "Skakmat";
+                    } else if (chessEngine.in_draw()) {
+                        updateData["mejaData.skor"] = "0.5-0.5";
+                        updateData["mejaData.alasanSelesai"] = "Remis / Draw";
+                    }
+                }
+
+                await window.updateDoc(roomRef, updateData);
+                return;
+            }
+
             const ev = daftarEvent.find(e => (e.id == selectedMatchId || e.docId == selectedMatchId));
             if(!ev || !ev.babakList) return;
 
@@ -3858,7 +3880,7 @@
             const isMyTurn = chessEngine.turn() === myRoleColor;
 
             if (meja.isFinished) {
-                const pemenangNama = meja.skor === '1-0' ? meja.pemainPutih.nama : (meja.skor === '0-1' ? meja.pemainHitam.nama : 'Draw');
+                const pemenangNama = meja.skor === '1-0' ? (meja.pemainPutih ? meja.pemainPutih.nama : 'Putih') : (meja.skor === '0-1' ? (meja.pemainHitam ? meja.pemainHitam.nama : 'Hitam') : 'Draw');
                 statusEl.innerHTML = `<i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <b>Pertandingan Selesai!</b> Alasan: ${meja.alasanSelesai || 'Selesai'}. Pemenang: <b>${pemenangNama}</b>`;
                 statusEl.style.color = '#10b981';
                 return;
