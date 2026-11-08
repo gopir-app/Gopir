@@ -2101,7 +2101,7 @@
         let playerSessionElo = 1500;       // ELO pemain yang dipilih/tersimpan
         let targetOpponentElo = 1500;     // ELO lawan yang sedang dicari
         let selectedWaktuMenit = 5;       // Durasi waktu game online
-        let onlineGameLastResult = null;  // 'menang' atau 'kalah' untuk remat
+        let onlineGameLastResult = null;  // 'menang' atau 'kalah' untuk rematch
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -3364,6 +3364,13 @@
                         
                         updateChessGameStatusInfoOnline(meja, myRoleColor);
 
+                        // Cek apakah giliran Bot (Hitam) dan panggil Stockfish Bot
+                        if (meja.pemainHitam && meja.pemainHitam.hp === 'BOT_AI' && !meja.isFinished) {
+                            setTimeout(() => {
+                                triggerBotMoveOnline(docId, meja);
+                            }, 500);
+                        }
+
                         // Cek apakah game selesai dan simpan hasil untuk Adaptive Rematch
                         if (meja.isFinished) {
                             const isPutih = meja.pemainPutih && meja.pemainPutih.hp === activeUserPemain.hp;
@@ -3393,23 +3400,83 @@
             });
         }
 
+        // FUNGSI BOT AI STOCKFISH UNTUK MODE ONLINE MATCHMAKING
+        function triggerBotMoveOnline(roomDocId, mejaData) {
+            if (!stockfishWorker || chessEngine.game_over() || mejaData.isFinished) return;
+            
+            if (chessEngine.turn() === 'b' && mejaData.pemainHitam && mejaData.pemainHitam.hp === 'BOT_AI') {
+                const fen = chessEngine.fen();
+                
+                let depthVal = 10;
+                if (targetOpponentElo <= 1200) depthVal = 6;
+                else if (targetOpponentElo >= 1800) depthVal = 14;
+
+                stockfishWorker.postMessage(`position fen ${fen}`);
+                stockfishWorker.postMessage(`go depth ${depthVal}`);
+
+                stockfishWorker.onmessage = async function(event) {
+                    const message = event.data;
+                    if (message.startsWith("bestmove")) {
+                        const moveStr = message.split(" ")[1];
+                        if (moveStr && moveStr !== "(none)") {
+                            const fromSq = moveStr.substring(0, 2);
+                            const toSq = moveStr.substring(2, 4);
+                            const promo = moveStr.length > 4 ? moveStr.substring(4, 5) : 'q';
+
+                            const moveRes = chessEngine.move({
+                                from: fromSq,
+                                to: toSq,
+                                promotion: promo
+                            });
+
+                            if (moveRes) {
+                                lastKnownFenOnline = chessEngine.fen();
+                                renderChessboardOnline('w');
+                                
+                                if (window.db) {
+                                    const roomRef = window.doc(window.db, "rooms1vs1", roomDocId);
+                                    let updateData = {
+                                        "mejaData.fen": chessEngine.fen(),
+                                        "mejaData.isTimerRunning": true
+                                    };
+
+                                    if (chessEngine.game_over()) {
+                                        updateData["mejaData.isFinished"] = true;
+                                        updateData["mejaData.isTimerRunning"] = false;
+                                        if (chessEngine.in_checkmate()) {
+                                            updateData["mejaData.skor"] = '1-0';
+                                            updateData["mejaData.alasanSelesai"] = "Skakmat oleh Bot";
+                                        } else if (chessEngine.in_draw()) {
+                                            updateData["mejaData.skor"] = "0.5-0.5";
+                                            updateData["mejaData.alasanSelesai"] = "Remis / Draw";
+                                        }
+                                    }
+
+                                    await window.updateDoc(roomRef, updateData).catch(err => {
+                                        console.log("Gagal memperbarui langkah bot:", err);
+                                    });
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+        }
+
         async function mintaRematch1vs1() {
             if (!window.db || !selectedMatchId) return;
 
-            // Jika ini mode Online Matchmaking dengan Bot/Sistem Adaptif ELO
             if (selectedMatchId.toString().startsWith("ONLINE_")) {
-                // Terapkan adaptif ELO berdasarkan hasil pertandingan sebelumnya
                 if (onlineGameLastResult === 'menang') {
-                    targetOpponentElo += 75; // Menang: Cari lawan lebih tinggi
+                    targetOpponentElo += 75;
                     showPopupModal("Matchmaking Adaptif", `Hebat! Anda menang. Sistem mencarikan lawan dengan ELO lebih tinggi: <b>${targetOpponentElo}</b>`, "fa-ranking-star");
                 } else if (onlineGameLastResult === 'kalah') {
-                    targetOpponentElo = Math.max(1000, targetOpponentElo - 60); // Kalah: Cari lawan sedikit di bawah
+                    targetOpponentElo = Math.max(1000, targetOpponentElo - 60);
                     showPopupModal("Matchmaking Adaptif", `Jangan menyerah! Sistem mencarikan lawan yang lebih seimbang di ELO: <b>${targetOpponentElo}</b>`, "fa-ranking-star");
                 } else {
                     showPopupModal("Matchmaking Adaptif", `Pertandingan imbang. Mempertahankan level ELO lawan di: <b>${targetOpponentElo}</b>`, "fa-ranking-star");
                 }
 
-                // Mulai ulang pertandingan online baru
                 eksekusiMulaiPertandinganOnline();
                 return;
             }
@@ -3623,7 +3690,6 @@
         async function onSquareClickOnline(squareNotation, myRoleColor) {
             if (chessEngine.game_over()) return;
 
-            // Cek mode 1 vs 1 atau Online Matchmaking
             if (selectedMatchId && selectedMatchId.toString().length > 15) {
                 if (chessEngine.turn() !== myRoleColor) {
                     showPopupModal("Bukan Giliran", "Bukan giliran Anda! Tunggu lawan melangkah.", "fa-hourglass-half");
