@@ -1114,12 +1114,16 @@
                     <i class="fa-solid fa-circle-info"></i> Menghubungkan ke meja online...
                 </div>
 
-                <div class="arena-action-row">
+                <div class="arena-action-row" style="flex-wrap: wrap; gap: 6px;">
                     <button class="btn btn-danger" style="flex: 1;" onclick="aksiPemainMenyerah()">
                         <i class="fa-solid fa-flag"></i> Menyerah
                     </button>
                     <button class="btn btn-outline" style="flex: 1;" onclick="aksiPemainRemis()">
                         <i class="fa-solid fa-handshake"></i> Tawaran Remis
+                    </button>
+                    <!-- TOMBOL REMATCH (MUNCUL OTOMATIS SAAT GAME SELESAI PADA 1 VS 1) -->
+                    <button id="btnRematch1vs1" class="btn btn-success" style="flex: 100%; display: none;" onclick="mintaRematch1vs1()">
+                        <i class="fa-solid fa-rotate-right"></i> Minta Tanding Lagi (Rematch)
                     </button>
                 </div>
             </div>
@@ -3246,9 +3250,21 @@
             if (!window.db) return;
             if (activeArena1vs1Unsubscribe) activeArena1vs1Unsubscribe();
 
-            activeArena1vs1Unsubscribe = window.onSnapshot(window.doc(window.db, "rooms1vs1", docId), (docSnap) => {
+            activeArena1vs1Unsubscribe = window.onSnapshot(window.doc(window.db, "rooms1vs1", docId), async (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    
+                    // Cek jika lawan keluar / meninggalkan pertandingan
+                    if (data.status === 'abandoned') {
+                        showPopupModal("Lawan Keluar", "Lawan Anda telah keluar dari pertandingan. Pertandingan dihentikan.", "fa-triangle-exclamation");
+                        if (activeArena1vs1Unsubscribe) activeArena1vs1Unsubscribe();
+                        
+                        // Hapus data room dari Firestore secara otomatis
+                        await window.deleteDoc(window.doc(window.db, "rooms1vs1", docId)).catch(e => console.log(e));
+                        switchView('pemainDashboardView');
+                        return;
+                    }
+
                     const meja = data.mejaData;
                     if (meja) {
                         let myRoleColor = 'w';
@@ -3270,10 +3286,53 @@
                             chessEngine = new Chess(currentFen);
                             renderChessboardOnline(myRoleColor);
                         }
+                        
                         updateChessGameStatusInfoOnline(meja, myRoleColor);
+
+                        // Munculkan Tombol Rematch jika game sudah selesai
+                        const btnRematch = document.getElementById('btnRematch1vs1');
+                        if (meja.isFinished) {
+                            btnRematch.style.display = 'block';
+                            if (data.rematchRequested) {
+                                btnRematch.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Lawan Meminta Tanding Lagi...`;
+                            }
+                        } else {
+                            btnRematch.style.display = 'none';
+                            btnRematch.innerHTML = `<i class="fa-solid fa-rotate-right"></i> Minta Tanding Lagi (Rematch)`;
+                        }
                     }
                 }
             });
+        }
+
+        async function mintaRematch1vs1() {
+            if (!window.db || !selectedMatchId) return;
+
+            const roomRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
+            const durasiAwal = 5 * 60; // 5 menit default atau disesuaikan
+            
+            const resetMeja = {
+                meja: 1,
+                timePutih: durasiAwal,
+                timeHitam: durasiAwal,
+                fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+                isStarted: true,
+                isTimerRunning: false,
+                isFinished: false,
+                skor: '0',
+                alasanSelesai: '',
+                triggerMulai: true
+            };
+
+            try {
+                await window.updateDoc(roomRef, {
+                    "mejaData": resetMeja,
+                    "rematchRequested": true
+                });
+                showPopupModal("Permintaan Rematch", "Permintaan tanding ulang dikirimkan. Papan direset!", "fa-rotate-right");
+            } catch(err) {
+                showPopupModal("Gagal", err.message, "fa-triangle-exclamation");
+            }
         }
 
         function syncRealtimeArenaState() {
@@ -3485,23 +3544,16 @@
                         if (moveResult) {
                             selectedSquareSquareNotation = null;
                             validMovesForSelectedSquare = [];
+                            
                             lastKnownFenOnline = chessEngine.fen();
                             renderChessboardOnline(myRoleColor);
 
-                            // Push update FEN dan giliran ke Firebase 1vs1 secara real-time
                             if (window.db) {
-                                const docRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
                                 try {
-                                    const snapDoc = await window.getDocs(window.collection(window.db, "rooms1vs1"));
-                                    snapDoc.forEach(async (d) => {
-                                        if (d.id === selectedMatchId) {
-                                            let roomData = d.data();
-                                            roomData.mejaData.fen = chessEngine.fen();
-                                            roomData.mejaData.isTimerRunning = true;
-                                            await window.updateDoc(window.doc(window.db, "rooms1vs1", selectedMatchId), { 
-                                                mejaData: roomData.mejaData 
-                                            });
-                                        }
+                                    const roomRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
+                                    await window.updateDoc(roomRef, {
+                                        "mejaData.fen": chessEngine.fen(),
+                                        "mejaData.isTimerRunning": true
                                     });
                                 } catch (err) {
                                     console.error("Gagal sinkronisasi langkah 1vs1:", err);
@@ -3842,8 +3894,23 @@
 
         function keluarArenaPertandingan() {
             if (selectedMatchId && selectedMatchId.toString().length > 15) {
-                if (activeArena1vs1Unsubscribe) activeArena1vs1Unsubscribe();
-                switchView('pemainDashboardView');
+                showConfirmModal("Konfirmasi Keluar", "Apakah Anda yakin ingin keluar dari kamar? Keluar akan menghentikan pertandingan dan lawan akan mendapatkan pemberitahuan bahwa Anda keluar.", async () => {
+                    if (window.db) {
+                        try {
+                            const roomRef = window.doc(window.db, "rooms1vs1", selectedMatchId);
+                            await window.updateDoc(roomRef, {
+                                "mejaData.isFinished": true,
+                                "mejaData.isTimerRunning": false,
+                                "mejaData.alasanSelesai": `${activeUserPemain.nama} Keluar dari Pertandingan`,
+                                status: 'abandoned'
+                            });
+                        } catch(err) {
+                            console.error("Gagal memperbarui status keluar:", err);
+                        }
+                    }
+                    if (activeArena1vs1Unsubscribe) activeArena1vs1Unsubscribe();
+                    switchView('pemainDashboardView');
+                });
                 return;
             }
 
