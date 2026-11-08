@@ -991,10 +991,10 @@
                     <h3>ELO Rating</h3>
                     <p>Poin & Peringkat Kamu</p>
                 </div>
-                <div class="menu-card" onclick="showPopupModal('Grup WhatsApp', 'Bergabunglah dengan komunitas pecatur online melalui tautan grup resmi wasit.', 'fa-brands fa-whatsapp')">
-                    <div class="menu-icon"><i class="fa-brands fa-whatsapp"></i></div>
-                    <h3>Grup WA</h3>
-                    <p>Komunitas pecatur online</p>
+                <div class="menu-card" onclick="openBermainOnlineModal();">
+                    <div class="menu-icon"><i class="fa-solid fa-globe"></i></div>
+                    <h3>Bermain Online</h3>
+                    <p>Atur ELO, waktu & tanding</p>
                 </div>
                 <div class="menu-card" onclick="switchView('pertandinganPemainFullView'); openPertandinganPemainView();">
                     <div id="dotPemainPertandingan" class="green-dot" style="display: none;"></div>
@@ -1551,6 +1551,75 @@
         </div>
     </div>
 
+    <!-- MODAL UTAMA BERMAIN ONLINE -->
+    <div class="modal-overlay" id="bermainOnlineModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-globe"></i> Pilih ELO Lawan Online</h3>
+                <button class="close-btn" onclick="closeModal('bermainOnlineModal')">&times;</button>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
+                Pilih tingkat ELO target lawan tanding Anda:
+            </p>
+            <div class="submenu-grid">
+                <button class="submenu-btn" onclick="pilihEloOnline(1500)">
+                    <i class="fa-solid fa-shield" style="color: var(--accent-gold);"></i> ELO 1500 (Menengah)
+                </button>
+                <button class="submenu-btn" onclick="pilihEloOnline(1700)">
+                    <i class="fa-solid fa-shield-halved" style="color: var(--accent-gold);"></i> ELO 1700 (Mahir)
+                </button>
+                <button class="submenu-btn" onclick="pilihEloOnline(2000)">
+                    <i class="fa-solid fa-crown" style="color: var(--accent-gold);"></i> ELO 2000 (Master)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PILIH WAKTU PERTANDINGAN -->
+    <div class="modal-overlay" id="pilihWaktuOnlineModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-stopwatch"></i> Pilih Durasi Waktu</h3>
+                <button class="close-btn" onclick="closeModal('pilihWaktuOnlineModal')">&times;</button>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;" id="infoEloTerpilih">
+                ELO Terpilih: 1500
+            </p>
+            <div class="submenu-grid">
+                <button class="submenu-btn" onclick="pilihWaktuGame(3)">
+                    <i class="fa-solid fa-bolt" style="color: var(--accent-gold);"></i> 3 Menit (Blitz Cepat)
+                </button>
+                <button class="submenu-btn" onclick="pilihWaktuGame(5)">
+                    <i class="fa-solid fa-clock" style="color: var(--accent-gold);"></i> 5 Menit (Standar)
+                </button>
+                <button class="submenu-btn" onclick="pilihWaktuGame(10)">
+                    <i class="fa-solid fa-stopwatch-20" style="color: var(--accent-gold);"></i> 10 Menit (Rapid)
+                </button>
+            </div>
+            <button class="btn btn-outline" style="width: 100%; margin-top: 10px;" onclick="openBermainOnlineModal()">
+                <i class="fa-solid fa-arrow-left"></i> Kembali Pilih ELO
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI MULAI PERTANDINGAN -->
+    <div class="modal-overlay" id="mulaiPertandinganOnlineModal">
+        <div class="modal-box" style="text-align: center;">
+            <div class="modal-header" style="justify-content: center;">
+                <h3 style="color: var(--accent-gold);"><i class="fa-solid fa-chess-board"></i> Siap Bertanding</h3>
+            </div>
+            <div class="info-badge-box" style="text-align: left; margin: 12px 0;" id="ringkasanSettingOnline">
+                <!-- Diisi via JavaScript -->
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 15px;">
+                <button class="btn btn-outline" style="flex: 1;" onclick="closeModal('mulaiPertandinganOnlineModal')">Batal</button>
+                <button class="btn btn-success" style="flex: 1; padding: 10px; font-weight: 700;" onclick="eksekusiMulaiPertandinganOnline()">
+                    <i class="fa-solid fa-play"></i> Mulai Pertandingan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="detailPemainModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -2027,6 +2096,10 @@
         let currentRoom1vs1Id = null;
         let roomUnsubscribeListener = null;
         let activeArena1vs1Unsubscribe = null;
+
+        // Variabel Tambahan untuk Modul Bermain Online (ELO & Waktu)
+        let selectedEloTarget = 1500;
+        let selectedWaktuMenit = 5;
 
         const pieceImages = {
             'P': 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
@@ -3984,7 +4057,66 @@
         }
 
         // ==========================================
-        // LOGIKA BARU MODUL 1 VS 1
+        // LOGIKA BARU MODUL BERMAIN ONLINE (ELO & WAKTU)
+        // ==========================================
+        function openBermainOnlineModal() {
+            if (!activeUserPemain) {
+                showPopupModal("Akses Ditolak", "Silakan login sebagai pemain terlebih dahulu!", "fa-triangle-exclamation");
+                return;
+            }
+            closeModal('pilihWaktuOnlineModal');
+            closeModal('mulaiPertandinganOnlineModal');
+            openModal('bermainOnlineModal');
+        }
+
+        function pilihEloOnline(eloVal) {
+            selectedEloTarget = eloVal;
+            closeModal('bermainOnlineModal');
+            
+            document.getElementById('infoEloTerpilih').innerText = `Target ELO Lawan: ${eloVal}`;
+            openModal('pilihWaktuOnlineModal');
+        }
+
+        function pilihWaktuGame(menitVal) {
+            selectedWaktuMenit = menitVal;
+            closeModal('pilihWaktuOnlineModal');
+
+            document.getElementById('ringkasanSettingOnline').innerHTML = `
+                <i class="fa-solid fa-circle-check"></i> <b>Konfigurasi Laga Online:</b><br>
+                • Target ELO Lawan: <b>${selectedEloTarget}</b><br>
+                • Durasi Waktu: <b>${selectedWaktuMenit} Menit</b><br>
+                • Sistem: Pencarian Lawan Otomatis (Matchmaking)
+            `;
+            openModal('mulaiPertandinganOnlineModal');
+        }
+
+        function eksekusiMulaiPertandinganOnline() {
+            closeModal('mulaiPertandinganOnlineModal');
+
+            const dummyLawanNama = selectedEloTarget === 2000 ? "Grandmaster AI (2000)" : (selectedEloTarget === 1700 ? "Master Nasional (1700)" : "Klub Pemain (1500)");
+            const durasiDetik = selectedWaktuMenit * 60;
+            
+            selectedMatchId = "ONLINE_" + Date.now();
+            activeMejaNo = 1;
+            activeBabakKe = 1;
+
+            switchView('papanCaturFullView');
+            document.getElementById('arenaMatchTitle').innerText = `Match Online vs ELO ${selectedEloTarget}`;
+            document.getElementById('arenaMatchSubtitle').innerText = `Lawan: ${dummyLawanNama}`;
+
+            chessEngine = new Chess();
+            document.getElementById('namaPutihClock').innerText = `${activeUserPemain.nama} (Putih ⚪)`;
+            document.getElementById('namaHitamClock').innerText = `${dummyLawanNama} (Hitam ⚫)`;
+            
+            document.getElementById('timerPutih').innerText = formatTime(durasiDetik);
+            document.getElementById('timerHitam').innerText = formatTime(durasiDetik);
+
+            renderChessboardOnline('w');
+            showPopupModal("Berhasil Terhubung", `Meja pertandingan berhasil dibuka melawan ${dummyLawanNama} dengan waktu ${selectedWaktuMenit} menit!`, "fa-chess-board");
+        }
+
+        // ==========================================
+        // LOGIKA MODUL 1 VS 1
         // ==========================================
         function openMenu1vs1Modal() {
             if (!activeUserPemain) {
